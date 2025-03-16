@@ -12,7 +12,7 @@ import ru.yandex.practicum.model.Image;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @NoArgsConstructor
 @Table(name = "items")
-public class    ItemDto {
+public class ItemDto {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     int id;
@@ -35,5 +35,15 @@ public class    ItemDto {
         this.description = description;
         this.image = image;
         this.price = price;
+    }
+
+    @Override
+    public String toString() {
+        return "ItemDto{" +
+               "id=" + id +
+               ", name='" + name + '\'' +
+               ", description='" + description + '\'' +
+               ", price=" + price +
+               '}';
     }
 }

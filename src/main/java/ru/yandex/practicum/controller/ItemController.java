@@ -3,11 +3,9 @@ package ru.yandex.practicum.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.dto.ItemDto;
+import ru.yandex.practicum.enums.SortingCategory;
 import ru.yandex.practicum.model.Item;
 import ru.yandex.practicum.service.ItemService;
 
@@ -33,6 +31,14 @@ public class ItemController {
         model.addAttribute("itemDto", itemDto);
         return "item";
     }
+
+    @GetMapping("/search")
+    public String search(Model model, @RequestParam String key, @RequestParam SortingCategory sortingCategory) {
+        List<ItemDto> foundItemDtos = itemService.search(key, sortingCategory);
+        model.addAttribute("items", foundItemDtos);
+        return "main";
+    }
+
 
     @PostMapping("/item")
     public String addItem(@ModelAttribute Item item) throws IOException {

@@ -40,6 +40,10 @@ public class ItemService {
         return itemsDividedBy3;
     }
 
+    public ItemDto getItemDto(int id) {
+        return itemRepository.findById(id).get();
+    }
+
     public ItemDto addItem(Item item) throws IOException {
         ItemDto itemDto = ItemMapper.mapToItemDto(item);
         return itemRepository.save(itemDto);

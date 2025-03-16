@@ -120,7 +120,9 @@
         <table th:each="itemDto : ${itemRow}">
             <td>
                 <tr>
-                    <img th:src="@{/{itemDtoId}/image(itemDtoId=${itemDto.id})}" width="300" height="300"/>
+                    <a th:href="${'/items/'+itemDto.getId()}">
+                        <img th:src="@{/{itemDtoId}/image(itemDtoId=${itemDto.id})}" width="300" height="300">
+                    </a>
                 </tr>
                 <br>
                 <tr width="100">

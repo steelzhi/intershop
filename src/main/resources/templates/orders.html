@@ -12,22 +12,16 @@
 <a href="/main/items" style="float:right;">
     <b>ГЛАВНАЯ &cudarrr;</b>
 </a>
-<table style="width:70%;margin-left:auto;margin-right:auto;">
-    <tr th:each="order : ${orders}">
-        <td>
-            <h2>
-                <a th:text="${'Заказ №'+order.id()}" th:href="${'/orders/'+order.id()}"></a>
-            </h2>
-            <table>
-                <tr th:each="item : ${order.items()}">
-                    <td th:text="${item.getTitle()+' ('+item.getCount()+' шт.) '+(item.getPrice()*item.getCount())+' руб.'}"></td>
-                </tr>
-            </table>
-            <p>
-                <b th:text="${'Сумма: '+order.totalSum()}+' руб.'"></b>
-            </p>
-        </td>
-    </tr>
+<table th:each="order : ${orders}" style="width:70%;margin-left:auto;margin-right:auto;">
+    <h2>
+        <a th:text="${'Заказ № '+order.getId()}" th:href="${'/orders/'+order.getId()}"></a>
+    </h2>
+    <table th:each="orderItem : ${order.getOrderItems()}" style="width:70%;margin-left:auto;margin-right:auto;">
+        <td th:text="${orderItem.getItemDto().getName()+' ('+orderItem.getItemAmount()+' шт.) '+(orderItem.getItemDto().getPrice()*orderItem.getItemAmount())+' ₽'}"></td>
+    </table>
+<!--    <p>
+        <b th:text="${'Сумма: '+order.totalSum()}+' ₽'"></b>
+    </p>-->
 </table>
 </body>
 

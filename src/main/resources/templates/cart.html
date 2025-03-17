@@ -15,40 +15,38 @@
 </a>
 <br>
 <table style="width:70%;margin-left:auto;margin-right:auto;" th:each="itemDto : ${items}">
-    <tr>
-        <a th:href="${'/items/'+itemDto.getId()}">
-            <img th:src="@{/{itemDtoId}/image(itemDtoId=${itemDto.id})}" width="300" height="300">
-        </a>
-    </tr>
-    <br>
-    <tr width="100">
-        <b th:text="'Название: ' + ${itemDto.getName()}"></b>
-    </tr>
-    <br>
-    <tr width="100">
-        <b th:text="'Описание: ' + ${itemDto.getDescription()}"></b>
-    </tr>
-    <br>
-    <tr width="100">
-        <b th:text="'Цена: ' + ${itemDto.getPrice()}+' ₽'"></b>
-    </tr>
-    <br>
-    <form th:action="@{/item/{id}/minus(id=${itemDto.id})}" method="POST">
-        <button type="submit" name="pageName" th:value="CART">-</button>
-    </form>
-    <div th:text="${itemDto.amount}"></div>
-    <form th:action="@{/item/{id}/plus(id=${itemDto.id})}" method="POST">
-        <button type="submit" name="pageName" th:value="CART">+</button>
-    </form>
+    <table>
+        <tr>
+            <a th:href="${'/items/'+itemDto.getId()}">
+                <img th:src="@{/{itemDtoId}/image(itemDtoId=${itemDto.id})}" width="300" height="300">
+            </a>
+        </tr>
+        <br>
+        <tr width="100">
+            <b th:text="'Название: ' + ${itemDto.getName()}"></b>
+        </tr>
+        <br>
+        <tr width="100">
+            <b th:text="'Описание: ' + ${itemDto.getDescription()}"></b>
+        </tr>
+        <br>
+        <tr width="100">
+            <b th:text="'Цена: ' + ${itemDto.getPrice()}+' ₽'"></b>
+        </tr>
+        <br>
+        <form th:action="@{/item/{id}/minus(id=${itemDto.id})}" method="POST">
+            <button type="submit" name="pageName" th:value="CART">-</button>
+        </form>
+        <div th:text="${itemDto.amount}"></div>
+        <form th:action="@{/item/{id}/plus(id=${itemDto.id})}" method="POST">
+            <button type="submit" name="pageName" th:value="CART">+</button>
+        </form>
+    </table>
 
-    <tr>
-        <td style="text-align:right">
-            <form action="/createOrder" method="post">
-                <button>Купить</button>
-            </form>
-        </td>
-    </tr>
 </table>
+<form action="/createOrder" method="post">
+    <button>Купить</button>
+</form>
 <b th:text="'Итого: '+${total}+' ₽'"></b>
 </body>
 

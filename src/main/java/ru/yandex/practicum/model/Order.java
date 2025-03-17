@@ -19,13 +19,27 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     int id;
 
-    @ManyToMany(cascade = CascadeType.ALL)
+/*    @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(name = "order_items",
             joinColumns = @JoinColumn(name = "order_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "item_id", referencedColumnName = "id"))
     List<ItemDto> itemDtos;
+            */
 
-    public Order(List<ItemDto> itemDtos) {
-        this.itemDtos = itemDtos;
+    @OneToMany
+    @JoinColumn(name = "order_id")
+    List<OrderItem> orderItems;
+
+/*    public Order(List<OrderItem> orderItems) {
+        this.orderItems = orderItems;
+    }*/
+
+
+    @Override
+    public String toString() {
+        return "Order{" +
+               "id=" + id +
+               ", orderItems=" + orderItems +
+               '}';
     }
 }

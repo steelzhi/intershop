@@ -58,4 +58,8 @@ public class CartService {
     public double getTotalPrice() {
         return totalPrice;
     }
+
+    public Map<ItemDto, Integer> getCart() {
+        return cart;
+    }
 }

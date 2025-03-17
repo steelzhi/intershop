@@ -41,7 +41,11 @@
 </form>
 &nbsp;
 <form th:action="@{/cart/add/{id}(id=${itemDto.id})}" method="POST">
-    <button type="submit" name="pageName" th:value="ITEM">Добавить товар в корзину</button>
+    <button type="submit" name="pageName" th:value="ITEM">Добавить в корзину</button>
+</form>
+
+<form th:action="@{/cart/remove/{id}(id=${itemDto.id})}" method="POST">
+    <button type="submit" name="pageName" th:value="ITEM">Удалить из корзины</button>
 </form>
 </p>
 </div>

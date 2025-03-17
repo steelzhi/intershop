@@ -184,19 +184,13 @@
                 </form>
                 &nbsp;
                 <form th:action="@{/cart/add/{id}(id=${itemDto.id})}" method="POST">
-                    <button type="submit" name="pageName" th:value="MAIN">Добавить товар в корзину</button>
+                    <button type="submit" name="pageName" th:value="MAIN">Добавить в корзину</button>
+                </form>
+
+                <form th:action="@{/cart/remove/{id}(id=${itemDto.id})}" method="POST">
+                    <button type="submit" name="pageName" th:value="MAIN">Удалить из корзины</button>
                 </form>
             </td>
-            <!--            <td>
-                            <button name="minus" onclick="decrease()">-</button>
-                            <p id="amount1" type="number">0</p>
-                            <button name="plus" onclick="increase()">+</button>
-                            <form th:action="@{/cart/add}" method="POST">
-                                <input type="hidden" name="id" th:value="${itemDto.id}"/>
-                                <input id="amount2" type="hidden" name="amount" value=""/>
-                                <button type="submit" class="submitbutton">Добавить товар в корзину</button>
-                            </form>
-                        </td>-->
         </table>
     </tr>
 </table>
@@ -224,25 +218,4 @@
     }
 </script>
 </body>
-
 </html>
-
-
-<!--    function decrease() {
-        let amount = document.getElementById("amount1").innerHTML;
-        if (amount > 0) {
-            amount&#45;&#45;;
-            document.getElementById("amount1") = amount;
-            document.getElementById("amount2").value = amount;
-        }
-    }
-    function increase() {
-        let amount = document.getElementById("amount1").innerHTML;
-        amount++;
-        document.getElementById("amount1") = amount;
-        document.getElementById("amount2").value = amount;
-    }-->
-<!--    function addToBucket() {
-        let quantity = parseInt(document.getElementById("amount").innerHTML, 10);
-        document.getElementById("in1").value = quantity;
-    }-->

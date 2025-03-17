@@ -110,4 +110,8 @@ public class ItemService {
     public int getItemListSize() {
         return itemRepository.getItemListSize();
     }
+
+    public Map<Integer, ItemDto> getExistingItemsDtos() {
+        return existingItemsDtos;
+    }
 }

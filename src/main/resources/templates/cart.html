@@ -43,6 +43,14 @@
         <form th:action="@{/item/{id}/plus(id=${itemDto.id})}" method="POST">
             <button type="submit" name="pageName" th:value="CART">+</button>
         </form>
+
+        <form th:action="@{/item/{id}/plus(id=${itemDto.id})}" method="POST">
+            <button type="submit" name="pageName" th:value="CART">+</button>
+        </form>
+
+        <form th:action="@{/cart/remove/{id}(id=${itemDto.id})}" method="POST">
+            <button type="submit" name="pageName" th:value="CART">Удалить из корзины</button>
+        </form>
         &nbsp;
     </table>
 

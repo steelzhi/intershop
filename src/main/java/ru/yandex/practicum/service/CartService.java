@@ -14,6 +14,7 @@ import java.util.*;
 public class CartService {
     // Для уменьшения дороговизны операций сохраняем текущие заказы в т.ч. в ОЗУ
     //Set<ItemDto> cart = new HashSet<>();
+    // ключ - товар, значение - id объекта CartItem
     private Map<ItemDto, Integer> cart = new HashMap<>();
     private static double totalPrice;
 
@@ -30,15 +31,27 @@ public class CartService {
         }
 
         if (cart.containsKey(itemDtoInItemRepo)) {
-            int existingCartId = cart.get(itemDtoInItemRepo);
-            CartItem cartItem = cartRepository.findById(existingCartId).get();
+            int existingCartItemId = cart.get(itemDtoInItemRepo);
+            CartItem cartItem = cartRepository.findById(existingCartItemId).get();
             cartItem.setItemDto(itemDtoInItemRepo);
             cartRepository.save(cartItem);
-            cart.put(itemDtoInItemRepo, existingCartId);
+            cart.put(itemDtoInItemRepo, existingCartItemId);
         } else {
             CartItem cartItem = new CartItem(itemDtoInItemRepo);
             CartItem savedCartItem = cartRepository.save(cartItem);
             cart.put(itemDtoInItemRepo, savedCartItem.getId());
+        }
+    }
+
+    public void removeItemFromCart(int id) {
+        ItemDto itemDtoInItemRepo = itemRepository.findById(id).get();
+
+        if (cart.containsKey(itemDtoInItemRepo)) {
+            itemDtoInItemRepo.setAmount(0);
+            itemRepository.save(itemDtoInItemRepo);
+            int cartItemId = cart.get(itemDtoInItemRepo);
+            cartRepository.deleteById(cartItemId);
+            cart.remove(itemDtoInItemRepo);
         }
     }
 

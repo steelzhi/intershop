@@ -24,9 +24,14 @@ public class OrderController {
     @PostMapping("/createOrder")
     public String createOrder(Model model) {
         Order order = orderService.createOrder();
-        model.addAttribute("order", order);
-        cartService.getCart().clear();
-        return "order";
+        if (order != null) {
+            model.addAttribute("order", order);
+            cartService.getCart().clear();
+            return "order";
+        } else {
+            return "redirect:/main/items";
+        }
+
     }
 
     @GetMapping("/orders")

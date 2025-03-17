@@ -37,11 +37,11 @@
     </tr>
     <br>
     <tr>
-        <b th:text="${'Общая стоимость товара: '+orderItem.getItemDto().getPrice()*orderItem.getItemAmount()}+' руб.'"></b>
+        <b th:text="${'Общая стоимость товара: '+orderItem.getItemDto().getPrice()*orderItem.getItemAmount()}+' ₽'"></b>
     </tr>
 </table>
 
-<b th:text="'Итоговая сумма заказа: ' + ${order.getTotalSum()}"></b>
+<b th:text="'Итоговая сумма заказа: ' + ${order.getTotalSum()}+' ₽'"></b>
 </body>
 
 </html>

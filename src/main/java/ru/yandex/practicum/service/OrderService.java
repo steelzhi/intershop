@@ -27,6 +27,10 @@ public class OrderService {
 
     public Order createOrder() {
         List<CartItem> cartItems = cartRepository.findAll();
+        if (cartItems.isEmpty() || !doesCartHaveNotNullItems(cartItems)) {
+            return null;
+        }
+
         List<OrderItem> orderItems = new ArrayList<>();
         Order order = new Order();
         Order savedOrder = orderRepository.save(order);
@@ -54,5 +58,15 @@ public class OrderService {
     public Order getOrder(int id) {
         Order order = orderRepository.findById(id).get();
         return order;
+    }
+
+    private boolean doesCartHaveNotNullItems(List<CartItem> cartItems) {
+        for (CartItem cartItem : cartItems) {
+            if (cartItem.getItemDto().getAmount() != 0) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

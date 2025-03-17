@@ -18,6 +18,11 @@
         <a th:text="${'Заказ № '+order.getId()}" th:href="${'/orders/'+order.getId()}"></a>
     </h2>
     <table th:each="orderItem : ${order.getOrderItems()}" style="width:70%;margin-left:auto;margin-right:auto;">
+        <td>
+            <a th:href="${'/items/'+orderItem.getItemDto().getId()}">
+                <img th:src="@{/{itemDtoId}/image(itemDtoId=${orderItem.getItemDto().id})}" width="300" height="300">
+            </a>
+        </td>
         <td th:text="${orderItem.getItemDto().getName()+' ('+orderItem.getItemAmount()+' шт.) '+(orderItem.getItemDto().getPrice()*orderItem.getItemAmount())+' ₽'}"></td>
     </table>
     <!--    <p>

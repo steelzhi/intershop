@@ -133,19 +133,20 @@
                     <b th:text="'Цена: ' + ${itemDto.getPrice()}+' ₽'"></b>
                 </tr>
                 <br>
-                <form th:action="@{/item/{id}/minus(id=${itemDto.id})}" method="POST">
-                    <button type="submit" name="pageName" th:value="MAIN">-</button>
-                </form>
-                <div th:text="${itemDto.amount}"></div>
-                <form th:action="@{/item/{id}/plus(id=${itemDto.id})}" method="POST">
-                    <button type="submit" name="pageName" th:value="MAIN">+</button>
-                </form>
-                <br>
+                    <form th:action="@{/item/{id}/minus(id=${itemDto.id})}" method="POST">
+                        <button type="submit" name="pageName" th:value="MAIN">-</button>
+                    </form>
+                &nbsp;
+                    <span th:text="${itemDto.amount}"></span>
+                &nbsp;
+                    <form th:action="@{/item/{id}/plus(id=${itemDto.id})}" method="POST">
+                        <button type="submit" name="pageName" th:value="MAIN">+</button>
+                    </form>
+                &nbsp;
                 <form th:action="@{/cart/add/{id}(id=${itemDto.id})}" method="POST">
                     <button type="submit" name="pageName" th:value="MAIN">Добавить товар в корзину</button>
                 </form>
             </td>
-
 <!--            <td>
                 <button name="minus" onclick="decrease()">-</button>
                 <p id="amount1" type="number">0</p>

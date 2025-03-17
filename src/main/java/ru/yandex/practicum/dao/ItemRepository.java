@@ -1,8 +1,6 @@
 package ru.yandex.practicum.dao;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.NativeQuery;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.dto.ItemDto;
 
@@ -25,7 +23,7 @@ public interface ItemRepository extends JpaRepository<ItemDto, Integer> {
 
     List<ItemDto> findAllByOrderById();
 
-    List<ItemDto> findByNameContainingOrDescriptionContainingOrderById(String name, String description);
+    List<ItemDto> findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderById(String name, String description);
 
     List<ItemDto> findByNameContainingOrDescriptionOrderByName(String name, String description);
 

@@ -37,13 +37,17 @@
         <form th:action="@{/item/{id}/minus(id=${itemDto.id})}" method="POST">
             <button type="submit" name="pageName" th:value="CART">-</button>
         </form>
-        <div th:text="${itemDto.amount}"></div>
+        &nbsp;
+        <span th:text="${itemDto.amount}"></span>
+        &nbsp;
         <form th:action="@{/item/{id}/plus(id=${itemDto.id})}" method="POST">
             <button type="submit" name="pageName" th:value="CART">+</button>
         </form>
+        &nbsp;
     </table>
 
 </table>
+<br>
 <form action="/createOrder" method="post">
     <button>Купить</button>
 </form>

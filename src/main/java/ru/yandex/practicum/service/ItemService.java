@@ -14,7 +14,6 @@ import ru.yandex.practicum.util.ListDivider;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,14 +32,30 @@ public class ItemService {
     public List<List<ItemDto>> getItemsList() throws IOException {
         // Для теста
         if (isFirstLaunch) {
-            byte[] imageBytes = Files.readAllBytes(Paths.get("src/main/resources/image-byte-array.txt"));
+            byte[] imageBytes1 = Files.readAllBytes(Paths.get("src/main/resources/images-bytes/pipe.txt"));
+            Image image1 = new Image(imageBytes1);
+            ItemDto itemDto = new ItemDto("Труба круглая", "Труба для водо- и газопроводов", image1, 72000, 0);
+            ItemDto savedItemDto = itemRepository.save(itemDto);
+            existingItemsDtos.put(savedItemDto.getId(), savedItemDto);
 
-            for (int i = 0; i < 4; i++) {
-                Image image = new Image(imageBytes);
-                ItemDto itemDto = new ItemDto("1" + String.valueOf(+Math.random() * 100), "1" + String.valueOf(+Math.random() * 100), image, Math.random() * 100, i);
-                ItemDto savedItemDto = itemRepository.save(itemDto);
-                existingItemsDtos.put(savedItemDto.getId(), savedItemDto);
-            }
+            byte[] imageBytes2 = Files.readAllBytes(Paths.get("src/main/resources/images-bytes/beam.txt"));
+            Image image2 = new Image(imageBytes2);
+            itemDto = new ItemDto("Балка", "Балка для перекрытий", image2, 104000, 0);
+            savedItemDto = itemRepository.save(itemDto);
+            existingItemsDtos.put(savedItemDto.getId(), savedItemDto);
+
+            byte[] imageBytes3 = Files.readAllBytes(Paths.get("src/main/resources/images-bytes/armature.txt"));
+            Image image3 = new Image(imageBytes3);
+            itemDto = new ItemDto("Арматура", "Стальная арматура для строительства", image3, 77000, 0);
+            savedItemDto = itemRepository.save(itemDto);
+            existingItemsDtos.put(savedItemDto.getId(), savedItemDto);
+
+            byte[] imageBytes4 = Files.readAllBytes(Paths.get("src/main/resources/images-bytes/sheet.txt"));
+            Image image4 = new Image(imageBytes4);
+            itemDto = new ItemDto("Лист гладкий", "Лист стальной для изготовления изделий", image4, 81000, 0);
+            savedItemDto = itemRepository.save(itemDto);
+            existingItemsDtos.put(savedItemDto.getId(), savedItemDto);
+
             isFirstLaunch = false;
         }
 
@@ -57,7 +72,7 @@ public class ItemService {
         List<ItemDto> itemDtos = null;
 
         switch (sortingCategory) {
-            case NO -> itemDtos = itemRepository.findByNameContainingOrDescriptionContainingOrderById(key, key);
+            case NO -> itemDtos = itemRepository.findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderById(key, key);
             case ALPHA -> itemDtos = itemRepository.findByNameContainingOrDescriptionOrderByName(key, key);
             case PRICE -> itemDtos = itemRepository.findByNameContainingOrDescriptionOrderByPrice(key, key);
         }

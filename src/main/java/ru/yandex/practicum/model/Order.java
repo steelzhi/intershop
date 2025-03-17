@@ -34,6 +34,8 @@ public class Order {
         this.orderItems = orderItems;
     }*/
 
+    @Column(name = "total_sum")
+    private double totalSum;
 
     @Override
     public String toString() {

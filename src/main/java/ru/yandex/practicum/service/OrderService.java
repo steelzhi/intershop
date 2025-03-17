@@ -30,14 +30,17 @@ public class OrderService {
         List<OrderItem> orderItems = new ArrayList<>();
         Order order = new Order();
         Order savedOrder = orderRepository.save(order);
+        double totalSum = 0;
         for (CartItem cartItem : cartItems) {
             ItemDto itemDto = cartItem.getItemDto();
             OrderItem orderItem = new OrderItem(savedOrder, itemDto, itemDto.getAmount());
             orderItems.add(orderItem);
             orderItemRepository.save(orderItem);
+            totalSum += orderItem.getItemAmount() * orderItem.getItemDto().getPrice();
         }
 
         savedOrder.setOrderItems(orderItems);
+        savedOrder.setTotalSum(totalSum);
         orderRepository.save(savedOrder);
         cartRepository.deleteAll();
 
@@ -49,6 +52,7 @@ public class OrderService {
     }
 
     public Order getOrder(int id) {
-        return orderRepository.findById(id).get();
+        Order order = orderRepository.findById(id).get();
+        return order;
     }
 }

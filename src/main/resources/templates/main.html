@@ -28,9 +28,6 @@
         .centered {
             text-align: center
         }
-        th {
-            background-color: #f4f4f4;
-        }
         .actions {
             text-align: center;
         }
@@ -64,9 +61,6 @@
         }
         .submitbutton{
             display:block;
-        }
-        tr:hover {
-            background-color: #D6EEEE
         }
     </style>
 </head>
@@ -186,7 +180,7 @@
                 <form th:action="@{/cart/add/{id}(id=${itemDto.id})}" method="POST">
                     <button type="submit" name="pageName" th:value="MAIN">Добавить в корзину</button>
                 </form>
-
+                &nbsp;
                 <form th:action="@{/cart/remove/{id}(id=${itemDto.id})}" method="POST">
                     <button type="submit" name="pageName" th:value="MAIN">Удалить из корзины</button>
                 </form>

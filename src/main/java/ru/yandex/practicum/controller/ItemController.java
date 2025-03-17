@@ -5,6 +5,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.dto.ItemDto;
+import ru.yandex.practicum.enums.PageNames;
 import ru.yandex.practicum.enums.SortingCategory;
 import ru.yandex.practicum.model.Item;
 import ru.yandex.practicum.service.ItemService;
@@ -41,9 +42,30 @@ public class ItemController {
 
 
     @PostMapping("/item")
-    public String addItem(@ModelAttribute Item item) throws IOException {
-        //return itemService.addItem(new Item("item1", null, 100.0));
+    public String addItemToList(@ModelAttribute Item item) throws IOException {
         itemService.addItem(item);
         return "redirect:/main/items";
+    }
+
+    @PostMapping("/item/{id}/minus")
+    public String decreaseItemAmountOnMainPage(@PathVariable int id, @RequestParam String pageName) throws IOException {
+        itemService.decreaseItemAmount(id);
+        PageNames pageNames = PageNames.valueOf(pageName);
+        return switch (pageNames) {
+            case MAIN -> "redirect:/main/items";
+            case ITEM -> "redirect:/items/" + id;
+            case CART -> "redirect:/cart/items";
+        };
+    }
+
+    @PostMapping("/item/{id}/plus")
+    public String increaseItemAmountOnMainPage(@PathVariable int id, @RequestParam String pageName) throws IOException {
+        itemService.increaseItemAmount(id);
+        PageNames pageNames = PageNames.valueOf(pageName);
+        return switch (pageNames) {
+            case MAIN -> "redirect:/main/items";
+            case ITEM -> "redirect:/items/" + id;
+            case CART -> "redirect:/cart/items";
+        };
     }
 }

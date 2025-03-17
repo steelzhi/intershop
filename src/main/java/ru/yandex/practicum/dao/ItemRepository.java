@@ -23,10 +23,24 @@ public interface ItemRepository extends JpaRepository<ItemDto, Integer> {
             """)
     List<ItemDto> findByKeyLikeAndSort(String key, String sort);*/
 
-    List<ItemDto> findByNameContainingOrderById(String name);
+    List<ItemDto> findAllByOrderById();
 
-    List<ItemDto> findByNameContainingOrderByName(String name);
+    List<ItemDto> findByNameContainingOrDescriptionContainingOrderById(String name, String description);
 
-    List<ItemDto> findByNameContainingOrderByPrice(String name);
+    List<ItemDto> findByNameContainingOrDescriptionOrderByName(String name, String description);
+
+    List<ItemDto> findByNameContainingOrDescriptionOrderByPrice(String name, String description);
+
+/*    @NativeQuery("""
+            UPDATE items
+            SET amount = :newAmount
+            WHERE id = :id
+            """)*/
+/*    @Query("""
+            UPDATE ItemDto
+            SET amount = :newAmount
+            WHERE id = :id
+            """)
+    void changeCount(int id, int newAmount);*/
 
 }

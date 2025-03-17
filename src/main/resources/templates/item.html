@@ -20,18 +20,26 @@
             <img th:src="@{/{itemDtoId}/image(itemDtoId=${itemDto.id})}" width="300" height="300"/>
         </p>
         <p>
-            <b th:text="${itemDto.getName()}"></b>
-            <b th:text="${itemDto.getPrice()}+' ₽'" style="text-align:right;"></b>
+            <b th:text="'Название: ' + ${itemDto.getName()}"></b>
         </p>
         <p>
-            <span th:text="${itemDto.getDescription()}"></span>
+            <span th:text="'Описание: ' + ${itemDto.getDescription()}"></span>
         </p>
-<!--        <form th:action="${'/items/'+item.getId()}" method="post">
-            <button name="action" value="minus">-</button>
-            <span th:text="${item.getCount()}"></span>
-            <button name="action" value="plus">+</button>
-            <button name="action" value="plus" th:if="${item.getCount()==0}" style="float:right;">В корзину</button>
-        </form>-->
+        <p>
+            <b th:text="'Цена: ' + ${itemDto.getPrice()}+' ₽'" style="text-align:right;"></b>
+        </p>
+        <p>
+            <form th:action="@{/item/{id}/minus(id=${itemDto.id})}" method="POST">
+                <button type="submit" name="pageName" th:value="ITEM">-</button>
+            </form>
+            <span th:text="${itemDto.amount}"></span>
+            <form th:action="@{/item/{id}/plus(id=${itemDto.id})}" method="POST">
+                <button type="submit" name="pageName" th:value="ITEM">+</button>
+            </form>
+            <form th:action="@{/cart/add/{id}(id=${itemDto.id})}" method="POST">
+                <button type="submit" name="pageName" th:value="ITEM">Добавить товар в корзину</button>
+            </form>
+        </p>
     </div>
 
     <a th:href="@{/main/items}" th:text="@{Вернуться на главную}"></a>

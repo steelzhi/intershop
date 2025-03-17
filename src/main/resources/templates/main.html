@@ -72,24 +72,26 @@
 </head>
 
 <body>
+<br>
 <a href="/orders" style="float:right;">
-    <b>ЗАКАЗЫ &cudarrr;</b>
+    <b>Заказы</b>
 </a>
+<br>
 <a href="/cart/items" style="float:right;">
-    <b>КОРЗИНА &cudarrr;</b>
+    <b>Корзина</b>
 </a>
 
 <!-- Форма поиска товаров -->
-    <form th:action="@{/search}" method="GET">
-        <label for="key">Введите название товара для поиска: </label>
-        <input id="key" style="width:300px;" name="key" th:value="${key}">
-        <label for="sortingCategory">Сортировка: </label>
-        <select id="sortingCategory" name="sortingCategory">
-            <option value="NO" th:selected="${sortingCategory=='NO'}">нет</option>
-            <option value="ALPHA" th:selected="${sortingCategory=='ALPHA'}">по алфавиту</option>
-            <option value="PRICE" th:selected="${sortingCategory=='PRICE'}">по цене</option>
-        </select>
-        <button type="submit" class="submitbutton">Найти</button>
+<form th:action="@{/search}" method="GET">
+    <label for="key">Введите название товара для поиска: </label>
+    <input id="key" style="width:300px;" name="key" th:value="${key}">
+    <label for="sortingCategory">Сортировка: </label>
+    <select id="sortingCategory" name="sortingCategory">
+        <option value="NO" th:selected="${sortingCategory=='NO'}">нет</option>
+        <option value="ALPHA" th:selected="${sortingCategory=='ALPHA'}">по алфавиту</option>
+        <option value="PRICE" th:selected="${sortingCategory=='PRICE'}">по цене</option>
+    </select>
+    <button type="submit" class="submitbutton">Найти</button>
 
 
     <!--<p>
@@ -110,7 +112,7 @@
 </form>
 
 <table th:each="itemRow : ${items}">
-    <tr width="400">
+    <tr width="600">
         <table th:each="itemDto : ${itemRow}">
             <td>
                 <tr>
@@ -120,34 +122,45 @@
                 </tr>
                 <br>
                 <tr width="100">
-                    <b th:text="${itemDto.getName()}"></b>
+                    <b th:text="'Название: ' + ${itemDto.getName()}"></b>
                 </tr>
                 <br>
                 <tr width="100">
-                    <b th:text="${itemDto.getPrice()}+' ₽'"></b>
+                    <b th:text="'Описание: ' + ${itemDto.getDescription()}"></b>
                 </tr>
                 <br>
                 <tr width="100">
-                    <b th:text="${itemDto.getDescription()}"></b>
+                    <b th:text="'Цена: ' + ${itemDto.getPrice()}+' ₽'"></b>
                 </tr>
-                <!--                <tr>
-                                    <td>
-                                        <form th:action="${'/main/itemDtos/'+itemDto.getId()}" method="post">
-                                            <button name="action" value="minus">-</button>
-                                            <span th:text="${itemDto.getCount()}"></span>
-                                            <button name="action" value="plus">+</button>
-                                            <button name="action" value="plus" th:if="${itemDto.getCount()==0}" style="float:right;">В
-                                                корзину
-                                            </button>
-                                        </form>
-                                    </td>
-                                </tr>-->
+                <br>
+                <form th:action="@{/item/{id}/minus(id=${itemDto.id})}" method="POST">
+                    <button type="submit" name="pageName" th:value="MAIN">-</button>
+                </form>
+                <div th:text="${itemDto.amount}"></div>
+                <form th:action="@{/item/{id}/plus(id=${itemDto.id})}" method="POST">
+                    <button type="submit" name="pageName" th:value="MAIN">+</button>
+                </form>
+                <br>
+                <form th:action="@{/cart/add/{id}(id=${itemDto.id})}" method="POST">
+                    <button type="submit" name="pageName" th:value="MAIN">Добавить товар в корзину</button>
+                </form>
             </td>
+
+<!--            <td>
+                <button name="minus" onclick="decrease()">-</button>
+                <p id="amount1" type="number">0</p>
+                <button name="plus" onclick="increase()">+</button>
+                <form th:action="@{/cart/add}" method="POST">
+                    <input type="hidden" name="id" th:value="${itemDto.id}"/>
+                    <input id="amount2" type="hidden" name="amount" value=""/>
+                    <button type="submit" class="submitbutton">Добавить товар в корзину</button>
+                </form>
+            </td>-->
         </table>
     </tr>
 </table>
 
-<button class="btn-add" onclick="toggleForm()">Добавить товар</button>
+<button class="btn-add" onclick="toggleForm()">Добавить новый товар в каталог</button>
 <div class="form-container" style="display: none;" id="postForm">
     <h2>Добавить товар</h2>
     <form th:action="@{/item}" method="POST" th:object="${item}" enctype="multipart/form-data">
@@ -172,3 +185,23 @@
 </body>
 
 </html>
+
+
+<!--    function decrease() {
+        let amount = document.getElementById("amount1").innerHTML;
+        if (amount > 0) {
+            amount&#45;&#45;;
+            document.getElementById("amount1") = amount;
+            document.getElementById("amount2").value = amount;
+        }
+    }
+    function increase() {
+        let amount = document.getElementById("amount1").innerHTML;
+        amount++;
+        document.getElementById("amount1") = amount;
+        document.getElementById("amount2").value = amount;
+    }-->
+<!--    function addToBucket() {
+        let quantity = parseInt(document.getElementById("amount").innerHTML, 10);
+        document.getElementById("in1").value = quantity;
+    }-->

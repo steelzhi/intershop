@@ -16,6 +16,6 @@ public class ItemMapper {
             byte[] imageBytes = item.getImageFile().getBytes();
             image = new Image(imageBytes);
         }
-        return new ItemDto(item.getName(), item.getDescription(), image, item.getPrice());
+        return new ItemDto(item.getName(), item.getDescription(), image, item.getPrice(), 0);
     }
 }

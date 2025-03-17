@@ -6,51 +6,41 @@
 </head>
 
 <body>
-<a href="/orders" style="float:right;">
-    <b>ЗАКАЗЫ &cudarrr;</b>
-</a>
-<a href="/cart/items" style="float:right;">
-    <b>КОРЗИНА &cudarrr;</b>
-</a>
 <a href="/main/items" style="float:right;">
-    <b>ГЛАВНАЯ &cudarrr;</b>
+    <b>На главную</b>
 </a>
-<h1 style="text-align:center" th:if="${newOrder}">Поздравляем! Успешная покупка! &#128578;</h1>
-<table style="width:70%;margin-left:auto;margin-right:auto;">
+<br>
+<a href="/orders" style="float:right;">
+    <b>Заказы</b>
+</a>
+<br>
+<h2>Успешная покупка</h2>
+<h2 th:text="${'Заказ № '+ order.getId()}"></h2>
+
+<table th:each="itemDto : ${order.getItemDtos()}" style="width:70%;margin-left:auto;margin-right:auto;">
     <tr>
-        <td>
-            <h2 th:text="${'Заказ №'+order.id()}"></h2>
-        </td>
+        <a th:href="${'/items/'+itemDto.getId()}">
+            <img th:src="@{/{itemDtoId}/image(itemDtoId=${itemDto.id})}" width="300" height="300">
+        </a>
     </tr>
-    <tr th:each="item : ${order.items()}">
-        <td>
-            <table>
-                <tr>
-                    <td>
-                        <a th:href="${'/items/'+item.getId()}">
-                            <img width="300" height="300" th:src="${'http://localhost:8080/'+item.getImgPath()}">
-                        </a>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <b th:text="${item.getTitle()}"></b>
-                    </td>
-                    <td>
-                        <b th:text="${item.getCount()}+' шт.'"></b>
-                    </td>
-                    <td>
-                        <b th:text="${item.getPrice()*item.getCount()}+' руб.'"></b>
-                    </td>
-                </tr>
-            </table>
-        </td>
+    <br>
+    <tr width="100">
+        <b th:text="'Название: ' + ${itemDto.getName()}"></b>
     </tr>
+    <br>
+    <tr width="100">
+        <b th:text="'Описание: ' + ${itemDto.getDescription()}"></b>
+    </tr>
+    <br>
+    <tr width="100">
+        <b th:text="'Цена: ' + ${itemDto.getPrice()}+' ₽'"></b>
+    </tr>
+<!--    </tr>
     <tr>
         <td>
             <h3 th:text="${'Сумма: '+order.totalSum()}+' руб.'"></h3>
         </td>
-    </tr>
+    </tr>-->
 </table>
 </body>
 

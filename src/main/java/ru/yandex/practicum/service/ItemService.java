@@ -1,6 +1,8 @@
 package ru.yandex.practicum.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 import ru.yandex.practicum.dao.ItemRepository;
@@ -9,7 +11,6 @@ import ru.yandex.practicum.enums.SortingCategory;
 import ru.yandex.practicum.mapper.ItemMapper;
 import ru.yandex.practicum.model.Image;
 import ru.yandex.practicum.model.Item;
-import ru.yandex.practicum.util.ListDivider;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -29,7 +30,7 @@ public class ItemService {
     @Autowired
     private ItemRepository itemRepository;
 
-    public List<List<ItemDto>> getItemsList() throws IOException {
+    public List<ItemDto> getItemsList(int itemsOnPage, int pageNumber) throws IOException {
         // Для теста
         if (isFirstLaunch) {
             byte[] imageBytes1 = Files.readAllBytes(Paths.get("src/main/resources/images-bytes/pipe.txt"));
@@ -59,9 +60,12 @@ public class ItemService {
             isFirstLaunch = false;
         }
 
-        List<ItemDto> allItems = itemRepository.findAllByOrderById();
-        List<List<ItemDto>> itemsDividedBy3 = ListDivider.getDividedListBy3(allItems);
-        return itemsDividedBy3;
+        PageRequest page = PageRequest.of(pageNumber - 1, itemsOnPage);
+
+        Page<ItemDto> allItems = itemRepository.findAllByOrderById(page);
+        //List<List<ItemDto>> itemsDividedBy3 = ListDivider.getDividedListBy3(allItems);
+        //return itemsDividedBy3;
+        return allItems.getContent();
     }
 
     public ItemDto getItemDto(int id) {
@@ -73,8 +77,8 @@ public class ItemService {
 
         switch (sortingCategory) {
             case NO -> itemDtos = itemRepository.findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderById(key, key);
-            case ALPHA -> itemDtos = itemRepository.findByNameContainingOrDescriptionOrderByName(key, key);
-            case PRICE -> itemDtos = itemRepository.findByNameContainingOrDescriptionOrderByPrice(key, key);
+            case ALPHA -> itemDtos = itemRepository.findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderByName(key, key);
+            case PRICE -> itemDtos = itemRepository.findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderByPrice(key, key);
         }
 
         return itemDtos;
@@ -101,5 +105,9 @@ public class ItemService {
         int currentAmount = itemDto.getAmount();
         itemDto.setAmount(++currentAmount);
         itemRepository.save(itemDto);
+    }
+
+    public int getItemListSize() {
+        return itemRepository.getItemListSize();
     }
 }

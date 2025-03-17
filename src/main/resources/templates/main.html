@@ -72,14 +72,54 @@
 </head>
 
 <body>
-<br>
-<a href="/orders" style="float:right;">
+<a href="/orders">
     <b>Заказы</b>
 </a>
-<br>
-<a href="/cart/items" style="float:right;">
+&nbsp;&nbsp;
+<a href="/cart/items">
     <b>Корзина</b>
 </a>
+
+<br>
+<table>
+    <form th:action="@{/main/items}">
+        <input type="hidden" name="itemsOnPage" value="2"/>
+        <input type="hidden" name="pageNumber" value="1"/>
+        <button type="submit">Показывать по 2 товара</button>
+    </form>
+    <span> </span>
+    <form th:action="@{/main/items}">
+        <input type="hidden" name="itemsOnPage" value="10"/>
+        <input type="hidden" name="pageNumber" value="1"/>
+        <button type="submit">Показывать по 10 товаров</button>
+    </form>
+
+    <form th:action="@{/main/items}">
+        <input type="hidden" name="itemsOnPage" value="20"/>
+        <input type="hidden" name="pageNumber" value="1"/>
+        <button type="submit">Показывать по 20 товаров</button>
+    </form>
+    <span> </span>
+    <form th:action="@{/main/items}">
+        <input type="hidden" name="itemsOnPage" value="50"/>
+        <input type="hidden" name="pageNumber" value="1"/>
+        <button type="submit">Показывать по 50 товаров</button>
+    </form>
+    <span> </span>
+    <form th:action="@{/main/items}">
+        <input type="hidden" name="itemsOnPage" value="100"/>
+        <input type="hidden" name="pageNumber" value="1"/>
+        <button type="submit">Показывать по 100 товаров</button>
+    </form>
+</table>
+
+<div th:if="${pages != null}">
+    <span>Страницы:</span>
+    <p th:each="i : ${#numbers.sequence(1, {pages.numberOfPages}, 1)}">
+        <a th:href="@{/main/items(itemsOnPage=${pages.itemsOnPage},pageNumber=${i})}" th:text="${i} "></a>
+    </p>
+    <br/>
+</div>
 
 <!-- Форма поиска товаров -->
 <form th:action="@{/search}" method="GET">
@@ -94,21 +134,21 @@
     <button type="submit" class="submitbutton">Найти</button>
 
 
-    <!--<p>
-        <label for="pageSize">Число товаров: </label>
-        <select id="pageSize" name="pageSize" onchange="this.form.submit()">
-            <option value="5" th:selected="${paging.pageSize()==5}">5</option>
-            <option value="10" th:selected="${paging.pageSize()==10}">10</option>
-            <option value="20" th:selected="${paging.pageSize()==20}">20</option>
-            <option value="50" th:selected="${paging.pageSize()==50}">50</option>
-            <option value="100" th:selected="${paging.pageSize()==100}">100</option>
-        </select>
-    </p>
-    <p>
-        <button th:if="${paging.hasPrevious()}" name="pageNumber" th:value="${paging.pageNumber()-1}">&lt;</button>
-        <span th:text="${'Страница: '+paging.pageNumber()}"></span>
-        <button th:if="${paging.hasNext()}" name="pageNumber" th:value="${paging.pageNumber()+1}">&gt;</button>
-    </p>-->
+    <!--    <p>
+            <label for="pageSize">Число товаров: </label>
+            <select id="pageSize" name="pageSize" onchange="this.form.submit()">
+                <option value="5" th:selected="${paging.pageSize()==5}">5</option>
+                <option value="10" th:selected="${paging.pageSize()==10}">10</option>
+                <option value="20" th:selected="${paging.pageSize()==20}">20</option>
+                <option value="50" th:selected="${paging.pageSize()==50}">50</option>
+                <option value="100" th:selected="${paging.pageSize()==100}">100</option>
+            </select>
+        </p>
+        <p>
+            <button th:if="${paging.hasPrevious()}" name="pageNumber" th:value="${paging.pageNumber()-1}">&lt;</button>
+            <span th:text="${'Страница: '+paging.pageNumber()}"></span>
+            <button th:if="${paging.hasNext()}" name="pageNumber" th:value="${paging.pageNumber()+1}">&gt;</button>
+        </p>-->
 </form>
 
 <table th:each="itemRow : ${items}">
@@ -133,30 +173,30 @@
                     <b th:text="'Цена: ' + ${itemDto.getPrice()}+' ₽'"></b>
                 </tr>
                 <br>
-                    <form th:action="@{/item/{id}/minus(id=${itemDto.id})}" method="POST">
-                        <button type="submit" name="pageName" th:value="MAIN">-</button>
-                    </form>
+                <form th:action="@{/item/{id}/minus(id=${itemDto.id})}" method="POST">
+                    <button type="submit" name="pageName" th:value="MAIN">-</button>
+                </form>
                 &nbsp;
-                    <span th:text="${itemDto.amount}"></span>
+                <span th:text="${itemDto.amount}"></span>
                 &nbsp;
-                    <form th:action="@{/item/{id}/plus(id=${itemDto.id})}" method="POST">
-                        <button type="submit" name="pageName" th:value="MAIN">+</button>
-                    </form>
+                <form th:action="@{/item/{id}/plus(id=${itemDto.id})}" method="POST">
+                    <button type="submit" name="pageName" th:value="MAIN">+</button>
+                </form>
                 &nbsp;
                 <form th:action="@{/cart/add/{id}(id=${itemDto.id})}" method="POST">
                     <button type="submit" name="pageName" th:value="MAIN">Добавить товар в корзину</button>
                 </form>
             </td>
-<!--            <td>
-                <button name="minus" onclick="decrease()">-</button>
-                <p id="amount1" type="number">0</p>
-                <button name="plus" onclick="increase()">+</button>
-                <form th:action="@{/cart/add}" method="POST">
-                    <input type="hidden" name="id" th:value="${itemDto.id}"/>
-                    <input id="amount2" type="hidden" name="amount" value=""/>
-                    <button type="submit" class="submitbutton">Добавить товар в корзину</button>
-                </form>
-            </td>-->
+            <!--            <td>
+                            <button name="minus" onclick="decrease()">-</button>
+                            <p id="amount1" type="number">0</p>
+                            <button name="plus" onclick="increase()">+</button>
+                            <form th:action="@{/cart/add}" method="POST">
+                                <input type="hidden" name="id" th:value="${itemDto.id}"/>
+                                <input id="amount2" type="hidden" name="amount" value=""/>
+                                <button type="submit" class="submitbutton">Добавить товар в корзину</button>
+                            </form>
+                        </td>-->
         </table>
     </tr>
 </table>

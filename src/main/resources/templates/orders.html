@@ -6,11 +6,12 @@
 </head>
 
 <body>
-<a href="/cart/items" style="float:right;">
-    <b>КОРЗИНА &cudarrr;</b>
+<a href="/cart/items">
+    <b>Корзина</b>
 </a>
-<a href="/main/items" style="float:right;">
-    <b>ГЛАВНАЯ &cudarrr;</b>
+&nbsp;&nbsp;
+<a href="/main/items">
+    <b>На главную</b>
 </a>
 <table th:each="order : ${orders}" style="width:70%;margin-left:auto;margin-right:auto;">
     <h2>
@@ -19,9 +20,9 @@
     <table th:each="orderItem : ${order.getOrderItems()}" style="width:70%;margin-left:auto;margin-right:auto;">
         <td th:text="${orderItem.getItemDto().getName()+' ('+orderItem.getItemAmount()+' шт.) '+(orderItem.getItemDto().getPrice()*orderItem.getItemAmount())+' ₽'}"></td>
     </table>
-<!--    <p>
-        <b th:text="${'Сумма: '+order.totalSum()}+' ₽'"></b>
-    </p>-->
+    <!--    <p>
+            <b th:text="${'Сумма: '+order.totalSum()}+' ₽'"></b>
+        </p>-->
 </table>
 </body>
 

@@ -6,44 +6,45 @@
 </head>
 
 <body>
-    <a href="/orders" style="float:right;">
-        <b>ЗАКАЗЫ &cudarrr;</b>
-    </a>
-    <a href="/cart/items" style="float:right;">
-        <b>КОРЗИНА &cudarrr;</b>
-    </a>
-    <a href="/main/items" style="float:right;">
-        <b>ГЛАВНАЯ &cudarrr;</b>
-    </a>
-    <div style="width:70%;margin-left:auto;margin-right:auto;">
-        <p>
-            <img th:src="@{/{itemDtoId}/image(itemDtoId=${itemDto.id})}" width="300" height="300"/>
-        </p>
-        <p>
-            <b th:text="'Название: ' + ${itemDto.getName()}"></b>
-        </p>
-        <p>
-            <span th:text="'Описание: ' + ${itemDto.getDescription()}"></span>
-        </p>
-        <p>
-            <b th:text="'Цена: ' + ${itemDto.getPrice()}+' ₽'" style="text-align:right;"></b>
-        </p>
-        <p>
-            <form th:action="@{/item/{id}/minus(id=${itemDto.id})}" method="POST">
-                <button type="submit" name="pageName" th:value="ITEM">-</button>
-            </form>
-        &nbsp;
-            <span th:text="${itemDto.amount}"></span>
-        &nbsp;
-            <form th:action="@{/item/{id}/plus(id=${itemDto.id})}" method="POST">
-                <button type="submit" name="pageName" th:value="ITEM">+</button>
-            </form>
-        &nbsp;
-            <form th:action="@{/cart/add/{id}(id=${itemDto.id})}" method="POST">
-                <button type="submit" name="pageName" th:value="ITEM">Добавить товар в корзину</button>
-            </form>
-        </p>
-    </div>
+<a href="/orders">
+    <b>Заказы</b>
+</a>
+&nbsp;&nbsp;
+<a href="/cart/items">
+    <b>Корзина</b>
+</a>
+&nbsp;&nbsp;
+<a href="/main/items">
+    <b>На главную</b>
+</a>
+<p>
+    <img th:src="@{/{itemDtoId}/image(itemDtoId=${itemDto.id})}" width="300" height="300"/>
+</p>
+<p>
+    <b th:text="'Название: ' + ${itemDto.getName()}"></b>
+</p>
+<p>
+    <span th:text="'Описание: ' + ${itemDto.getDescription()}"></span>
+</p>
+<p>
+    <b th:text="'Цена: ' + ${itemDto.getPrice()}+' ₽'" style="text-align:right;"></b>
+</p>
+<p>
+<form th:action="@{/item/{id}/minus(id=${itemDto.id})}" method="POST">
+    <button type="submit" name="pageName" th:value="ITEM">-</button>
+</form>
+&nbsp;
+<span th:text="${itemDto.amount}"></span>
+&nbsp;
+<form th:action="@{/item/{id}/plus(id=${itemDto.id})}" method="POST">
+    <button type="submit" name="pageName" th:value="ITEM">+</button>
+</form>
+&nbsp;
+<form th:action="@{/cart/add/{id}(id=${itemDto.id})}" method="POST">
+    <button type="submit" name="pageName" th:value="ITEM">Добавить товар в корзину</button>
+</form>
+</p>
+</div>
 </body>
 
 </html>

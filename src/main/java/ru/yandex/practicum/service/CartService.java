@@ -24,22 +24,23 @@ public class CartService {
     @Autowired
     private ItemRepository itemRepository;
 
-    public void addItemToCart(@PathVariable int id) {
+    public CartItem addItemToCart(@PathVariable int id) {
         ItemDto itemDtoInItemRepo = itemRepository.findById(id).get();
         if (itemDtoInItemRepo.getAmount() == 0) {
-            return;
+            return null;
         }
 
         if (cart.containsKey(itemDtoInItemRepo)) {
             int existingCartItemId = cart.get(itemDtoInItemRepo);
             CartItem cartItem = cartRepository.findById(existingCartItemId).get();
             cartItem.setItemDto(itemDtoInItemRepo);
-            cartRepository.save(cartItem);
             cart.put(itemDtoInItemRepo, existingCartItemId);
+            return cartRepository.save(cartItem);
         } else {
             CartItem cartItem = new CartItem(itemDtoInItemRepo);
             CartItem savedCartItem = cartRepository.save(cartItem);
             cart.put(itemDtoInItemRepo, savedCartItem.getId());
+            return savedCartItem;
         }
     }
 

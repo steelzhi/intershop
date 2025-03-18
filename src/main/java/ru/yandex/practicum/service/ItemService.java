@@ -91,20 +91,20 @@ public class ItemService {
         return savedItemDto;
     }
 
-    public void decreaseItemAmount(@PathVariable int id) {
+    public ItemDto decreaseItemAmount(@PathVariable int id) {
         ItemDto itemDto = existingItemsDtos.get(id);
         int currentAmount = itemDto.getAmount();
         if (currentAmount > 0) {
             itemDto.setAmount(--currentAmount);
         }
-        itemRepository.save(itemDto);
+        return itemRepository.save(itemDto);
     }
 
-    public void increaseItemAmount(@PathVariable int id) {
+    public ItemDto increaseItemAmount(@PathVariable int id) {
         ItemDto itemDto = existingItemsDtos.get(id);
         int currentAmount = itemDto.getAmount();
         itemDto.setAmount(++currentAmount);
-        itemRepository.save(itemDto);
+        return itemRepository.save(itemDto);
     }
 
     public int getItemListSize() {

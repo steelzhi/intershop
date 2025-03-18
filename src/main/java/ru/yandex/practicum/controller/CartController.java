@@ -10,6 +10,7 @@ import ru.yandex.practicum.service.CartService;
 import ru.yandex.practicum.service.ItemService;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Controller
@@ -30,7 +31,8 @@ public class CartController {
     @PostMapping("/cart/remove/{id}")
     public String removeItemFromCart(@PathVariable int id, @RequestParam String pageName) {
         cartService.removeItemFromCart(id);
-        itemService.getExistingItemsDtos().get(id).setAmount(0);
+        Map<Integer, ItemDto> existingItemDtos = itemService.getExistingItemsDtos();
+        existingItemDtos.get(id).setAmount(0);
         PageNames pageNames = PageNames.valueOf(pageName);
         return switch (pageNames) {
             case MAIN -> "redirect:/main/items";

@@ -69,12 +69,12 @@
 <a href="/orders">
     <b>Заказы</b>
 </a>
-&nbsp;&nbsp;
+&#160;&#160;
 <a href="/cart/items">
     <b>Корзина</b>
 </a>
 
-<br>
+<br/>
 <table>
     <form th:action="@{/main/items}">
         <input type="hidden" name="itemsOnPage" value="2"/>
@@ -118,7 +118,7 @@
 <!-- Форма поиска товаров -->
 <form th:action="@{/search}" method="GET">
     <label for="key">Введите название товара для поиска: </label>
-    <input id="key" style="width:300px;" name="key" th:value="${key}">
+    <input id="key" style="width:300px;" name="key" th:value="${key}"/>
     <label for="sortingCategory">Сортировка: </label>
     <select id="sortingCategory" name="sortingCategory">
         <option value="NO" th:selected="${sortingCategory=='NO'}">нет</option>
@@ -145,48 +145,44 @@
         </p>-->
 </form>
 
-<table th:each="itemRow : ${items}">
-    <tr width="600">
-        <table th:each="itemDto : ${itemRow}">
-            <td>
-                <tr>
-                    <a th:href="${'/items/'+itemDto.getId()}">
-                        <img th:src="@{/{itemDtoId}/image(itemDtoId=${itemDto.id})}" width="300" height="300">
-                    </a>
-                </tr>
-                <br>
-                <tr width="100">
-                    <b th:text="'Название: ' + ${itemDto.getName()}"></b>
-                </tr>
-                <br>
-                <tr width="100">
-                    <b th:text="'Описание: ' + ${itemDto.getDescription()}"></b>
-                </tr>
-                <br>
-                <tr width="100">
-                    <b th:text="'Цена: ' + ${itemDto.getPrice()}+' ₽'"></b>
-                </tr>
-                <br>
-                <form th:action="@{/item/{id}/minus(id=${itemDto.id})}" method="POST">
-                    <button type="submit" name="pageName" th:value="MAIN">-</button>
-                </form>
-                &nbsp;
-                <span th:text="${itemDto.amount}"></span>
-                &nbsp;
-                <form th:action="@{/item/{id}/plus(id=${itemDto.id})}" method="POST">
-                    <button type="submit" name="pageName" th:value="MAIN">+</button>
-                </form>
-                &nbsp;
-                <form th:action="@{/cart/add/{id}(id=${itemDto.id})}" method="POST">
-                    <button type="submit" name="pageName" th:value="MAIN">Добавить в корзину</button>
-                </form>
-                &nbsp;
-                <form th:action="@{/cart/remove/{id}(id=${itemDto.id})}" method="POST">
-                    <button type="submit" name="pageName" th:value="MAIN">Удалить из корзины</button>
-                </form>
-            </td>
-        </table>
-    </tr>
+<table th:each="itemDto : ${items}">
+    <td>
+        <tr>
+            <a th:href="${'/items/'+itemDto.getId()}">
+                <img th:src="@{/{itemDtoId}/image(itemDtoId=${itemDto.id})}" width="300" height="300">
+            </a>
+        </tr>
+        <br/>
+        <tr width="100">
+            <b th:text="'Название: ' + ${itemDto.getName()}"></b>
+        </tr>
+        <br/>
+        <tr width="100">
+            <b th:text="'Описание: ' + ${itemDto.getDescription()}"></b>
+        </tr>
+        <br/>
+        <tr width="100">
+            <b th:text="'Цена: ' + ${itemDto.getPrice()}+' ₽'"></b>
+        </tr>
+        <br/>
+        <form th:action="@{/item/{id}/minus(id=${itemDto.id})}" method="POST">
+            <button type="submit" name="pageName" th:value="MAIN">-</button>
+        </form>
+        &#160;
+        <span th:text="${itemDto.amount}"></span>
+        &#160;
+        <form th:action="@{/item/{id}/plus(id=${itemDto.id})}" method="POST">
+            <button type="submit" name="pageName" th:value="MAIN">+</button>
+        </form>
+        &#160;
+        <form th:action="@{/cart/add/{id}(id=${itemDto.id})}" method="POST">
+            <button type="submit" name="pageName" th:value="MAIN">Добавить в корзину</button>
+        </form>
+        &#160;
+        <form th:action="@{/cart/remove/{id}(id=${itemDto.id})}" method="POST">
+            <button type="submit" name="pageName" th:value="MAIN">Удалить из корзины</button>
+        </form>
+    </td>
 </table>
 
 <button class="btn-add" onclick="toggleForm()">Добавить новый товар в каталог</button>

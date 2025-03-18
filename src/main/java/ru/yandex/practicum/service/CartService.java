@@ -13,7 +13,6 @@ import java.util.*;
 @Service
 public class CartService {
     // Для уменьшения дороговизны операций сохраняем текущие заказы в т.ч. в ОЗУ
-    //Set<ItemDto> cart = new HashSet<>();
     // ключ - товар, значение - id объекта CartItem
     private Map<ItemDto, Integer> cart = new HashMap<>();
     private static double totalPrice;

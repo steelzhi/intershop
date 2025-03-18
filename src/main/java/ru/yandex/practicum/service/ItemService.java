@@ -32,7 +32,7 @@ public class ItemService {
 
     public List<ItemDto> getItemsList(int itemsOnPage, int pageNumber) throws IOException {
         // Для теста
-        if (isFirstLaunch) {
+        /*if (isFirstLaunch) {
             byte[] imageBytes1 = Files.readAllBytes(Paths.get("src/main/resources/images-bytes/pipe.txt"));
             Image image1 = new Image(imageBytes1);
             ItemDto itemDto = new ItemDto("Труба круглая", "Труба для водо- и газопроводов", image1, 72000, 0);
@@ -58,7 +58,7 @@ public class ItemService {
             existingItemsDtos.put(savedItemDto.getId(), savedItemDto);
 
             isFirstLaunch = false;
-        }
+        }*/
 
         PageRequest page = PageRequest.of(pageNumber - 1, itemsOnPage);
 

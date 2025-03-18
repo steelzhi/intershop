@@ -26,4 +26,12 @@ public class CartItem {
     public CartItem(ItemDto itemDto) {
         this.itemDto = itemDto;
     }
+
+    @Override
+    public String toString() {
+        return "CartItem{" +
+                "id=" + id +
+                ", itemDto=" + itemDto +
+                '}';
+    }
 }

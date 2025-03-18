@@ -48,7 +48,7 @@ public class OrderService {
         orderRepository.save(savedOrder);
         cartRepository.deleteAll();
 
-        return order;
+        return savedOrder;
     }
 
     public List<Order> getOrders() {

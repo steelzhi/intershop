@@ -38,7 +38,6 @@ public class OrderItem {
     public String toString() {
         return "OrderItem{" +
                "id=" + id +
-               ", order=" + order +
                ", itemDto=" + itemDto +
                ", itemAmount=" + itemAmount +
                '}';

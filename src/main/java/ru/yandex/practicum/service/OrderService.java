@@ -72,4 +72,8 @@ public class OrderService {
 
         return false;
     }
+
+    public double getOrdersTotalSum() {
+        return orderRepository.getSumOfAllOrders();
+    }
 }

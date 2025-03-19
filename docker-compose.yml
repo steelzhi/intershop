@@ -18,6 +18,6 @@ services:
     environment:
       - POSTGRES_USER=s
       - POSTGRES_PASSWORD=sa
+      - POSTGRES_DB=intershop
       - DB_HOST=localhost
       - DB_PORT=5432
-      - DB_NAME=intershop

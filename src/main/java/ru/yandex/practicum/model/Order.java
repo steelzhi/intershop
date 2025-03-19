@@ -19,20 +19,9 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     int id;
 
-/*    @ManyToMany(cascade = CascadeType.ALL)
-    @JoinTable(name = "order_items",
-            joinColumns = @JoinColumn(name = "order_id", referencedColumnName = "id"),
-            inverseJoinColumns = @JoinColumn(name = "item_id", referencedColumnName = "id"))
-    List<ItemDto> itemDtos;
-            */
-
     @OneToMany
     @JoinColumn(name = "order_id")
     List<OrderItem> orderItems;
-
-/*    public Order(List<OrderItem> orderItems) {
-        this.orderItems = orderItems;
-    }*/
 
     @Column(name = "total_sum")
     private double totalSum;

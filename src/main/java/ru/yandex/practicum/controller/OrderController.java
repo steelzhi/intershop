@@ -36,7 +36,9 @@ public class OrderController {
     @GetMapping("/orders")
     public String getOrders(Model model) {
         List<Order> orders = orderService.getOrders();
+        double sumOfAllOrders = orderService.getOrdersTotalSum();
         model.addAttribute("orders", orders);
+        model.addAttribute("sumOfAllOrders", sumOfAllOrders);
         return "orders";
     }
 

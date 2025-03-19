@@ -63,8 +63,6 @@ public class ItemService {
         PageRequest page = PageRequest.of(pageNumber - 1, itemsOnPage);
 
         Page<ItemDto> allItems = itemRepository.findAllByOrderById(page);
-        //List<List<ItemDto>> itemsDividedBy3 = ListDivider.getDividedListBy3(allItems);
-        //return itemsDividedBy3;
         return allItems.getContent();
     }
 

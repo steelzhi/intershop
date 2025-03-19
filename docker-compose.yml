@@ -1,0 +1,23 @@
+version: '3.8'
+services:
+  server:
+    build: /
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/intershop
+      - SPRING_DATASOURCE_USERNAME=s
+      - SPRING_DATASOURCE_PASSWORD=sa
+
+  db:
+    image: postgres:13.7-alpine
+    ports:
+      - "6541:5432"
+    environment:
+      - POSTGRES_USER=s
+      - POSTGRES_PASSWORD=sa
+      - DB_HOST=localhost
+      - DB_PORT=5432
+      - DB_NAME=intershop

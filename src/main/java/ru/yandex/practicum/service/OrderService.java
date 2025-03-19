@@ -37,10 +37,13 @@ public class OrderService {
         double totalSum = 0;
         for (CartItem cartItem : cartItems) {
             ItemDto itemDto = cartItem.getItemDto();
-            OrderItem orderItem = new OrderItem(savedOrder, itemDto, itemDto.getAmount());
-            orderItems.add(orderItem);
-            orderItemRepository.save(orderItem);
-            totalSum += orderItem.getItemAmount() * orderItem.getItemDto().getPrice();
+            OrderItem orderItem;
+            if (itemDto.getAmount() != 0) {
+                orderItem = new OrderItem(savedOrder, itemDto, itemDto.getAmount());
+                orderItems.add(orderItem);
+                orderItemRepository.save(orderItem);
+                totalSum += orderItem.getItemAmount() * orderItem.getItemDto().getPrice();
+            }
         }
 
         savedOrder.setOrderItems(orderItems);

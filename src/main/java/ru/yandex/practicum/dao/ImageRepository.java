@@ -7,12 +7,4 @@ import ru.yandex.practicum.model.Image;
 
 @Repository
 public interface ImageRepository extends JpaRepository<Image, Integer> {
-/*    @Query(
-            """
-                   SELECT image
-                   FROM Item i
-                   WHERE i.id = ?1 
-                    """
-    )
-    byte[] getImage(int itemId);*/
 }

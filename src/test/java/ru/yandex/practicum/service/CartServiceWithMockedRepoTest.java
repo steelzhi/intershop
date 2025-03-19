@@ -58,7 +58,8 @@ public class CartServiceWithMockedRepoTest {
         assertTrue(cartItemFromDao != null, "cartItem should't be emplty");
         ItemDto itemDtoFromCartItem = cartItemFromDao.getItemDto();
         assertEquals(itemDtoFromCartItem.getName(), itemDto.getName(), "Names are different");
-        assertEquals(itemDtoFromCartItem.getDescription(), itemDto.getDescription(), "Descriptions are different");
+        assertEquals(itemDtoFromCartItem.getDescription(), itemDto.getDescription(),
+                "Descriptions are different");
         assertEquals(itemDtoFromCartItem.getPrice(), itemDto.getPrice(), "Prices are different");
         assertEquals(itemDtoFromCartItem.getAmount(), itemDto.getAmount(), "Amounts are different");
 

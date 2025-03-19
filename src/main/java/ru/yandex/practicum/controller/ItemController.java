@@ -1,7 +1,6 @@
 package ru.yandex.practicum.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -17,20 +16,17 @@ import java.util.List;
 
 @Controller
 public class ItemController {
-    public static final int ITEMS_ON_PAGE_DEFAULT = 10;
-    public static final int PAGE_NUMBER_FIRST = 1;
 
     @Autowired
     private ItemService itemService;
 
     @GetMapping(value = {"/", "/main/items"})
     public String getItemsList(Model model,
-                               @RequestParam(name = "itemsOnPage", required = false) Integer itemsOnPage,
-                               @RequestParam(name = "pageNumber", required = false) Integer pageNumber) throws IOException {
-        if (itemsOnPage == null) {
-            itemsOnPage = ITEMS_ON_PAGE_DEFAULT;
-            pageNumber = PAGE_NUMBER_FIRST;
-        }
+                               @RequestParam(name = "itemsOnPage", required = false, defaultValue = "10")
+                               Integer itemsOnPage,
+                               @RequestParam(name = "pageNumber", required = false, defaultValue = "1")
+                                   Integer pageNumber) throws IOException {
+
         List<ItemDto> itemList = itemService.getItemsList(itemsOnPage, pageNumber);
         int itemListFullSize = itemService.getItemListSize();
         Pages pages = new Pages(itemsOnPage, (itemListFullSize - 1) / itemsOnPage + 1);
@@ -61,7 +57,7 @@ public class ItemController {
     }
 
     @PostMapping("/item/{id}/minus")
-    public String decreaseItemAmount(@PathVariable int id, @RequestParam String pageName) throws IOException {
+    public String decreaseItemAmount(@PathVariable int id, @RequestParam String pageName) {
         itemService.decreaseItemAmount(id);
         PageNames pageNames = PageNames.valueOf(pageName);
         return switch (pageNames) {
@@ -72,7 +68,7 @@ public class ItemController {
     }
 
     @PostMapping("/item/{id}/plus")
-    public String increaseItemAmount(@PathVariable int id, @RequestParam String pageName) throws IOException {
+    public String increaseItemAmount(@PathVariable int id, @RequestParam String pageName) {
         itemService.increaseItemAmount(id);
         PageNames pageNames = PageNames.valueOf(pageName);
         return switch (pageNames) {

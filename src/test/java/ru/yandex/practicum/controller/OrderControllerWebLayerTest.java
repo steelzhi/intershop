@@ -72,6 +72,7 @@ public class OrderControllerWebLayerTest {
         mockMvc.perform(get("/orders"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("orders"))
+                .andExpect(model().attributeExists("sumOfAllOrders"))
                 .andExpect(model().attributeExists("orders"));
     }
 

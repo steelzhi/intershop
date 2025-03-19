@@ -56,7 +56,8 @@ public class OrderRepositoryTest {
         Optional<Order> savedOrder = orderRepository.findById(1);
 
         assertTrue(savedOrder.isPresent(), "savedOrder should exist in Db");
-        assertEquals(savedOrder.get().getOrderItems().get(0).getItemDto().getName(), itemDto1.getName(), "itemDto1s names should match");
+        assertEquals(savedOrder.get().getOrderItems().get(0).getItemDto().getName(), itemDto1.getName(),
+                "itemDto1s names should match");
     }
 
     @Test
@@ -83,7 +84,8 @@ public class OrderRepositoryTest {
 
         List<Order> orders = orderRepository.findAll();
         assertEquals(orders.size(), 2, "Orders list should contain 2 orders");
-        assertEquals(orders.get(1).getOrderItems().get(0).getItemDto().getDescription(), itemDto2.getDescription(), "itemDto2s descriptions should match");
+        assertEquals(orders.get(1).getOrderItems().get(0).getItemDto().getDescription(), itemDto2.getDescription(),
+                "itemDto2s descriptions should match");
     }
 
     @Test
@@ -101,6 +103,32 @@ public class OrderRepositoryTest {
 
         Optional<Order> savedOrder = orderRepository.findById(1);
         assertTrue(savedOrder.isPresent(), "Order should exist");
-        assertEquals(order1.getOrderItems().get(0).getItemDto().getDescription(), itemDto1.getDescription(), "itemDto1s descriptions should match");
+        assertEquals(order1.getOrderItems().get(0).getItemDto().getDescription(), itemDto1.getDescription(),
+                "itemDto1s descriptions should match");
+    }
+
+    @Test
+    void testGetSumOfAllOrders() {
+        ItemDto itemDto1 = new ItemDto("itemDto1", "abcdesc1", null, 1.0, 2);
+        ItemDto savedItemDto1 = itemRepository.save(itemDto1);
+        ItemDto itemDto2 = new ItemDto("itemDto2", "abcdesc1", null, 7.0, 2);
+        ItemDto savedItemDto2 = itemRepository.save(itemDto2);
+
+        Order order1 = new Order();
+
+        double totalSum = 0;
+        OrderItem orderItem = new OrderItem(order1, savedItemDto1, savedItemDto1.getAmount());
+        OrderItem savedOrderItem = orderItemRepository.save(orderItem);
+        totalSum += savedOrderItem.getItemAmount() * savedOrderItem.getItemDto().getPrice();
+        OrderItem orderItem2 = new OrderItem(order1, savedItemDto2, savedItemDto2.getAmount());
+        OrderItem savedOrderItem2 = orderItemRepository.save(orderItem2);
+        List<OrderItem> orderItems1 = List.of(savedOrderItem, savedOrderItem2);
+        totalSum += savedOrderItem2.getItemAmount() * savedOrderItem2.getItemDto().getPrice();
+
+        order1.setOrderItems(orderItems1);
+        order1.setTotalSum(totalSum);
+
+        double totalSum2 = orderRepository.getSumOfAllOrders();
+        assertEquals(totalSum2, totalSum, "Sum was processed incorrectly");
     }
 }

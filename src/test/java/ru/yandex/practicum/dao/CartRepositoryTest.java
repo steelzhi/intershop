@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jdbc.EmbeddedDatabaseConnection;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import ru.yandex.practicum.dto.ItemDto;
 import ru.yandex.practicum.model.CartItem;
@@ -40,7 +39,8 @@ public class CartRepositoryTest {
         CartItem cartItem1 = new CartItem(savedItemDto1);
         CartItem savedCartItem = cartRepository.save(cartItem1);
         assertTrue(savedCartItem != null, "cartItem should exist in Db");
-        assertTrue(savedCartItem.getItemDto().getName().equals(itemDto1.getName()), "itemDto1 name was saved incorrectly");
+        assertTrue(savedCartItem.getItemDto().getName().equals(itemDto1.getName()),
+                "itemDto1 name was saved incorrectly");
     }
 
     @Test
@@ -70,7 +70,8 @@ public class CartRepositoryTest {
         cartRepository.save(cartItem2);
         Optional<CartItem> savedCartItem2 = cartRepository.findById(2);
         assertTrue(savedCartItem2.isPresent(), "cartItem2 should exist in Db");
-        assertEquals(savedCartItem2.get().getItemDto().getDescription(), itemDto2.getDescription(), "Description was saved incorrectly");
+        assertEquals(savedCartItem2.get().getItemDto().getDescription(), itemDto2.getDescription(),
+                "Description was saved incorrectly");
     }
 
     @Test

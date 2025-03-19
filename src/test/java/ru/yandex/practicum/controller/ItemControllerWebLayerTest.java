@@ -8,14 +8,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import ru.yandex.practicum.dto.ItemDto;
 import ru.yandex.practicum.enums.SortingCategory;
 import ru.yandex.practicum.mapper.ItemMapper;
-import ru.yandex.practicum.model.CartItem;
 import ru.yandex.practicum.model.Item;
-import ru.yandex.practicum.service.CartService;
 import ru.yandex.practicum.service.ItemService;
 
-import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
@@ -165,6 +161,4 @@ public class ItemControllerWebLayerTest {
 
         verify(itemService, times(1)).increaseItemAmount(1);
     }
-
-
 }

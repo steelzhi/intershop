@@ -11,9 +11,6 @@ import ru.yandex.practicum.dto.ItemDto;
 import ru.yandex.practicum.model.Order;
 import ru.yandex.practicum.model.OrderItem;
 
-import java.util.List;
-import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

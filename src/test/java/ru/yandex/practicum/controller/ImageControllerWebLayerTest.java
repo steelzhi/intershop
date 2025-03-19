@@ -43,6 +43,4 @@ public class ImageControllerWebLayerTest {
 
         verify(imageService, times(1)).getImage(1);
     }
-
-
 }

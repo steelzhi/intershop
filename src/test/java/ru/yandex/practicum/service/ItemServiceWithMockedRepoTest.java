@@ -62,7 +62,8 @@ public class ItemServiceWithMockedRepoTest {
         ItemDto itemDto3 = new ItemDto("itemDto3", "desczzy", null, 4.0, 5);
 
         when(itemRepository
-                .findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderById("itemdto", "itemdto"))
+                .findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderById(
+                        "itemdto", "itemdto"))
                 .thenReturn(List.of(itemDto1, itemDto2, itemDto3));
 
         List<ItemDto> seachedItemDtos1 = itemService.search("itemdto", SortingCategory.NO);
@@ -70,7 +71,8 @@ public class ItemServiceWithMockedRepoTest {
         assertTrue(seachedItemDtos1.contains(itemDto1), "Found items list doesn't contain itemDto1");
 
         verify(itemRepository, times(1))
-                .findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderById("itemdto", "itemdto");
+                .findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderById(
+                        "itemdto", "itemdto");
 
         when(itemRepository
                 .findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderByName("z", "z"))
@@ -84,7 +86,8 @@ public class ItemServiceWithMockedRepoTest {
                 .findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderByName("z", "z");
 
         when(itemRepository
-                .findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderByPrice("DTO", "DTO"))
+                .findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderByPrice(
+                        "DTO", "DTO"))
                 .thenReturn(List.of(itemDto1, itemDto3, itemDto2));
 
         List<ItemDto> seachedItemDtos3 = itemService.search("DTO", SortingCategory.PRICE);
@@ -92,7 +95,8 @@ public class ItemServiceWithMockedRepoTest {
         assertEquals(seachedItemDtos1.get(1), itemDto3, "On 2nd place in list should be itemDto3");
 
         verify(itemRepository, times(1))
-                .findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderByPrice("DTO", "DTO");
+                .findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderByPrice(
+                        "DTO", "DTO");
     }
 
     @Test
@@ -137,5 +141,4 @@ public class ItemServiceWithMockedRepoTest {
 
         verify(itemRepository, times(1)).save(itemDto1);
     }
-
 }

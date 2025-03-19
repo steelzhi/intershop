@@ -3,7 +3,10 @@ package ru.yandex.practicum.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import ru.yandex.practicum.dto.ItemDto;
 import ru.yandex.practicum.enums.PageNames;
 import ru.yandex.practicum.service.CartService;
@@ -11,7 +14,6 @@ import ru.yandex.practicum.service.ItemService;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 @Controller
 public class CartController {

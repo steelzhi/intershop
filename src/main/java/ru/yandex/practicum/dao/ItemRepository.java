@@ -11,18 +11,6 @@ import java.util.List;
 
 @Repository
 public interface ItemRepository extends JpaRepository<ItemDto, Integer> {
-    /*    @Query("""
-                FROM ItemDto idt
-                WHERE idt name LIKE CONCAT('%',:key,'%')
-                ORDER BY :sort
-                """)*/
-/*    @NativeQuery("""
-            SELECT *
-            FROM items
-            WHERE name LIKE CONCAT('%',:key,'%')
-            ORDER BY :sort
-            """)
-    List<ItemDto> findByKeyLikeAndSort(String key, String sort);*/
 
     Page<ItemDto> findAllByOrderById(PageRequest page);
 
@@ -37,17 +25,4 @@ public interface ItemRepository extends JpaRepository<ItemDto, Integer> {
             FROM ItemDto
             """)
     int getItemListSize();
-
-/*    @NativeQuery("""
-            UPDATE items
-            SET amount = :newAmount
-            WHERE id = :id
-            """)*/
-/*    @Query("""
-            UPDATE ItemDto
-            SET amount = :newAmount
-            WHERE id = :id
-            """)
-    void changeCount(int id, int newAmount);*/
-
 }

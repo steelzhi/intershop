@@ -12,7 +12,4 @@ public class ImageService {
     public byte[] getImage(int itemId) {
         return imageRepository.findById(itemId).get().getImageBytes();
     }
-
-
-
 }

@@ -1,6 +1,5 @@
 package ru.yandex.practicum.controller;
 
-import org.aspectj.weaver.ast.Or;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,22 +9,13 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
-import ru.yandex.practicum.dao.*;
+import ru.yandex.practicum.dao.CartRepository;
+import ru.yandex.practicum.dao.ItemRepository;
+import ru.yandex.practicum.dao.OrderItemRepository;
+import ru.yandex.practicum.dao.OrderRepository;
 import ru.yandex.practicum.dto.ItemDto;
-import ru.yandex.practicum.mapper.ItemMapper;
-import ru.yandex.practicum.model.*;
 import ru.yandex.practicum.service.CartService;
-import ru.yandex.practicum.service.ItemService;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -103,6 +93,7 @@ public class OrderControllerAllLayersTest {
         mockMvc.perform(get("/orders"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("orders"))
+                .andExpect(model().attributeExists("sumOfAllOrders"))
                 .andExpect(model().attributeExists("orders"));
     }
 

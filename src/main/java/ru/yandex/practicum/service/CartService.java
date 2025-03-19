@@ -8,7 +8,10 @@ import ru.yandex.practicum.dao.ItemRepository;
 import ru.yandex.practicum.dto.ItemDto;
 import ru.yandex.practicum.model.CartItem;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class CartService {

@@ -5,23 +5,15 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import ru.yandex.practicum.dao.CartRepository;
-import ru.yandex.practicum.dao.ItemRepository;
 import ru.yandex.practicum.dao.OrderItemRepository;
 import ru.yandex.practicum.dao.OrderRepository;
 import ru.yandex.practicum.dto.ItemDto;
-import ru.yandex.practicum.enums.SortingCategory;
-import ru.yandex.practicum.mapper.ItemMapper;
 import ru.yandex.practicum.model.CartItem;
-import ru.yandex.practicum.model.Item;
 import ru.yandex.practicum.model.Order;
 import ru.yandex.practicum.model.OrderItem;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -94,7 +86,7 @@ public class OrderServiceWithMockedRepoTest {
         Order secondTimeSavedOrder = orderService.createOrder();
         assertNotNull(secondTimeSavedOrder, "savedOrder was saved incorrectly");
         assertTrue(secondTimeSavedOrder.getOrderItems().get(0).getItemDto().getAmount()
-                        == orderItem1.getItemDto().getAmount(),
+                   == orderItem1.getItemDto().getAmount(),
                 "order doesn't contain savedOrderItem1");
         assertTrue(secondTimeSavedOrder.getTotalSum() == totalSum, "saved total sum is incorrect");
 
@@ -152,5 +144,29 @@ public class OrderServiceWithMockedRepoTest {
         assertEquals(foundOrder2.getOrderItems(), orderItems2, "Found order 2 doesn't contain orderItems2");
 
         verify(orderRepository, times(1)).findById(1);
+    }
+
+    @Test
+    void testGetOrdersTotalSum() {
+        ItemDto itemDto1 = new ItemDto("itemDto1", "abcdesc1", null, 1.0, 2);
+        ItemDto itemDto2 = new ItemDto("itemDto2z", "descghy", null, 12.0, 2);
+        Order order1 = new Order();
+        List<OrderItem> orderItems1 = List.of(
+                new OrderItem(order1, itemDto1, itemDto1.getAmount()),
+                new OrderItem(order1, itemDto2, itemDto2.getAmount())
+        );
+
+        double totalSum = 0;
+        for (OrderItem orderItem : orderItems1) {
+            totalSum += orderItem.getItemAmount() * orderItem.getItemDto().getPrice();
+        }
+
+        order1.setOrderItems(orderItems1);
+        order1.setTotalSum(totalSum);
+        when(orderRepository.findById(1))
+                .thenReturn(Optional.of(order1));
+        double totalSum2 = itemDto1.getPrice() * itemDto1.getAmount() + itemDto2.getPrice() * itemDto2.getAmount();
+        Optional<Order> savedOrder = orderRepository.findById(1);
+        assertEquals(savedOrder.get().getTotalSum(), totalSum2, "Sum was processed incorrectly");
     }
 }

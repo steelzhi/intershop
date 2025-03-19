@@ -59,17 +59,20 @@ public class ItemRepositoryTest {
         itemRepository.save(itemDto3);
 
         List<ItemDto> foundAndSortedById =
-                itemRepository.findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderById("dto", "dto");
+                itemRepository.findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderById(
+                        "dto", "dto");
         assertTrue(foundAndSortedById.size() == 3, "List should contain 3 items");
         assertTrue(foundAndSortedById.get(2).getId() == 3, "Last item in list should be itemDto3");
 
         List<ItemDto> foundAndSortedByName =
-                itemRepository.findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderByName("z", "z");
+                itemRepository.findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderByName(
+                        "z", "z");
         assertTrue(foundAndSortedByName.size() == 2, "List should contain 3 items");
         assertTrue(foundAndSortedByName.get(0).getId() == 2, "First item in list should be itemDto2");
 
         List<ItemDto> foundAndSortedByPrice =
-        itemRepository.findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderByPrice("DTO", "DTO");
+        itemRepository.findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderByPrice(
+                "DTO", "DTO");
         assertTrue(foundAndSortedByPrice.size() == 3, "List should contain 3 items");
         assertTrue(foundAndSortedByPrice.get(2).getId() == 2, "Last item in list should be itemDto2");
     }

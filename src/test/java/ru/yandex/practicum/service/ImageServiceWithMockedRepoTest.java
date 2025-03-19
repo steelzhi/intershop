@@ -6,24 +6,18 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import ru.yandex.practicum.dao.CartRepository;
 import ru.yandex.practicum.dao.ImageRepository;
 import ru.yandex.practicum.dao.ItemRepository;
-import ru.yandex.practicum.dto.ItemDto;
-import ru.yandex.practicum.model.CartItem;
 import ru.yandex.practicum.model.Image;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.times;
 
 @SpringBootTest(classes = ImageService.class)
 public class ImageServiceWithMockedRepoTest {

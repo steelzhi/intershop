@@ -9,23 +9,15 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
-import ru.yandex.practicum.dao.CartRepository;
 import ru.yandex.practicum.dao.ImageRepository;
-import ru.yandex.practicum.dao.ItemRepository;
-import ru.yandex.practicum.dto.ItemDto;
-import ru.yandex.practicum.model.CartItem;
 import ru.yandex.practicum.model.Image;
-import ru.yandex.practicum.service.ItemService;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -37,15 +29,6 @@ public class ImageControllerAllLayersTest {
 
     @Autowired
     ImageRepository imageRepository;
-
-    @Autowired
-    CartRepository cartRepository;
-
-    @Autowired
-    ItemRepository itemRepository;
-
-    @Autowired
-    ItemService itemService;
 
     @AfterEach
     void clearDb() {

@@ -9,27 +9,19 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
-import ru.yandex.practicum.dao.CartRepository;
-import ru.yandex.practicum.dao.ImageRepository;
 import ru.yandex.practicum.dao.ItemRepository;
 import ru.yandex.practicum.dto.ItemDto;
-import ru.yandex.practicum.enums.SortingCategory;
 import ru.yandex.practicum.mapper.ItemMapper;
-import ru.yandex.practicum.model.CartItem;
 import ru.yandex.practicum.model.Image;
 import ru.yandex.practicum.model.Item;
 import ru.yandex.practicum.service.ItemService;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.times;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -149,7 +141,8 @@ public class ItemControllerAllLayersTest {
                 .andExpect(redirectedUrl("/main/items"));
 
         Optional<ItemDto> itemDtoWithAmountDecreased = itemRepository.findById(1);
-        assertTrue(itemDtoWithAmountDecreased.get().getAmount() == itemDto1.getAmount(), "Amount was decreased incorrectly");
+        assertTrue(itemDtoWithAmountDecreased.get().getAmount() == itemDto1.getAmount(),
+                "Amount was decreased incorrectly");
         itemService.getExistingItemsDtos().clear();
     }
 
@@ -166,7 +159,8 @@ public class ItemControllerAllLayersTest {
                 .andExpect(redirectedUrl("/items/1"));
 
         Optional<ItemDto> itemDtoWithAmountDecreased = itemRepository.findById(1);
-        assertTrue(itemDtoWithAmountDecreased.get().getAmount() == itemDto1.getAmount(), "Amount was increased incorrectly");
+        assertTrue(itemDtoWithAmountDecreased.get().getAmount() == itemDto1.getAmount(),
+                "Amount was increased incorrectly");
         itemService.getExistingItemsDtos().clear();
     }
 }

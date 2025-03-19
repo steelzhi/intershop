@@ -61,7 +61,7 @@ public class ItemController {
     }
 
     @PostMapping("/item/{id}/minus")
-    public String decreaseItemAmountOnMainPage(@PathVariable int id, @RequestParam String pageName) throws IOException {
+    public String decreaseItemAmount(@PathVariable int id, @RequestParam String pageName) throws IOException {
         itemService.decreaseItemAmount(id);
         PageNames pageNames = PageNames.valueOf(pageName);
         return switch (pageNames) {
@@ -72,7 +72,7 @@ public class ItemController {
     }
 
     @PostMapping("/item/{id}/plus")
-    public String increaseItemAmountOnMainPage(@PathVariable int id, @RequestParam String pageName) throws IOException {
+    public String increaseItemAmount(@PathVariable int id, @RequestParam String pageName) throws IOException {
         itemService.increaseItemAmount(id);
         PageNames pageNames = PageNames.valueOf(pageName);
         return switch (pageNames) {

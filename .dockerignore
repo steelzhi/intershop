@@ -1,0 +1,6 @@
+.idea
+.gitattributes
+.gitignore
+*.txt
+*/target
+README.md

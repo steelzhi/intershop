@@ -1,5 +1,13 @@
+FROM gradle:8.13 AS BUILD
+WORKDIR /usr/app/
+COPY . .
+RUN gradle build
+
+# Package stage
 FROM amazoncorretto:21
-VOLUME /tmp
-ARG JAR_FILE=build/libs/*.jar
-COPY ${JAR_FILE} app.jar
-ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS} -jar /app.jar"]
+ENV JAR_NAME=practicum-0.0.1-SNAPSHOT.jar
+ENV APP_HOME=/usr/app
+WORKDIR $APP_HOME
+COPY --from=BUILD $APP_HOME .
+EXPOSE 8080
+ENTRYPOINT exec java -jar $APP_HOME/build/libs/$JAR_NAME

@@ -7,6 +7,7 @@ import ru.yandex.practicum.dao.CartRepository;
 import ru.yandex.practicum.dao.ItemRepository;
 import ru.yandex.practicum.dto.ItemDto;
 import ru.yandex.practicum.model.CartItem;
+import ru.yandex.practicum.util.Formatter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -77,5 +78,10 @@ public class CartService {
 
     public Map<ItemDto, Integer> getCart() {
         return cart;
+    }
+
+    public String getTotalPriceFormatted() {
+        double totalPrice = getTotalPrice();
+        return Formatter.DECIMAL_FORMAT.format(totalPrice);
     }
 }

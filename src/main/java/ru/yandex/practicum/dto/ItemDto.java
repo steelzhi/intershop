@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import ru.yandex.practicum.model.Image;
 
+import ru.yandex.practicum.util.Formatter;
+
 import java.util.Objects;
 
 @Data
@@ -48,6 +50,10 @@ public class ItemDto {
                ", price=" + price +
                ", count=" + amount +
                '}';
+    }
+
+    public String getPriceFormatted() {
+        return Formatter.DECIMAL_FORMAT.format(price);
     }
 
     @Override

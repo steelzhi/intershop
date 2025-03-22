@@ -60,7 +60,7 @@ public class CartControllerWebLayerTest {
                 .andExpect(redirectedUrl("/cart/items"));
 
         verify(cartService, times(1)).removeItemFromCart(1);
-        verify(itemService, times(1)).getExistingItemsDtos();
+        verify(itemService, times(1)).setInExistingItemDtosItemDtoAmountToZero(1);
     }
 
     @Test
@@ -76,10 +76,9 @@ public class CartControllerWebLayerTest {
 
         mockMvc.perform(get("/cart/items"))
                 .andExpect(view().name("cart"))
-                .andExpect(model().attributeExists("items"))
-                .andExpect(model().attributeExists("total"));
+                .andExpect(model().attributeExists("items"));
 
         verify(cartService, times(1)).getItemsDtosInCart();
-        verify(cartService, times(1)).getTotalPrice();
+        verify(cartService, times(1)).getTotalPriceFormatted();
     }
 }

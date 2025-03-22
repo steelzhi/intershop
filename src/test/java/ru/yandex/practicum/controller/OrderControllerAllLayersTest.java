@@ -57,7 +57,7 @@ public class OrderControllerAllLayersTest {
         ItemDto savedItemDto = itemRepository.save(itemDto);
         cartService.addItemToCart(savedItemDto.getId());
 
-        mockMvc.perform(post("/createOrder"))
+        mockMvc.perform(post("/create-order"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("order"))
                 .andExpect(model().attributeExists("order"));
@@ -65,7 +65,7 @@ public class OrderControllerAllLayersTest {
 
     @Test
     void createEmptyOrder_shouldRedirect() throws Exception {
-        mockMvc.perform(post("/createOrder"))
+        mockMvc.perform(post("/create-order"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/main/items"));
     }
@@ -76,7 +76,7 @@ public class OrderControllerAllLayersTest {
         ItemDto savedItemDto = itemRepository.save(itemDto);
         cartService.addItemToCart(savedItemDto.getId());
 
-        mockMvc.perform(post("/createOrder"))
+        mockMvc.perform(post("/create-order"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("order"))
                 .andExpect(model().attributeExists("order"));
@@ -85,7 +85,7 @@ public class OrderControllerAllLayersTest {
         ItemDto savedItemDto2 = itemRepository.save(itemDto2);
         cartService.addItemToCart(savedItemDto2.getId());
 
-        mockMvc.perform(post("/createOrder"))
+        mockMvc.perform(post("/create-order"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("order"))
                 .andExpect(model().attributeExists("order"));
@@ -93,7 +93,7 @@ public class OrderControllerAllLayersTest {
         mockMvc.perform(get("/orders"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("orders"))
-                .andExpect(model().attributeExists("sumOfAllOrders"))
+                .andExpect(model().attributeExists("sumOfAllOrdersFormatted"))
                 .andExpect(model().attributeExists("orders"));
     }
 
@@ -103,7 +103,7 @@ public class OrderControllerAllLayersTest {
         ItemDto savedItemDto = itemRepository.save(itemDto);
         cartService.addItemToCart(savedItemDto.getId());
 
-        mockMvc.perform(post("/createOrder"))
+        mockMvc.perform(post("/create-order"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("order"))
                 .andExpect(model().attributeExists("order"));

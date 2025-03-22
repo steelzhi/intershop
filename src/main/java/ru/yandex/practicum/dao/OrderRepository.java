@@ -9,5 +9,5 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
             SELECT SUM(totalSum)
             FROM Order
             """)
-    double getSumOfAllOrders();
+    Double getSumOfAllOrders();
 }

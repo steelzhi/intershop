@@ -9,6 +9,7 @@ import ru.yandex.practicum.dto.ItemDto;
 import ru.yandex.practicum.model.CartItem;
 import ru.yandex.practicum.model.Order;
 import ru.yandex.practicum.model.OrderItem;
+import ru.yandex.practicum.util.Formatter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -73,7 +74,12 @@ public class OrderService {
         return false;
     }
 
-    public double getOrdersTotalSum() {
+    public Double getOrdersTotalSum() {
         return orderRepository.getSumOfAllOrders();
+    }
+
+    public String getOrdersTotalSumFormatted() {
+        Double sumOfAllOrders = getOrdersTotalSum();
+        return Formatter.DECIMAL_FORMAT.format(sumOfAllOrders != null ? sumOfAllOrders : 0);
     }
 }

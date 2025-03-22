@@ -1,23 +1,16 @@
 package ru.yandex.practicum.controller;
 
-import org.aspectj.weaver.ast.Or;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import ru.yandex.practicum.dto.ItemDto;
-import ru.yandex.practicum.enums.SortingCategory;
-import ru.yandex.practicum.mapper.ItemMapper;
-import ru.yandex.practicum.model.Item;
 import ru.yandex.practicum.model.Order;
 import ru.yandex.practicum.service.CartService;
-import ru.yandex.practicum.service.ItemService;
 import ru.yandex.practicum.service.OrderService;
 
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -40,7 +33,7 @@ public class OrderControllerWebLayerTest {
         when(orderService.createOrder())
                 .thenReturn(order);
 
-        mockMvc.perform(post("/createOrder"))
+        mockMvc.perform(post("/create-order"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("order"))
                 .andExpect(model().attributeExists("order"));
@@ -54,7 +47,7 @@ public class OrderControllerWebLayerTest {
         when(orderService.createOrder())
                 .thenReturn(order);
 
-        mockMvc.perform(post("/createOrder"))
+        mockMvc.perform(post("/create-order"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/main/items"));
 
@@ -72,7 +65,6 @@ public class OrderControllerWebLayerTest {
         mockMvc.perform(get("/orders"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("orders"))
-                .andExpect(model().attributeExists("sumOfAllOrders"))
                 .andExpect(model().attributeExists("orders"));
     }
 

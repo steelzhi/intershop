@@ -80,4 +80,14 @@ public class ItemService {
     public Map<Integer, ItemDto> getExistingItemsDtos() {
         return existingItemsDtos;
     }
+
+    public void setExistingItemDtosAllDtosAmountToZero() {
+        for (Integer itemDtoId : existingItemsDtos.keySet()) {
+            setInExistingItemDtosItemDtoAmountToZero(itemDtoId);
+        }
+    }
+
+    public void setInExistingItemDtosItemDtoAmountToZero(int id) {
+        existingItemsDtos.get(id).setAmount(0);
+    }
 }

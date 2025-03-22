@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import ru.yandex.practicum.model.Order;
 import ru.yandex.practicum.service.CartService;
 import ru.yandex.practicum.service.OrderService;
+import ru.yandex.practicum.util.Formatter;
 
 import java.util.List;
 
@@ -21,7 +22,7 @@ public class OrderController {
     @Autowired
     CartService cartService;
 
-    @PostMapping("/createOrder")
+    @PostMapping("/create-order")
     public String createOrder(Model model) {
         Order order = orderService.createOrder();
         if (order != null) {
@@ -36,9 +37,9 @@ public class OrderController {
     @GetMapping("/orders")
     public String getOrders(Model model) {
         List<Order> orders = orderService.getOrders();
-        double sumOfAllOrders = orderService.getOrdersTotalSum();
+        String sumOfAllOrdersFormatted = orderService.getOrdersTotalSumFormatted();
+        model.addAttribute("sumOfAllOrdersFormatted", sumOfAllOrdersFormatted);
         model.addAttribute("orders", orders);
-        model.addAttribute("sumOfAllOrders", sumOfAllOrders);
         return "orders";
     }
 

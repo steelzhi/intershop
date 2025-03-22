@@ -5,7 +5,8 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import ru.yandex.practicum.dto.ItemDto;
+
+import ru.yandex.practicum.util.Formatter;
 
 import java.util.List;
 
@@ -32,5 +33,9 @@ public class Order {
                "id=" + id +
                ", orderItems=" + orderItems +
                '}';
+    }
+
+    public String getTotalSumFormatted() {
+        return Formatter.DECIMAL_FORMAT.format(totalSum);
     }
 }

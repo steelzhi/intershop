@@ -106,6 +106,6 @@ public class CartControllerAllLayersTest {
                 .andExpect(content().contentType("text/html;charset=UTF-8"))
                 .andExpect(view().name("cart"))
                 .andExpect(model().attributeExists("items"))
-                .andExpect(model().attributeExists("total"));
+                .andExpect(model().attributeExists("totalPriceFormatted"));
     }
 }

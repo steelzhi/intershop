@@ -3,6 +3,25 @@
 
 <head>
     <title>Корзина товаров</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            width: 20%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        button {
+            margin-top: 10px;
+            cursor: pointer;
+        }
+        p {
+            display: inline;
+        }
+    </style>
 </head>
 
 <body>
@@ -14,7 +33,7 @@
     <b>На главную</b>
 </a>
 <br>
-<table style="width:70%;margin-left:auto;margin-right:auto;" th:each="itemDto : ${items}">
+<table th:each="itemDto : ${items}">
     <table>
         <tr>
             <a th:href="${'/items/'+itemDto.getId()}">
@@ -23,15 +42,15 @@
         </tr>
         <br>
         <tr width="100">
-            <b th:text="'Название: ' + ${itemDto.getName()}"></b>
+            <p th:text="'Название: ' + ${itemDto.getName()}"></p>
         </tr>
         <br>
         <tr width="100">
-            <b th:text="'Описание: ' + ${itemDto.getDescription()}"></b>
+            <p th:text="'Описание: ' + ${itemDto.getDescription()}"></p>
         </tr>
         <br>
         <tr width="100">
-            <b th:text="'Цена: ' + ${itemDto.getPrice()}+' ₽'"></b>
+            <p th:text="'Цена: ' + ${itemDto.getPriceFormatted()}+' ₽'"></p>
         </tr>
         <br>
         <form th:action="@{/item/{id}/minus(id=${itemDto.id})}" method="POST">
@@ -47,14 +66,12 @@
         <form th:action="@{/cart/remove/{id}(id=${itemDto.id})}" method="POST">
             <button type="submit" name="pageName" th:value="CART">Удалить из корзины</button>
         </form>
-        &nbsp;
     </table>
-
 </table>
-<br>
-<form action="/createOrder" method="post">
+
+<b th:text="'Итого: ' + ${totalPriceFormatted} + ' ₽'"></b>
+<form action="/create-order" method="post">
     <button>Купить</button>
 </form>
-<b th:text="'Итого: '+${total}+' ₽'"></b>
 </body>
 </html>

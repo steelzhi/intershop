@@ -11,6 +11,7 @@ import ru.yandex.practicum.dto.ItemDto;
 import ru.yandex.practicum.enums.PageNames;
 import ru.yandex.practicum.service.CartService;
 import ru.yandex.practicum.service.ItemService;
+import ru.yandex.practicum.util.Formatter;
 
 import java.util.List;
 import java.util.Map;
@@ -33,8 +34,7 @@ public class CartController {
     @PostMapping("/cart/remove/{id}")
     public String removeItemFromCart(@PathVariable int id, @RequestParam String pageName) {
         cartService.removeItemFromCart(id);
-        Map<Integer, ItemDto> existingItemDtos = itemService.getExistingItemsDtos();
-        existingItemDtos.get(id).setAmount(0);
+        itemService.setInExistingItemDtosItemDtoAmountToZero(id);
         PageNames pageNames = PageNames.valueOf(pageName);
         return switch (pageNames) {
             case MAIN -> "redirect:/main/items";
@@ -46,9 +46,9 @@ public class CartController {
     @GetMapping("/cart/items")
     public String getCart(Model model) {
         List<ItemDto> itemDtos = cartService.getItemsDtosInCart();
-        double totalPrice = cartService.getTotalPrice();
+        String totalPriceFormatted = cartService.getTotalPriceFormatted();
         model.addAttribute("items", itemDtos);
-        model.addAttribute("total", totalPrice);
+        model.addAttribute("totalPriceFormatted", totalPriceFormatted);
         return "cart";
     }
 }

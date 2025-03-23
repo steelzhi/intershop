@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import ru.yandex.practicum.model.Order;
 import ru.yandex.practicum.service.CartService;
 import ru.yandex.practicum.service.OrderService;
-import ru.yandex.practicum.util.Formatter;
 
 import java.util.List;
 

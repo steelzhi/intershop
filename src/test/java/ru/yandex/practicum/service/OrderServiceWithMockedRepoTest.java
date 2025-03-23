@@ -92,8 +92,8 @@ public class OrderServiceWithMockedRepoTest {
 
         verify(cartRepository, times(1)).findAll();
         verify(orderRepository, times(1)).save(order);
-        verify(orderItemRepository, times(2)).save(orderItem1);
-        verify(orderItemRepository, times(2)).save(orderItem2);
+        verify(orderItemRepository, times(1)).save(orderItem1);
+        verify(orderItemRepository, times(1)).save(orderItem2);
         verify(orderRepository, times(1)).save(savedOrder);
         verify(cartRepository, times(1)).deleteAll();
     }

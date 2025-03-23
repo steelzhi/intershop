@@ -17,7 +17,6 @@ import java.util.List;
 @Controller
 public class ItemController {
     private int itemsOnPageDefaultForAllItems = 10;
-    private int itemsOnPageDefaultForSearch = 100;
     private int pageNumberDefault = 1;
 
     @Autowired
@@ -52,9 +51,10 @@ public class ItemController {
     @GetMapping("/search")
     public String search(Model model, @RequestParam String key, @RequestParam SortingCategory sortingCategory) {
         List<ItemDto> foundItemDtos = itemService.search(key, sortingCategory);
-        Pages pages = getPages(itemsOnPageDefaultForSearch);
         model.addAttribute("items", foundItemDtos);
+        Pages pages = new Pages();
         model.addAttribute("pages", pages);
+
         return "main";
     }
 

@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS order_items (
     order_id INT,
     item_id INT NOT NULL,
     item_amount INT NOT NULL,
+    order_item_total_sum NUMERIC(10, 2) NOT NULL,
     CONSTRAINT order_items_orders FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT order_items_items FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE ON UPDATE CASCADE
 );

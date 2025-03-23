@@ -62,7 +62,7 @@
             <br/>
             <p th:text="'Количество: ' + ${orderItem.getItemAmount()} + ' ед.'"></p>
             <br/>
-            <p th:text="'Сумма: ' + ${orderItem.getItemDto().getPrice() * orderItem.getItemAmount()}+' ₽'"></p>
+            <p th:text="'Сумма: ' + ${orderItem.getOrderItemTotalSumFormatted()} + ' ₽'"></p>
         </td>
     </table>
         <p>

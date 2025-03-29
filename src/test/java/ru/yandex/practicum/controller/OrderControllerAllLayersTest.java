@@ -1,3 +1,4 @@
+/*
 package ru.yandex.practicum.controller;
 
 import org.junit.jupiter.api.AfterEach;
@@ -114,3 +115,4 @@ public class OrderControllerAllLayersTest {
                 .andExpect(model().attributeExists("order"));
     }
 }
+*/

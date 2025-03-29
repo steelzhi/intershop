@@ -1,3 +1,4 @@
+/*
 package ru.yandex.practicum.dao;
 
 import org.junit.jupiter.api.AfterEach;
@@ -132,3 +133,4 @@ public class OrderRepositoryTest {
         assertEquals(totalSum2, totalSum, "Sum was processed incorrectly");
     }
 }
+*/

@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import ru.yandex.practicum.dto.ItemDto;
 import ru.yandex.practicum.enums.PageNames;
 import ru.yandex.practicum.enums.SortingCategory;
@@ -23,9 +25,9 @@ public class ItemController {
     private ItemService itemService;
 
     @GetMapping(value = {"/", "/main/items"})
-    public String getItemsList(Model model,
-                               @RequestParam(name = "itemsOnPage", required = false) Integer itemsOnPage,
-                               @RequestParam(name = "pageNumber", required = false) Integer pageNumber) {
+    public Mono<String> getItemsList(Model model,
+                                      @RequestParam(name = "itemsOnPage", required = false) Integer itemsOnPage,
+                                      @RequestParam(name = "pageNumber", required = false) Integer pageNumber) {
 
         /*
         * Действие ниже нужно, чтобы при изменении количества товаров на странице такое новое количество фиксировалось
@@ -33,15 +35,17 @@ public class ItemController {
          */
         itemsOnPage = getHandledItemsOnPage(itemsOnPage);
         pageNumber = getHandledItemsPageNumber(pageNumber);
-        List<ItemDto> itemList = itemService.getItemsList(itemsOnPage, pageNumber);
+        Flux<ItemDto> itemList = itemService.getItemsList(itemsOnPage, pageNumber);
+        //ItemDto itemList2 = itemList.blockFirst();
+
         Pages pages = getPages(itemsOnPage);
         model.addAttribute("items", itemList);
         model.addAttribute("pages", pages);
-        return "main";
+        return Mono.just("main");
     }
 
 
-    @GetMapping("/items/{id}")
+/*    @GetMapping("/items/{id}")
     public String getItemDto(Model model, @PathVariable int id) throws IOException {
         ItemDto itemDto = itemService.getItemDto(id);
         model.addAttribute("itemDto", itemDto);
@@ -56,15 +60,15 @@ public class ItemController {
         model.addAttribute("pages", pages);
 
         return "main";
-    }
+    }*/
 
     @PostMapping("/item")
-    public String addItemToList(@ModelAttribute Item item) throws IOException {
-        itemService.addItem(item);
-        return "redirect:/main/items";
+    public Mono<String> addItemToList(@ModelAttribute Item item) throws IOException {
+        itemService.addItem(item).subscribe();
+        return Mono.just("redirect:/main/items");
     }
 
-    @PostMapping("/item/{id}/minus")
+    /*@PostMapping("/item/{id}/minus")
     public String decreaseItemAmount(@PathVariable int id, @RequestParam String pageName) {
         itemService.decreaseItemAmount(id);
         PageNames pageNames = PageNames.valueOf(pageName);
@@ -84,7 +88,7 @@ public class ItemController {
             case ITEM -> "redirect:/items/" + id;
             case CART -> "redirect:/cart/items";
         };
-    }
+    }*/
 
     private int getHandledItemsOnPage(Integer itemsOnPage) {
         if (itemsOnPage == null) {
@@ -103,7 +107,7 @@ public class ItemController {
     }
 
     private Pages getPages(Integer itemsOnPage) {
-        int itemListFullSize = itemService.getItemListSize();
+        int itemListFullSize = itemService.getItemListSize().block();
         return new Pages(itemsOnPage, (itemListFullSize - 1) / itemsOnPage + 1);
     }
 }

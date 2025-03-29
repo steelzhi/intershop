@@ -1,3 +1,4 @@
+/*
 package ru.yandex.practicum.model;
 
 import jakarta.persistence.*;
@@ -35,3 +36,4 @@ public class CartItem {
                 '}';
     }
 }
+*/

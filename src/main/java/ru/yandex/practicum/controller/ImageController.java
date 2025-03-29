@@ -13,8 +13,8 @@ public class ImageController {
     private ImageService imageService;
 
     @ResponseBody
-    @GetMapping("/{itemId}/image")
-    public byte[] getImage(@PathVariable(name = "itemId") int itemId) {
-        return imageService.getImage(itemId);
+    @GetMapping("/image/{imageId}")
+    public byte[] getImage(@PathVariable(name = "imageId") int imageId) {
+        return imageService.getImage(imageId).block().getImageBytes();
     }
 }

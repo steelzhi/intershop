@@ -1,42 +1,40 @@
 package ru.yandex.practicum.dto;
 
-import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import ru.yandex.practicum.model.Image;
-
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
 import ru.yandex.practicum.util.Formatter;
 
 import java.util.Objects;
 
 @Data
-@Entity
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @NoArgsConstructor
 @Table(name = "items")
 public class ItemDto {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     int id;
 
     String name;
 
     String description;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "image_id", referencedColumnName = "id")
-    Image image;
+    @Column("image_id")
+    int imageId;
 
     double price;
 
     int amount;
 
-    public ItemDto(String name, String description, Image image, double price, int amount) {
+    public ItemDto(String name, String description, int imageId, double price, int amount) {
         this.name = name;
         this.description = description;
-        this.image = image;
+        this.imageId = imageId;
         this.price = price;
         this.amount = amount;
     }

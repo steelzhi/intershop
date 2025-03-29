@@ -1,3 +1,4 @@
+/*
 package ru.yandex.practicum.model;
 
 import jakarta.persistence.*;
@@ -39,3 +40,4 @@ public class Order {
         return Formatter.DECIMAL_FORMAT.format(totalSum);
     }
 }
+*/

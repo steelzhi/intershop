@@ -1,3 +1,4 @@
+/*
 package ru.yandex.practicum.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,3 +50,4 @@ public class OrderController {
         return "order";
     }
 }
+*/

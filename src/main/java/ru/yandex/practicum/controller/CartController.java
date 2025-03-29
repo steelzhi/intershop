@@ -1,3 +1,4 @@
+/*
 package ru.yandex.practicum.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,3 +53,4 @@ public class CartController {
         return "cart";
     }
 }
+*/

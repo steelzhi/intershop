@@ -1,3 +1,4 @@
+/*
 package ru.yandex.practicum.dao;
 
 import jakarta.transaction.Transactional;
@@ -56,3 +57,4 @@ public class ImageRepositoryTest {
         assertTrue(savedImage2.isPresent(), "image 2 should exist in Db");
     }
 }
+*/

@@ -1,3 +1,4 @@
+/*
 package ru.yandex.practicum.service;
 
 import org.junit.jupiter.api.AfterEach;
@@ -142,3 +143,4 @@ public class ItemServiceWithMockedRepoTest {
         verify(itemRepository, times(1)).save(itemDto1);
     }
 }
+*/

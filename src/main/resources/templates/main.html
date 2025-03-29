@@ -113,12 +113,12 @@
 </div>
 <br/>
 
-<table th:each="itemDto : ${items}">
+<table th:each="itemDto : ${items.toIterable()}">
     <br/>
     <br/>
     <tr>
         <a th:href="${'/items/'+itemDto.getId()}">
-            <img th:src="@{/{itemDtoId}/image(itemDtoId=${itemDto.id})}" width="300" height="300">
+            <img th:src="@{/image/{imageId}(imageId=${itemDto.imageId})}" width="300" height="300">
         </a>
     </tr>
     <br/>

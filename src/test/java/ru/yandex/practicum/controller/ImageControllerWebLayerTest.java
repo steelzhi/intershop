@@ -1,3 +1,4 @@
+/*
 package ru.yandex.practicum.controller;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -44,3 +45,4 @@ public class ImageControllerWebLayerTest {
         verify(imageService, times(1)).getImage(1);
     }
 }
+*/

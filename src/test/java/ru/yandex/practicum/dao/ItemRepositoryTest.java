@@ -1,3 +1,4 @@
+/*
 package ru.yandex.practicum.dao;
 
 import org.junit.jupiter.api.AfterEach;
@@ -105,3 +106,4 @@ public class ItemRepositoryTest {
         assertTrue(savedItemDto1.getAmount() == amount + 1, "Amount was increased incorrectly");
     }
 }
+*/

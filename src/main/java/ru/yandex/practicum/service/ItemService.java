@@ -1,41 +1,43 @@
 package ru.yandex.practicum.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.multipart.MultipartFile;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import ru.yandex.practicum.dao.ImageRepository;
 import ru.yandex.practicum.dao.ItemRepository;
 import ru.yandex.practicum.dto.ItemDto;
-import ru.yandex.practicum.enums.SortingCategory;
 import ru.yandex.practicum.mapper.ItemMapper;
+import ru.yandex.practicum.model.Image;
 import ru.yandex.practicum.model.Item;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @Service
 public class ItemService {
     // Для снижения обращений к БД будем также хранить текущий список товаров в кэше
-    private Map<Integer, ItemDto> existingItemsDtos = new HashMap<>();
+    //private Map<Integer, ItemDto> existingItemsDtos = new HashMap<>();
 
     @Autowired
     private ItemRepository itemRepository;
 
-    public List<ItemDto> getItemsList(int itemsOnPage, int pageNumber) {
+    @Autowired
+    private ImageRepository imageRepository;
+
+    public Flux<ItemDto> getItemsList(int itemsOnPage, int pageNumber) {
         PageRequest page = PageRequest.of(pageNumber - 1, itemsOnPage);
 
-        Page<ItemDto> allItems = itemRepository.findAllByOrderById(page);
-        return allItems.getContent();
+        Flux<ItemDto> allItems = /*itemRepository.findAllByOrderById(page);*/ itemRepository.findAll();
+        return allItems;
     }
 
-    public ItemDto getItemDto(int id) {
+   /* public ItemDto getItemDto(int id) {
         return existingItemsDtos.get(id);
-    }
+    }*/
 
-    public List<ItemDto> search(String key, SortingCategory sortingCategory) {
+   /* public List<ItemDto> search(String key, SortingCategory sortingCategory) {
         List<ItemDto> itemDtos = null;
 
         switch (sortingCategory) {
@@ -48,16 +50,29 @@ public class ItemService {
         }
 
         return itemDtos;
-    }
+    }*/
 
-    public ItemDto addItem(Item item) throws IOException {
-        ItemDto itemDto = ItemMapper.mapToItemDto(item);
-        ItemDto savedItemDto = itemRepository.save(itemDto);
-        existingItemsDtos.put(savedItemDto.getId(), savedItemDto);
+    public Mono<ItemDto> addItem(Item item) throws IOException {
+        Mono<Image> savedImage = addImageToDbAndGetMono(item.getImageFile());
+        ItemDto itemDto = ItemMapper.mapToItemDto(item, savedImage);
+        Mono<ItemDto> savedItemDto = itemRepository.save(itemDto);
+
+        //existingItemsDtos.put(savedItemDto.getId(), savedItemDto);
         return savedItemDto;
     }
 
-    public ItemDto decreaseItemAmount(@PathVariable int id) {
+    private Mono<Image> addImageToDbAndGetMono(MultipartFile imageFile) throws IOException {
+        if (imageFile == null) {
+            return Mono.just(null);
+        } else {
+            byte[] imageBytes = imageFile.getBytes();
+            Image image = new Image(imageBytes);
+            Mono<Image> savedImage = imageRepository.save(image);
+            return savedImage;
+        }
+    }
+
+   /* public ItemDto decreaseItemAmount(@PathVariable int id) {
         ItemDto itemDto = existingItemsDtos.get(id);
         int currentAmount = itemDto.getAmount();
         if (currentAmount > 0) {
@@ -71,13 +86,13 @@ public class ItemService {
         int currentAmount = itemDto.getAmount();
         itemDto.setAmount(++currentAmount);
         return itemRepository.save(itemDto);
-    }
+    }*/
 
-    public int getItemListSize() {
+    public Mono<Integer> getItemListSize() {
         return itemRepository.getItemListSize();
     }
 
-    public Map<Integer, ItemDto> getExistingItemsDtos() {
+    /*public Map<Integer, ItemDto> getExistingItemsDtos() {
         return existingItemsDtos;
     }
 
@@ -89,5 +104,5 @@ public class ItemService {
 
     public void setInExistingItemDtosItemDtoAmountToZero(int id) {
         existingItemsDtos.get(id).setAmount(0);
-    }
+    }*/
 }

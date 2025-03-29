@@ -1,3 +1,4 @@
+/*
 package ru.yandex.practicum.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,3 +86,4 @@ public class CartService {
         return Formatter.DECIMAL_FORMAT.format(totalPrice);
     }
 }
+*/

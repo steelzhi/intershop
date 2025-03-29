@@ -1,3 +1,4 @@
+/*
 package ru.yandex.practicum.dao;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,3 +13,4 @@ public interface CartRepository extends JpaRepository<CartItem, Integer> {
 
 
 }
+*/

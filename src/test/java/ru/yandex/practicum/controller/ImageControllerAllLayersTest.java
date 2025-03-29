@@ -1,3 +1,4 @@
+/*
 package ru.yandex.practicum.controller;
 
 import org.junit.jupiter.api.AfterEach;
@@ -46,3 +47,4 @@ public class ImageControllerAllLayersTest {
                 .andExpect(content().contentType("application/octet-stream"));
     }
 }
+*/

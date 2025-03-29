@@ -1,3 +1,4 @@
+/*
 package ru.yandex.practicum.dao;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,3 +12,4 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
             """)
     Double getSumOfAllOrders();
 }
+*/

@@ -1,3 +1,4 @@
+/*
 package ru.yandex.practicum.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,3 +84,4 @@ public class OrderService {
         return Formatter.DECIMAL_FORMAT.format(sumOfAllOrders != null ? sumOfAllOrders : 0);
     }
 }
+*/

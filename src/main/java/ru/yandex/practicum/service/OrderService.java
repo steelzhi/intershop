@@ -1,9 +1,11 @@
-/*
 package ru.yandex.practicum.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import ru.yandex.practicum.dao.CartRepository;
+import ru.yandex.practicum.dao.ItemRepository;
 import ru.yandex.practicum.dao.OrderItemRepository;
 import ru.yandex.practicum.dao.OrderRepository;
 import ru.yandex.practicum.dto.ItemDto;
@@ -25,49 +27,65 @@ public class OrderService {
     OrderItemRepository orderItemRepository;
 
     @Autowired
+    ItemRepository itemRepository;
+
+    @Autowired
     CartRepository cartRepository;
 
-    public Order createOrder() {
-        List<CartItem> cartItems = cartRepository.findAll();
-        if (cartItems.isEmpty() || !doesCartHaveNotNullItems(cartItems)) {
-            return null;
+    public Mono<Order> createOrder() {
+        Flux<CartItem> cartItems = cartRepository.findAll();
+        Iterable<CartItem> cartItemsIterable = cartItems.toIterable();
+        List<CartItem> cartItemList = new ArrayList<>();
+        cartItemsIterable.forEach(cartItemList::add);
+        if (cartItemList.isEmpty() || !doesCartHaveNotNullItems(cartItemList)) {
+            return Mono.empty();
         }
 
-        List<OrderItem> orderItems = new ArrayList<>();
         Order order = new Order();
-        Order savedOrder = orderRepository.save(order);
+        Mono<Order> savedOrderMono = orderRepository.save(order);
+        Order savedOrder = savedOrderMono.block();
+        int savedOrderId = savedOrder.getId();
         double totalSum = 0;
-        for (CartItem cartItem : cartItems) {
-            ItemDto itemDto = cartItem.getItemDto();
+        for (CartItem cartItem : cartItemList) {
+            ItemDto itemDto = itemRepository.findById(cartItem.getItemId()).block();
             OrderItem orderItem;
             if (itemDto.getAmount() != 0) {
-                orderItem = new OrderItem(savedOrder, itemDto, itemDto.getAmount());
-                orderItems.add(orderItem);
-                orderItemRepository.save(orderItem);
-                totalSum += orderItem.getItemAmount() * orderItem.getItemDto().getPrice();
+                orderItem = new OrderItem(savedOrderId, itemDto.getId(), itemDto.getPrice(), itemDto.getAmount());
+                orderItemRepository.save(orderItem).subscribe();
+                totalSum += orderItem.getItemAmount() * orderItem.getItemPrice();
             }
         }
 
-        savedOrder.setOrderItems(orderItems);
         savedOrder.setTotalSum(totalSum);
-        orderRepository.save(savedOrder);
+        savedOrder.setId(0);
+
+/*        Order savedOrder = savedOrderMono.block();
+        savedOrder.setTotalSum(totalSum);*/
+        Mono<Order> secondarySavedOrder = orderRepository.save(savedOrder);
         cartRepository.deleteAll();
 
-        return savedOrder;
+        //return secondarySavedOrder;
+
+        return savedOrderMono;
     }
 
-    public List<Order> getOrders() {
+    public Flux<OrderItem> getOrderItems() {
+        return orderItemRepository.findAll();
+    }
+
+    /*public List<Order> getOrders() {
         return orderRepository.findAll();
     }
 
     public Order getOrder(int id) {
         Order order = orderRepository.findById(id).get();
         return order;
-    }
+    }*/
 
     private boolean doesCartHaveNotNullItems(List<CartItem> cartItems) {
         for (CartItem cartItem : cartItems) {
-            if (cartItem.getItemDto().getAmount() != 0) {
+            ItemDto itemDto = itemRepository.findById(cartItem.getItemId()).block();
+            if (itemDto.getAmount() != 0) {
                 return true;
             }
         }
@@ -84,4 +102,3 @@ public class OrderService {
         return Formatter.DECIMAL_FORMAT.format(sumOfAllOrders != null ? sumOfAllOrders : 0);
     }
 }
-*/

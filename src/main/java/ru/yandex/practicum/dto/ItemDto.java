@@ -65,4 +65,8 @@ public class ItemDto {
     public int hashCode() {
         return Objects.hashCode(id);
     }
+
+/*    public void increaseAmount() {
+        setAmount(getAmount() + 1);
+    }*/
 }

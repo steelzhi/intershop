@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS order_items (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     order_id INT,
     item_id INT NOT NULL,
+    item_price NUMERIC(9, 2) NOT NULL,
     item_amount INT NOT NULL,
     order_item_total_sum NUMERIC(10, 2) NOT NULL,
     CONSTRAINT order_items_orders FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE ON UPDATE CASCADE,

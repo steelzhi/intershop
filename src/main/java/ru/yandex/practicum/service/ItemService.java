@@ -84,8 +84,17 @@ public class ItemService {
         return itemRepository.save(itemDto);
     }
 
-     public Mono<ItemDto> increaseItemAmount(int id) {
+    public Mono<ItemDto> increaseItemAmount(int id) {
         //ItemDto itemDto = existingItemsDtos.get(id);
+
+/*        Mono<ItemDto> itemDtoMono = getItemDto(id);
+        itemDtoMono
+                .doOnNext(ItemDto::increaseAmount)
+                .map(itemDto -> itemRepository.save(itemDto))
+                .doOnNext(System.out::println)
+                .subscribe(); // этот метод есть также и в контроллере
+        return itemDtoMono;*/
+
          ItemDto itemDto = getItemDto(id).block();
          itemDto.setAmount(itemDto.getAmount() + 1);
          return itemRepository.save(itemDto);

@@ -62,27 +62,27 @@
 <br>
 <h2 th:text="${'Заказ № '+ order.getId()}"></h2>
 
-<table th:each="orderItem : ${order.getOrderItems()}" style="width:70%;margin-left:auto;margin-right:auto;">
+<table th:each="orderItem : ${orderItems}" style="width:70%;margin-left:auto;margin-right:auto;">
     <tr>
-        <a th:href="${'/items/'+orderItem.getItemDto().getId()}">
-            <img th:src="@{/{itemDtoId}/image(itemDtoId=${orderItem.getItemDto().id})}" width="300" height="300">
-        </a>
+<!--        <a th:href="${'/items/'+orderItem.getItemId()}">
+            <img th:src="@{/image/{imageId}(imageId=${itemDto.imageId})}" width="300" height="300">
+        </a>-->
     </tr>
     <br>
-    <tr width="100">
+<!--    <tr width="100">
         <p th:text="'Название: ' + ${orderItem.getItemDto().getName()}"></p>
     </tr>
     <br>
     <tr width="100">
         <p th:text="'Описание: ' + ${orderItem.getItemDto().getDescription()}"></p>
-    </tr>
+    </tr>-->
     <br>
     <tr width="100">
         <p th:text="'Количество: ' + ${orderItem.getItemAmount()} + ' ед.'"></p>
     </tr>
     <br>
     <tr width="100">
-        <p th:text="'Цена: ' + ${orderItem.getItemDto().getPriceFormatted()}+' ₽/ед.'"></p>
+        <p th:text="'Цена: ' + ${orderItem.getItemPrice()}+' ₽/ед.'"></p>
     </tr>
     <br>
     <tr>

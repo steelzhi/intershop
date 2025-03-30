@@ -37,7 +37,7 @@
     <b>На главную</b>
 </a>
 
-<img th:src="@{/{itemDtoId}/image(itemDtoId=${itemDto.id})}" width="300" height="300"/>
+<img th:src="@{/image/{imageId}(imageId=${itemDto.imageId})}" width="300" height="300"/>
 <br/>
 <p th:text="'Название: ' + ${itemDto.getName()}"></p>
 <br/>

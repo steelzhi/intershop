@@ -14,7 +14,6 @@ import ru.yandex.practicum.model.Pages;
 import ru.yandex.practicum.service.ItemService;
 
 import java.io.IOException;
-import java.util.List;
 
 @Controller
 public class ItemController {
@@ -36,31 +35,30 @@ public class ItemController {
         itemsOnPage = getHandledItemsOnPage(itemsOnPage);
         pageNumber = getHandledItemsPageNumber(pageNumber);
         Flux<ItemDto> itemList = itemService.getItemsList(itemsOnPage, pageNumber);
-        //ItemDto itemList2 = itemList.blockFirst();
 
-        Pages pages = getPages(itemsOnPage);
-        model.addAttribute("items", itemList);
-        model.addAttribute("pages", pages);
+        Mono<Pages> pages = getPages(itemsOnPage);
+        model.addAttribute("items", itemList.toIterable());
+        model.addAttribute("pages", pages.block());
         return Mono.just("main");
     }
 
 
-/*    @GetMapping("/items/{id}")
+    @GetMapping("/items/{id}")
     public String getItemDto(Model model, @PathVariable int id) throws IOException {
-        ItemDto itemDto = itemService.getItemDto(id);
-        model.addAttribute("itemDto", itemDto);
+        Mono<ItemDto> itemDto = itemService.getItemDto(id);
+        model.addAttribute("itemDto", itemDto.block());
         return "item";
     }
 
     @GetMapping("/search")
     public String search(Model model, @RequestParam String key, @RequestParam SortingCategory sortingCategory) {
-        List<ItemDto> foundItemDtos = itemService.search(key, sortingCategory);
-        model.addAttribute("items", foundItemDtos);
+        Flux<ItemDto> foundItemDtos = itemService.search(key, sortingCategory);
+        model.addAttribute("items", foundItemDtos.toIterable());
         Pages pages = new Pages();
         model.addAttribute("pages", pages);
 
         return "main";
-    }*/
+    }
 
     @PostMapping("/item")
     public Mono<String> addItemToList(@ModelAttribute Item item) throws IOException {
@@ -68,9 +66,9 @@ public class ItemController {
         return Mono.just("redirect:/main/items");
     }
 
-    /*@PostMapping("/item/{id}/minus")
+    @PostMapping("/item/{id}/minus")
     public String decreaseItemAmount(@PathVariable int id, @RequestParam String pageName) {
-        itemService.decreaseItemAmount(id);
+        itemService.decreaseItemAmount(id).subscribe();
         PageNames pageNames = PageNames.valueOf(pageName);
         return switch (pageNames) {
             case MAIN -> "redirect:/main/items";
@@ -81,14 +79,14 @@ public class ItemController {
 
     @PostMapping("/item/{id}/plus")
     public String increaseItemAmount(@PathVariable int id, @RequestParam String pageName) {
-        itemService.increaseItemAmount(id);
+        itemService.increaseItemAmount(id).subscribe();
         PageNames pageNames = PageNames.valueOf(pageName);
         return switch (pageNames) {
             case MAIN -> "redirect:/main/items";
             case ITEM -> "redirect:/items/" + id;
             case CART -> "redirect:/cart/items";
         };
-    }*/
+    }
 
     private int getHandledItemsOnPage(Integer itemsOnPage) {
         if (itemsOnPage == null) {
@@ -106,8 +104,8 @@ public class ItemController {
         return pageNumber;
     }
 
-    private Pages getPages(Integer itemsOnPage) {
-        int itemListFullSize = itemService.getItemListSize().block();
-        return new Pages(itemsOnPage, (itemListFullSize - 1) / itemsOnPage + 1);
+    private Mono<Pages> getPages(Integer itemsOnPage) {
+        return itemService.getItemListSize()
+                .map(amount -> new Pages(itemsOnPage, (amount - 1) / itemsOnPage + 1));
     }
 }

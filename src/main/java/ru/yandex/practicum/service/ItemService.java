@@ -9,11 +9,13 @@ import reactor.core.publisher.Mono;
 import ru.yandex.practicum.dao.ImageRepository;
 import ru.yandex.practicum.dao.ItemRepository;
 import ru.yandex.practicum.dto.ItemDto;
+import ru.yandex.practicum.enums.SortingCategory;
 import ru.yandex.practicum.mapper.ItemMapper;
 import ru.yandex.practicum.model.Image;
 import ru.yandex.practicum.model.Item;
 
 import java.io.IOException;
+import java.util.List;
 
 @Service
 public class ItemService {
@@ -29,16 +31,17 @@ public class ItemService {
     public Flux<ItemDto> getItemsList(int itemsOnPage, int pageNumber) {
         PageRequest page = PageRequest.of(pageNumber - 1, itemsOnPage);
 
-        Flux<ItemDto> allItems = /*itemRepository.findAllByOrderById(page);*/ itemRepository.findAll();
+        Flux<ItemDto> allItems = itemRepository.findAllByOrderById(page);
         return allItems;
     }
 
-   /* public ItemDto getItemDto(int id) {
-        return existingItemsDtos.get(id);
-    }*/
+    public Mono<ItemDto> getItemDto(int id) {
+        //return existingItemsDtos.get(id);
+        return itemRepository.findById(id);
+    }
 
-   /* public List<ItemDto> search(String key, SortingCategory sortingCategory) {
-        List<ItemDto> itemDtos = null;
+    public Flux<ItemDto> search(String key, SortingCategory sortingCategory) {
+        Flux<ItemDto> itemDtos = null;
 
         switch (sortingCategory) {
             case NO -> itemDtos
@@ -50,7 +53,7 @@ public class ItemService {
         }
 
         return itemDtos;
-    }*/
+    }
 
     public Mono<ItemDto> addItem(Item item) throws IOException {
         Mono<Image> savedImage = addImageToDbAndGetMono(item.getImageFile());
@@ -72,21 +75,21 @@ public class ItemService {
         }
     }
 
-   /* public ItemDto decreaseItemAmount(@PathVariable int id) {
-        ItemDto itemDto = existingItemsDtos.get(id);
-        int currentAmount = itemDto.getAmount();
-        if (currentAmount > 0) {
-            itemDto.setAmount(--currentAmount);
+    public Mono<ItemDto> decreaseItemAmount(int id) {
+        //ItemDto itemDto = existingItemsDtos.get(id);
+        ItemDto itemDto = getItemDto(id).block();
+        if (itemDto.getAmount() > 0) {
+            itemDto.setAmount(itemDto.getAmount() - 1);
         }
         return itemRepository.save(itemDto);
     }
 
-    public ItemDto increaseItemAmount(@PathVariable int id) {
-        ItemDto itemDto = existingItemsDtos.get(id);
-        int currentAmount = itemDto.getAmount();
-        itemDto.setAmount(++currentAmount);
-        return itemRepository.save(itemDto);
-    }*/
+     public Mono<ItemDto> increaseItemAmount(int id) {
+        //ItemDto itemDto = existingItemsDtos.get(id);
+         ItemDto itemDto = getItemDto(id).block();
+         itemDto.setAmount(itemDto.getAmount() + 1);
+         return itemRepository.save(itemDto);
+    }
 
     public Mono<Integer> getItemListSize() {
         return itemRepository.getItemListSize();

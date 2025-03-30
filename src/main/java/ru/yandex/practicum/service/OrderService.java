@@ -9,6 +9,7 @@ import ru.yandex.practicum.dao.ItemRepository;
 import ru.yandex.practicum.dao.OrderItemRepository;
 import ru.yandex.practicum.dao.OrderRepository;
 import ru.yandex.practicum.dto.ItemDto;
+import ru.yandex.practicum.dto.OrderDto;
 import ru.yandex.practicum.model.CartItem;
 import ru.yandex.practicum.model.Order;
 import ru.yandex.practicum.model.OrderItem;
@@ -73,11 +74,25 @@ public class OrderService {
         return orderItemRepository.findAll();
     }
 
-    /*public List<Order> getOrders() {
-        return orderRepository.findAll();
-    }
+/*    public Flux<OrderDto> getOrders() {
+        Flux<Order> orderFlux = orderRepository.findAll();
+        Flux<OrderDto> orderDtoFlux = orderFlux
+                .map(order -> new OrderDto(order.getId(), order.getTotalSum()))
+                .map(orderDto -> {
+                    int orderId = orderDto.getId();
+                    Flux<OrderItem> orderItemFlux = orderItemRepository.findAllByOrderId(orderId);
+                    orderItemFlux.map(orderItem -> {
+                        Flux<>
 
-    public Order getOrder(int id) {
+                    })
+                    orderDto.setOrderItemFlux(orderItemFlux);
+                    return orderDto;
+                });
+
+        return orderDtoFlux;
+    }*/
+
+    /*public Order getOrder(int id) {
         Order order = orderRepository.findById(id).get();
         return order;
     }*/
@@ -93,12 +108,12 @@ public class OrderService {
         return false;
     }
 
-    public Double getOrdersTotalSum() {
+    public Mono<Double> getOrdersTotalSum() {
         return orderRepository.getSumOfAllOrders();
     }
 
     public String getOrdersTotalSumFormatted() {
-        Double sumOfAllOrders = getOrdersTotalSum();
+        Double sumOfAllOrders = getOrdersTotalSum().block();
         return Formatter.DECIMAL_FORMAT.format(sumOfAllOrders != null ? sumOfAllOrders : 0);
     }
 }

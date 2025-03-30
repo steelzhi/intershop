@@ -47,18 +47,18 @@
     <h4>
         <a th:text="${'Заказ № ' + order.getId()}" th:href="${'/orders/' + order.getId()}"></a>
     </h4>
-    <table th:each="orderItem : ${order.getOrderItems()}">
-        <td>
+    <table th:each="orderItem : ${orderItems}">
+<!--        <td>
             <a th:href="${'/items/' + orderItem.getItemDto().getId()}">
                 <img th:src="@{/{itemDtoId}/image(itemDtoId=${orderItem.getItemDto().id})}" width="300" height="300">
             </a>
-        </td>
+        </td>-->
         <td>
-            <p th:text="'Название: ' + ${orderItem.getItemDto().getName()}"></p>
+<!--            <p th:text="'Название: ' + ${orderItem.getItemDto().getName()}"></p>
             <br/>
             <p th:text="'Описание: ' + ${orderItem.getItemDto().getDescription()}"></p>
-            <br/>
-            <p th:text="'Цена: ' + ${orderItem.getItemDto().getPriceFormatted()}+' ₽/ед.'"></p>
+            <br/>-->
+            <p th:text="'Цена: ' + ${orderItem.getItemPrice()} + ' ₽/ед.'"></p>
             <br/>
             <p th:text="'Количество: ' + ${orderItem.getItemAmount()} + ' ед.'"></p>
             <br/>

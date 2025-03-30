@@ -29,8 +29,4 @@ public class Order {
                "id=" + id +
                '}';
     }
-
-    public String getTotalSumFormatted() {
-        return Formatter.DECIMAL_FORMAT.format(totalSum);
-    }
 }

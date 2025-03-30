@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import ru.yandex.practicum.dto.OrderDto;
 import ru.yandex.practicum.model.Order;
 import ru.yandex.practicum.model.OrderItem;
 import ru.yandex.practicum.service.CartService;
@@ -38,16 +39,19 @@ public class OrderController {
         }
     }
 
-    /*@GetMapping("/orders")
-    public String getOrders(Model model) {
-        List<Order> orders = orderService.getOrders();
+/*    @GetMapping("/orders")
+    public Mono<String> getOrders(Model model) {
+        Flux<OrderDto> ordersDto = orderService.getOrders();
         String sumOfAllOrdersFormatted = orderService.getOrdersTotalSumFormatted();
+        Flux<OrderItem> orderItemFlux = orderService.getOrderItems();
+        model.addAttribute("orders", ordersDto.toIterable());
+        model.addAttribute("orderItems", orderItemFlux.toIterable());
         model.addAttribute("sumOfAllOrdersFormatted", sumOfAllOrdersFormatted);
-        model.addAttribute("orders", orders);
-        return "orders";
-    }
 
-    @GetMapping("/orders/{id}")
+        return Mono.just("orders");
+    }*/
+
+    /*@GetMapping("/orders/{id}")
     public String getOrder(Model model, @PathVariable int id) {
         Order order = orderService.getOrder(id);
         model.addAttribute("order", order);

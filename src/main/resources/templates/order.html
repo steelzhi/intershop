@@ -60,37 +60,37 @@
     <b>На главную</b>
 </a>
 <br>
-<h2 th:text="${'Заказ № '+ order.getId()}"></h2>
+<h2 th:text="${'Заказ № '+ orderDto.getId()}"></h2>
 
-<table th:each="orderItem : ${orderItems}" style="width:70%;margin-left:auto;margin-right:auto;">
+<table th:each="orderItemDto : ${orderDto.getOrderItemDto()}" style="width:70%;margin-left:auto;margin-right:auto;">
     <tr>
-<!--        <a th:href="${'/items/'+orderItem.getItemId()}">
-            <img th:src="@{/image/{imageId}(imageId=${itemDto.imageId})}" width="300" height="300">
-        </a>-->
-    </tr>
-    <br>
-<!--    <tr width="100">
-        <p th:text="'Название: ' + ${orderItem.getItemDto().getName()}"></p>
+        <a th:href="${'/items/'+orderItemDto.getItemDto.getId()}">
+            <img th:src="@{/image/{imageId}(imageId=${orderItemDto.getItemDto.imageId})}" width="300" height="300">
+        </a>
     </tr>
     <br>
     <tr width="100">
-        <p th:text="'Описание: ' + ${orderItem.getItemDto().getDescription()}"></p>
-    </tr>-->
-    <br>
-    <tr width="100">
-        <p th:text="'Количество: ' + ${orderItem.getItemAmount()} + ' ед.'"></p>
+        <p th:text="'Название: ' + ${orderItemDto.getItemDto().getName()}"></p>
     </tr>
     <br>
     <tr width="100">
-        <p th:text="'Цена: ' + ${orderItem.getItemPrice()}+' ₽/ед.'"></p>
+        <p th:text="'Описание: ' + ${orderItemDto.getItemDto().getDescription()}"></p>
+    </tr>
+    <br>
+    <tr width="100">
+        <p th:text="'Количество: ' + ${orderItemDto.getItemDto().getAmount()} + ' ед.'"></p>
+    </tr>
+    <br>
+    <tr width="100">
+        <p th:text="'Цена: ' + ${orderItemDto.getItemDto().getPrice()}+' ₽/ед.'"></p>
     </tr>
     <br>
     <tr>
-        <p th:text="'Сумма: ' + ${orderItem.getOrderItemTotalSumFormatted()} + ' ₽'"></p>
+        <p th:text="'Сумма: ' + ${orderItemDto.getOrderItemTotalSumFormatted()} + ' ₽'"></p>
     </tr>
 </table>
 
-<b th:text="'Итоговая сумма заказа: ' + ${order.getTotalSumFormatted()}+' ₽'"></b>
+<b th:text="'Итоговая сумма заказа: ' + ${orderDto.getTotalSumFormatted()} + ' ₽'"></b>
 </body>
 
 </html>

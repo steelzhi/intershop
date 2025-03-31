@@ -15,12 +15,16 @@ import ru.yandex.practicum.model.Image;
 import ru.yandex.practicum.model.Item;
 
 import java.io.IOException;
-import java.util.List;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 @Service
 public class ItemService {
     // Для снижения обращений к БД будем также хранить текущий список товаров в кэше
     //private Map<Integer, ItemDto> existingItemsDtos = new HashMap<>();
+
+    // Нужно для теста
+    private boolean wasTestItemAdded;
 
     @Autowired
     private ItemRepository itemRepository;
@@ -28,7 +32,20 @@ public class ItemService {
     @Autowired
     private ImageRepository imageRepository;
 
-    public Flux<ItemDto> getItemsList(int itemsOnPage, int pageNumber) {
+    public Flux<ItemDto> getItemsList(int itemsOnPage, int pageNumber) throws IOException {
+
+        // Добавим тестовый товар
+        if (!wasTestItemAdded) {
+            byte[] imageBytes = Files.readAllBytes(Paths.get("C:\\dev\\Middle-Java(for-gradle)\\Sprint-5\\intershop\\src\\main\\resources\\images-bytes\\armature.txt"));
+            Image image = new Image(imageBytes);
+            Mono<Image> imageMono = imageRepository.save(image);
+            Item item = new Item("Арматура", "Арматура для строительства",  null, 70_000);
+            ItemDto itemDto = ItemMapper.mapToItemDto(item, imageMono);
+            itemDto.setAmount(1);
+            itemRepository.save(itemDto).subscribe();
+            wasTestItemAdded = true;
+        }
+
         PageRequest page = PageRequest.of(pageNumber - 1, itemsOnPage);
 
         Flux<ItemDto> allItems = itemRepository.findAllByOrderById(page);
@@ -66,7 +83,7 @@ public class ItemService {
 
     private Mono<Image> addImageToDbAndGetMono(MultipartFile imageFile) throws IOException {
         if (imageFile == null) {
-            return Mono.just(null);
+            return Mono.empty();
         } else {
             byte[] imageBytes = imageFile.getBytes();
             Image image = new Image(imageBytes);

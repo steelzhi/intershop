@@ -27,11 +27,12 @@ public class OrderController {
 
     @PostMapping("/create-order")
     public Mono<String> createOrder(Model model) {
-        Mono<Order> order = orderService.createOrder();
-        Flux<OrderItem> orderItemFlux = orderService.getOrderItems();
+        Order order = orderService.createOrder().block();
+        int orderId = order.getId();
+        OrderDto orderDto = orderService.getOrder(orderId);
+        model.addAttribute("orderDto", orderDto);
         if (order != null) {
-            model.addAttribute("order", order.block());
-            model.addAttribute("orderItems", orderItemFlux.toIterable());
+            model.addAttribute("orderDto", orderDto);
             //cartService.getCart().clear();
             return Mono.just("order");
         } else {
@@ -39,22 +40,20 @@ public class OrderController {
         }
     }
 
-/*    @GetMapping("/orders")
+    @GetMapping("/orders")
     public Mono<String> getOrders(Model model) {
-        Flux<OrderDto> ordersDto = orderService.getOrders();
+        List<OrderDto> ordersDto = orderService.getOrders();
         String sumOfAllOrdersFormatted = orderService.getOrdersTotalSumFormatted();
-        Flux<OrderItem> orderItemFlux = orderService.getOrderItems();
-        model.addAttribute("orders", ordersDto.toIterable());
-        model.addAttribute("orderItems", orderItemFlux.toIterable());
+        model.addAttribute("ordersDto", ordersDto);
         model.addAttribute("sumOfAllOrdersFormatted", sumOfAllOrdersFormatted);
 
         return Mono.just("orders");
-    }*/
+    }
 
-    /*@GetMapping("/orders/{id}")
-    public String getOrder(Model model, @PathVariable int id) {
-        Order order = orderService.getOrder(id);
-        model.addAttribute("order", order);
-        return "order";
-    }*/
+    @GetMapping("/orders/{id}")
+    public Mono<String> getOrder(Model model, @PathVariable int id) {
+        OrderDto orderDto = orderService.getOrder(id);
+        model.addAttribute("orderDto", orderDto);
+        return Mono.just("order");
+    }
 }

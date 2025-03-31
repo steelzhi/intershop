@@ -26,7 +26,7 @@ public class ItemController {
     @GetMapping(value = {"/", "/main/items"})
     public Mono<String> getItemsList(Model model,
                                       @RequestParam(name = "itemsOnPage", required = false) Integer itemsOnPage,
-                                      @RequestParam(name = "pageNumber", required = false) Integer pageNumber) {
+                                      @RequestParam(name = "pageNumber", required = false) Integer pageNumber) throws IOException {
 
         /*
         * Действие ниже нужно, чтобы при изменении количества товаров на странице такое новое количество фиксировалось

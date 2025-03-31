@@ -48,8 +48,4 @@ public class OrderItem {
                 ", orderItemTotalSum=" + orderItemTotalSum +
                 '}';
     }
-
-    public String getOrderItemTotalSumFormatted() {
-        return Formatter.DECIMAL_FORMAT.format(orderItemTotalSum);
-    }
 }

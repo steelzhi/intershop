@@ -8,6 +8,8 @@ import reactor.core.publisher.Flux;
 import ru.yandex.practicum.model.OrderItem;
 import ru.yandex.practicum.util.Formatter;
 
+import java.util.List;
+
 @AllArgsConstructor
 @Data
 public class OrderDto {
@@ -15,7 +17,7 @@ public class OrderDto {
 
     private double totalSum;
 
-    private Flux<OrderItem> orderItemFlux;
+    private List<OrderItemDto> orderItemDto;
 
     public String getTotalSumFormatted() {
         return Formatter.DECIMAL_FORMAT.format(totalSum);

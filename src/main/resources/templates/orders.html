@@ -42,31 +42,31 @@
 <a href="/main/items" style="float:right;">
     <b>На главную</b>
 </a>
-<table th:each="order : ${orders}">
+<table th:each="orderDto : ${ordersDto}">
     <br/>
     <h4>
-        <a th:text="${'Заказ № ' + order.getId()}" th:href="${'/orders/' + order.getId()}"></a>
+        <a th:text="${'Заказ № ' + orderDto.getId()}" th:href="${'/orders/' + orderDto.getId()}"></a>
     </h4>
-    <table th:each="orderItem : ${orderItems}">
-<!--        <td>
-            <a th:href="${'/items/' + orderItem.getItemDto().getId()}">
-                <img th:src="@{/{itemDtoId}/image(itemDtoId=${orderItem.getItemDto().id})}" width="300" height="300">
-            </a>
-        </td>-->
+    <table th:each="orderItemDto : ${orderDto.getOrderItemDto()}">
         <td>
-<!--            <p th:text="'Название: ' + ${orderItem.getItemDto().getName()}"></p>
+            <a th:href="${'/items/'+orderItemDto.getItemDto.getId()}">
+                <img th:src="@{/image/{imageId}(imageId=${orderItemDto.getItemDto.imageId})}" width="300" height="300">
+            </a>
+        </td>
+        <td>
+            <p th:text="'Название: ' + ${orderItemDto.getItemDto().getName()}"></p>
             <br/>
-            <p th:text="'Описание: ' + ${orderItem.getItemDto().getDescription()}"></p>
-            <br/>-->
-            <p th:text="'Цена: ' + ${orderItem.getItemPrice()} + ' ₽/ед.'"></p>
+            <p th:text="'Описание: ' + ${orderItemDto.getItemDto().getDescription()}"></p>
             <br/>
-            <p th:text="'Количество: ' + ${orderItem.getItemAmount()} + ' ед.'"></p>
+            <p th:text="'Цена: ' + ${orderItemDto.getItemDto().getPrice()} + ' ₽/ед.'"></p>
             <br/>
-            <p th:text="'Сумма: ' + ${orderItem.getOrderItemTotalSumFormatted()} + ' ₽'"></p>
+            <p th:text="'Количество: ' + ${orderItemDto.getItemDto().getAmount()} + ' ед.'"></p>
+            <br/>
+            <p th:text="'Сумма: ' + ${orderItemDto.getOrderItemTotalSumFormatted()} + ' ₽'"></p>
         </td>
     </table>
         <p>
-            <b th:text="${'Сумма заказа № ' + order.getId() + ': ' + order.getTotalSumFormatted()} + ' ₽'"></b>
+            <b th:text="${'Сумма заказа № ' + orderDto.getId() + ': ' + orderDto.getTotalSumFormatted()} + ' ₽'"></b>
         </p>
     <hr/>
     <br/>

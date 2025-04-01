@@ -51,13 +51,13 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public String search(Model model, @RequestParam String key, @RequestParam SortingCategory sortingCategory) {
+    public Mono<String> search(Model model, @RequestParam String key, @RequestParam SortingCategory sortingCategory) {
         Flux<ItemDto> foundItemDtos = itemService.search(key, sortingCategory);
         model.addAttribute("items", foundItemDtos.toIterable());
         Pages pages = new Pages();
         model.addAttribute("pages", pages);
 
-        return "main";
+        return Mono.just("main");
     }
 
     @PostMapping("/item")
@@ -67,24 +67,24 @@ public class ItemController {
     }
 
     @PostMapping("/item/{id}/minus")
-    public String decreaseItemAmount(@PathVariable int id, @RequestParam String pageName) {
+    public Mono<String> decreaseItemAmount(@PathVariable int id, @RequestParam String pageName) {
         itemService.decreaseItemAmount(id).subscribe();
         PageNames pageNames = PageNames.valueOf(pageName);
         return switch (pageNames) {
-            case MAIN -> "redirect:/main/items";
-            case ITEM -> "redirect:/items/" + id;
-            case CART -> "redirect:/cart/items";
+            case MAIN -> Mono.just("redirect:/main/items");
+            case ITEM -> Mono.just("redirect:/items/" + id);
+            case CART -> Mono.just("redirect:/cart/items");
         };
     }
 
     @PostMapping("/item/{id}/plus")
-    public String increaseItemAmount(@PathVariable int id, @RequestParam String pageName) {
+    public Mono<String>  increaseItemAmount(@PathVariable int id, @RequestParam String pageName) {
         itemService.increaseItemAmount(id).subscribe();
         PageNames pageNames = PageNames.valueOf(pageName);
         return switch (pageNames) {
-            case MAIN -> "redirect:/main/items";
-            case ITEM -> "redirect:/items/" + id;
-            case CART -> "redirect:/cart/items";
+            case MAIN -> Mono.just("redirect:/main/items");
+            case ITEM -> Mono.just("redirect:/items/" + id);
+            case CART -> Mono.just("redirect:/cart/items");
         };
     }
 

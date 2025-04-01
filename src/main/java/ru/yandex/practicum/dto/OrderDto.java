@@ -2,10 +2,6 @@ package ru.yandex.practicum.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Column;
-import reactor.core.publisher.Flux;
-import ru.yandex.practicum.model.OrderItem;
 import ru.yandex.practicum.util.Formatter;
 
 import java.util.List;

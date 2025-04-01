@@ -39,8 +39,12 @@ public class OrderService {
         Iterable<CartItem> cartItemsIterable = cartItems.toIterable();
         List<CartItem> cartItemList = new ArrayList<>();
         cartItemsIterable.forEach(cartItemList::add);
-        if (!cartItems.hasElements().block()
+        /*if (!cartItems.hasElements().block()
             || !doesCartHaveNotNullItems(cartItemList)) {
+            return Mono.empty();
+        }*/
+        if (!cartItems.hasElements().block()
+            || !doesCartHaveNotNullItems(cartItems).block()) {
             return Mono.empty();
         }
 
@@ -117,25 +121,25 @@ public class OrderService {
         return orderDto;
     }
 
-    /*    private Mono<Boolean> doesCartHaveNotNullItems(Flux<CartItem> cartItems) {
-     *//*
-     * Из CartItem (это класс для промежуточной таблицы, связующей "Корзину" с товарами, в котором хранится по
-     * 1 добавленному в "Корзину" товару) получаем id хранящегося в нем товара и далее по id -  сам товар (ItemDto -
-     * товар со всеми его параметрами)
-     *//*
+    private Mono<Boolean> doesCartHaveNotNullItems(Flux<CartItem> cartItems) {
+        /*
+         * Из CartItem (это класс для промежуточной таблицы, связующей "Корзину" с товарами, в котором хранится по
+         * 1 добавленному в "Корзину" товару) получаем id хранящегося в нем товара и далее по id - сам товар (ItemDto -
+         * товар со всеми его параметрами)
+         */
         Flux<ItemDto> itemDtoFlux = cartItems.map(cartItem -> cartItem.getItemId())
                 .map(itemId -> itemRepository.findById(itemId).block());
 
-        *//*
-     * Проверяем, что среди товаров есть хотя бы 1 с ненулевым количеством
-     *//*
+        /*
+         * Проверяем, что среди товаров есть хотя бы 1 с ненулевым количеством
+         */
         Mono<Boolean> doesCartHaveNotNullItems = itemDtoFlux.filter(itemDto -> itemDto.getAmount() > 0)
                 .hasElements();
 
         return doesCartHaveNotNullItems;
-    }*/
+    }
 
-    private boolean doesCartHaveNotNullItems(List<CartItem> cartItems) {
+/*    private boolean doesCartHaveNotNullItems(List<CartItem> cartItems) {
         for (CartItem cartItem : cartItems) {
             ItemDto itemDto = itemRepository.findById(cartItem.getItemId()).block();
             if (itemDto.getAmount() != 0) {
@@ -144,7 +148,7 @@ public class OrderService {
         }
 
         return false;
-    }
+    }*/
 
     public Mono<Double> getOrdersTotalSum() {
         return orderRepository.getSumOfAllOrders();

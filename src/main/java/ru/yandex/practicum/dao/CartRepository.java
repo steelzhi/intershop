@@ -8,6 +8,4 @@ import ru.yandex.practicum.model.CartItem;
 @Repository
 public interface CartRepository extends R2dbcRepository<CartItem, Integer> {
     Mono<CartItem> findByItemId(int itemId);
-
-
 }

@@ -30,6 +30,40 @@ public class CartService {
     private ItemRepository itemRepository;
 
     public Mono<CartItem> addItemToCart(@PathVariable int id) {
+       /* // Получаем товар из БД
+        Mono<ItemDto> itemDtoMono = itemRepository.findById(id);
+
+        // Оцениваем его количество (> 0 или нет)
+        Mono<Boolean> doesItemDtoHasPositiveAmount = itemDtoMono
+                .filter(itemDto -> itemDto.getAmount() > 0)
+                .hasElement();
+
+        *//* Если количество товара = 0, товар в "Корзину" не добавляется. Если количество > 0, то смотрим, был ли
+        * этот товар уже добавлен в "Корзину" ранее. Если был, заменяем количество товара в "Корзине" на текущее.
+        * Если не был, добавляем в "Корзину".
+         *//*
+        Mono<CartItem> cartItemMono = doesItemDtoHasPositiveAmount
+                .flatMap(hasPositiveAmount -> {
+                    if (hasPositiveAmount) {
+                        Mono<CartItem> cartItemMono2 = cartRepository.findByItemId(id);
+                        cartItemMono2
+                                .hasElement()
+                                .flatMap(hasCartItem -> {
+                                    if (hasCartItem) {
+                                        return cartItemMono2;
+                                    } else {
+                                        CartItem cartItem = new CartItem(id);
+                                        return cartRepository.save(cartItem);
+                                    }
+                                });
+                        return cartItemMono2;
+                    } else {
+                        return Mono.empty();
+                    }
+                });
+
+        return cartItemMono;*/
+
         Mono<Boolean> isItemAmountPositive = itemRepository.findById(id)
                 .filter(itemDto -> itemDto.getAmount() > 0)
                 .hasElement();
@@ -45,49 +79,61 @@ public class CartService {
         }
         return cartItemMono;
 
-/*        if (cart.containsKey(itemDtoInItemRepo)) {
-            int existingCartItemId = cart.get(itemDtoInItemRepo);
-            CartItem cartItem = cartRepository.findById(existingCartItemId).get();
-            cartItem.setItemDto(itemDtoInItemRepo);
-            cart.put(itemDtoInItemRepo, existingCartItemId);
-            return cartRepository.save(cartItem);
-        } else {
-            CartItem cartItem = new CartItem(itemDtoInItemRepo);
-            CartItem savedCartItem = cartRepository.save(cartItem);
-            cart.put(itemDtoInItemRepo, savedCartItem.getId());
-            return savedCartItem;
-        }*/
     }
 
     public Mono<Void> removeItemFromCart(int id) {
-        Mono<CartItem> cartItemMono = cartRepository.findByItemId(id);
-        if (cartItemMono.block() == null) {
-            return Mono.empty();
-        }
+        // Удаляем товар из "Корзины"
+        Mono<Void> itemDtoDeleteFromCart = cartRepository.findByItemId(id)
+                .flatMap(cartItem -> cartRepository.deleteById(cartItem.getId()));
 
-        ItemDto itemDto = itemRepository.findById(id).block();
-        itemDto.setAmount(0);
-        itemRepository.save(itemDto);
+        // Обнуляем количество у удаленного из "Корзины" товара
+        Mono<ItemDto> itemDtoSetZeroAmount = itemRepository.findById(id)
+                .map(itemDto -> {
+                    itemDto.setAmount(0);
+                    return itemDto;
+                })
+                .flatMap(itemDto -> itemRepository.save(itemDto));
 
-        int cartItemId = cartItemMono.block().getId();
-        Mono<Void> deletion = cartRepository.deleteById(cartItemId);
-        return deletion;
+        itemDtoSetZeroAmount
+                .then(itemDtoDeleteFromCart)
+                .subscribe();
+
+        return Mono.empty();
     }
 
     public Flux<ItemDto> getItemsDtosInCart() {
-        Flux<CartItem> cartItems = cartRepository.findAll();
-        List<ItemDto> itemDtos = new ArrayList<>();
         totalPrice = 0;
-        /*Flux<ItemDto> itemDtoFlux = cartItems.flatMap(cartItem -> itemRepository.findById(cartItem.getItemId()));*/
+        Flux<CartItem> cartItems = cartRepository.findAll();
+        Flux<ItemDto> itemDtoFlux = cartItems
+                .flatMap(cartItem -> {
+                    Mono<ItemDto> itemDtoMono = itemRepository.findById(cartItem.getItemId());
+                    itemDtoMono
+                            .filter(itemDto -> itemDto.getAmount() > 0)
+                            // Вычислим в этом потоке общую стоимость товаров в "Корзине"
+                            .map(itemDto -> {
+                                totalPrice += itemDto.getPrice() * itemDto.getAmount();
+                                return itemDto;
+                            });
+                    return itemDtoMono;
+                });
+        return itemDtoFlux;
 
+
+        // Старый метод с блокировками:
+/*        List<ItemDto> itemDtos = new ArrayList<>();
         for (CartItem cartItem : cartItems.toIterable()) {
-            ItemDto itemDto = itemRepository.findById(cartItem.getItemId()).block();
-            itemDtos.add(itemDto);
-            totalPrice += itemDto.getPrice() * itemDto.getAmount();
+            Mono<ItemDto> itemDtoMono = itemRepository.findById(cartItem.getItemId());
+            itemDtoMono
+                    .filter(itemDto -> itemDto.getAmount() > 0)
+                    .map(itemDto -> {
+                        totalPrice += itemDto.getPrice() * itemDto.getAmount();
+                        itemDtos.add(itemDto);
+                        return itemDto;
+                    }).subscribe();
+            itemDtoMono.block();
         }
 
-        return Flux.fromIterable(itemDtos);
-        /*return itemDtoFlux;*/
+        return Flux.fromIterable(itemDtos);*/
     }
 
     public double getTotalPrice() {
@@ -98,8 +144,8 @@ public class CartService {
         return cart;
     }*/
 
-    public String getTotalPriceFormatted() {
+    public Mono<String> getTotalPriceFormatted() {
         double totalPrice = getTotalPrice();
-        return Formatter.DECIMAL_FORMAT.format(totalPrice);
+        return Mono.just(Formatter.DECIMAL_FORMAT.format(totalPrice));
     }
 }

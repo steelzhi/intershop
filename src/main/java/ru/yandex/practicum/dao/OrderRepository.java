@@ -5,7 +5,6 @@ import reactor.core.publisher.Mono;
 import ru.yandex.practicum.model.Order;
 import org.springframework.data.r2dbc.repository.Query;
 
-
 public interface OrderRepository extends R2dbcRepository<Order, Integer> {
     @Query("""
             SELECT SUM(total_sum)
@@ -20,5 +19,4 @@ public interface OrderRepository extends R2dbcRepository<Order, Integer> {
             WHERE id = ?2
             """)
     Mono<Void> setTotalSum(double totalSum, int orderId);
-
 }

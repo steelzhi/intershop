@@ -34,15 +34,24 @@ public class ItemService {
 
     public Flux<ItemDto> getItemsList(int itemsOnPage, int pageNumber) throws IOException {
 
-        // Добавим тестовый товар
+        // Добавим тестовые товары
         if (!wasTestItemAdded) {
-            byte[] imageBytes = Files.readAllBytes(Paths.get("C:\\dev\\Middle-Java(for-gradle)\\Sprint-5\\intershop\\src\\main\\resources\\images-bytes\\armature.txt"));
-            Image image = new Image(imageBytes);
-            Mono<Image> imageMono = imageRepository.save(image);
-            Item item = new Item("Арматура", "Арматура для строительства",  null, 70_000);
-            ItemDto itemDto = ItemMapper.mapToItemDto(item, imageMono);
-            itemDto.setAmount(1);
-            itemRepository.save(itemDto).subscribe();
+            byte[] imageBytes1 = Files.readAllBytes(Paths.get("C:\\dev\\Middle-Java(for-gradle)\\Sprint-5\\intershop\\src\\main\\resources\\images-bytes\\armature.txt"));
+            Image image1 = new Image(imageBytes1);
+            Mono<Image> imageMono1 = imageRepository.save(image1);
+            Item item1 = new Item("Арматура", "Арматура для строительства", null, 65_000);
+            ItemDto itemDto1 = ItemMapper.mapToItemDto(item1, imageMono1);
+            itemDto1.setAmount(1);
+            itemRepository.save(itemDto1).subscribe();
+
+            byte[] imageBytes2 = Files.readAllBytes(Paths.get("C:\\dev\\Middle-Java(for-gradle)\\Sprint-5\\intershop\\src\\main\\resources\\images-bytes\\beam.txt"));
+            Image image2 = new Image(imageBytes2);
+            Mono<Image> imageMono2 = imageRepository.save(image2);
+            Item item2 = new Item("Балка", "Балка для перекрытий", null, 130_000);
+            ItemDto itemDto2 = ItemMapper.mapToItemDto(item2, imageMono2);
+            itemDto2.setAmount(5);
+            itemRepository.save(itemDto2).subscribe();
+
             wasTestItemAdded = true;
         }
 
@@ -58,63 +67,75 @@ public class ItemService {
     }
 
     public Flux<ItemDto> search(String key, SortingCategory sortingCategory) {
-        Flux<ItemDto> itemDtos = null;
-
-        switch (sortingCategory) {
-            case NO -> itemDtos
-                    = itemRepository.findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderById(key, key);
-            case ALPHA -> itemDtos
-                    = itemRepository.findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderByName(key, key);
-            case PRICE -> itemDtos
-                    = itemRepository.findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderByPrice(key, key);
-        }
+        Flux<ItemDto> itemDtos = switch (sortingCategory) {
+            case NO -> itemRepository.findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderById(key, key);
+            case ALPHA -> itemRepository.findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderByName(key, key);
+            case PRICE -> itemRepository.findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderByPrice(key, key);
+        };
 
         return itemDtos;
     }
 
     public Mono<ItemDto> addItem(Item item) throws IOException {
-        Mono<Image> savedImage = addImageToDbAndGetMono(item.getImageFile());
-        ItemDto itemDto = ItemMapper.mapToItemDto(item, savedImage);
-        Mono<ItemDto> savedItemDto = itemRepository.save(itemDto);
+        Mono<Item> itemMono = Mono.just(item);
+        Mono<Image> savedImageMono = addImageToDbAndGetMono(item.getImageFile());
+/*      Mono<ItemDto> itemDtoMono = ItemMapper.mapToItemDto(itemMono, savedImageMono);
+        Mono<ItemDto> savedItemDto = itemDtoMono.flatMap(itemDto -> itemRepository.save(itemDto));*/
+        ItemDto itemDtoMono = ItemMapper.mapToItemDto(itemMono.block(), savedImageMono);
+        Mono<ItemDto> savedItemDto = itemRepository.save(itemDtoMono);
 
         //existingItemsDtos.put(savedItemDto.getId(), savedItemDto);
         return savedItemDto;
     }
 
     private Mono<Image> addImageToDbAndGetMono(MultipartFile imageFile) throws IOException {
-        if (imageFile == null) {
-            return Mono.empty();
-        } else {
-            byte[] imageBytes = imageFile.getBytes();
-            Image image = new Image(imageBytes);
-            Mono<Image> savedImage = imageRepository.save(image);
-            return savedImage;
-        }
+        Mono<MultipartFile> multipartFileMono = Mono.just(imageFile);
+        Mono<Image> imageMono = multipartFileMono.hasElement()
+                .flatMap(hasMultipartFile -> {
+                    if (hasMultipartFile) {
+                        byte[] imageBytes;
+                        try {
+                            imageBytes = imageFile.getBytes();
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                        Image image = new Image(imageBytes);
+                        Mono<Image> savedImage = imageRepository.save(image);
+                        return savedImage;
+                    } else {
+                        return Mono.empty();
+                    }
+                });
+
+        return imageMono;
     }
 
     public Mono<ItemDto> decreaseItemAmount(int id) {
         //ItemDto itemDto = existingItemsDtos.get(id);
-        ItemDto itemDto = getItemDto(id).block();
-        if (itemDto.getAmount() > 0) {
-            itemDto.setAmount(itemDto.getAmount() - 1);
-        }
-        return itemRepository.save(itemDto);
+
+        Mono<ItemDto> itemDtoMono = getItemDto(id);
+        itemDtoMono
+                .map(itemDto -> {
+                    itemDto.decreaseAmount();
+                    return itemDto;
+                })
+                .flatMap(itemDto -> itemRepository.save(itemDto))
+                .subscribe();
+        return itemDtoMono;
     }
 
     public Mono<ItemDto> increaseItemAmount(int id) {
         //ItemDto itemDto = existingItemsDtos.get(id);
 
-/*        Mono<ItemDto> itemDtoMono = getItemDto(id);
+        Mono<ItemDto> itemDtoMono = getItemDto(id);
         itemDtoMono
-                .doOnNext(ItemDto::increaseAmount)
-                .map(itemDto -> itemRepository.save(itemDto))
-                .doOnNext(System.out::println)
-                .subscribe(); // этот метод есть также и в контроллере
-        return itemDtoMono;*/
-
-         ItemDto itemDto = getItemDto(id).block();
-         itemDto.setAmount(itemDto.getAmount() + 1);
-         return itemRepository.save(itemDto);
+                .map(itemDto -> {
+                    itemDto.increaseAmount();
+                    return itemDto;
+                })
+                .flatMap(itemDto -> itemRepository.save(itemDto))
+                .subscribe();
+        return itemDtoMono;
     }
 
     public Mono<Integer> getItemListSize() {

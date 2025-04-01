@@ -7,9 +7,6 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
-import ru.yandex.practicum.dto.ItemDto;
-
-import java.sql.Types;
 
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -23,9 +20,6 @@ public class Image {
     //@JdbcTypeCode(Types.BINARY)
     @Column("image_bytes")
     byte[] imageBytes;
-
-/*    @OneToOne(mappedBy = "image")
-    ItemDto itemDto;*/
 
     public Image(byte[] imageBytes) {
         this.imageBytes = imageBytes;

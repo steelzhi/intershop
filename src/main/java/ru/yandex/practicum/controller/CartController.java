@@ -13,10 +13,6 @@ import ru.yandex.practicum.dto.ItemDto;
 import ru.yandex.practicum.enums.PageNames;
 import ru.yandex.practicum.service.CartService;
 import ru.yandex.practicum.service.ItemService;
-import ru.yandex.practicum.util.Formatter;
-
-import java.util.List;
-import java.util.Map;
 
 @Controller
 public class CartController {
@@ -35,7 +31,6 @@ public class CartController {
 
     @PostMapping("/cart/remove/{id}")
     public Mono<String> removeItemFromCart(@PathVariable int id, @RequestParam String pageName) {
-
         cartService.removeItemFromCart(id).subscribe();
 
         //itemService.setInExistingItemDtosItemDtoAmountToZero(id);
@@ -49,10 +44,14 @@ public class CartController {
 
     @GetMapping("/cart/items")
     public Mono<String> getCart(Model model) {
-        Flux<ItemDto> itemDtos = cartService.getItemsDtosInCart();
-        String totalPriceFormatted = cartService.getTotalPriceFormatted();
-        model.addAttribute("items", itemDtos.toIterable());
-        model.addAttribute("totalPriceFormatted", totalPriceFormatted);
+        Flux<ItemDto> itemDtosFlux = cartService.getItemsDtosInCart();
+        Mono<String> totalPriceFormattedMono = cartService.getTotalPriceFormatted();
+        itemDtosFlux
+                .then(totalPriceFormattedMono)
+                .subscribe();
+
+        model.addAttribute("items", itemDtosFlux.toIterable());
+        model.addAttribute("totalPriceFormatted", totalPriceFormattedMono.block());
         return Mono.just("cart");
     }
 }

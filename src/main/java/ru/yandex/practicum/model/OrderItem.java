@@ -7,7 +7,6 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
-import ru.yandex.practicum.util.Formatter;
 
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)

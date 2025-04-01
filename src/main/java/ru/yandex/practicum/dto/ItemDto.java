@@ -66,7 +66,13 @@ public class ItemDto {
         return Objects.hashCode(id);
     }
 
-/*    public void increaseAmount() {
+    public void increaseAmount() {
         setAmount(getAmount() + 1);
-    }*/
+    }
+
+    public void decreaseAmount() {
+        if (amount > 0) {
+            setAmount(getAmount() - 1);
+        }
+    }
 }

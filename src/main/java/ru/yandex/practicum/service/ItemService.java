@@ -36,7 +36,7 @@ public class ItemService {
 
         // Добавим тестовые товары
         if (!wasTestItemAdded) {
-            byte[] imageBytes1 = Files.readAllBytes(Paths.get("C:\\dev\\Middle-Java(for-gradle)\\Sprint-5\\intershop\\src\\main\\resources\\images-bytes\\armature.txt"));
+            byte[] imageBytes1 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\armature.txt"));
             Image image1 = new Image(imageBytes1);
             Mono<Image> imageMono1 = imageRepository.save(image1);
             Item item1 = new Item("Арматура", "Арматура для строительства", null, 65_000);
@@ -44,7 +44,7 @@ public class ItemService {
             itemDto1.setAmount(1);
             itemRepository.save(itemDto1).subscribe();
 
-            byte[] imageBytes2 = Files.readAllBytes(Paths.get("C:\\dev\\Middle-Java(for-gradle)\\Sprint-5\\intershop\\src\\main\\resources\\images-bytes\\beam.txt"));
+            byte[] imageBytes2 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\beam.txt"));
             Image image2 = new Image(imageBytes2);
             Mono<Image> imageMono2 = imageRepository.save(image2);
             Item item2 = new Item("Балка", "Балка для перекрытий", null, 130_000);

@@ -44,14 +44,11 @@ public class CartController {
 
     @GetMapping("/cart/items")
     public Mono<String> getCart(Model model) {
-        Flux<ItemDto> itemDtosFlux = cartService.getItemsDtosInCart();
-        Mono<String> totalPriceFormattedMono = cartService.getTotalPriceFormatted();
-        itemDtosFlux
-                .then(totalPriceFormattedMono)
-                .subscribe();
+        Iterable<ItemDto> itemDtosFlux = cartService.getItemsDtosInCart();
+        String totalPriceFormatted = cartService.getTotalPriceFormatted();
 
-        model.addAttribute("items", itemDtosFlux.toIterable());
-        model.addAttribute("totalPriceFormatted", totalPriceFormattedMono.block());
+        model.addAttribute("items", itemDtosFlux);
+        model.addAttribute("totalPriceFormatted", totalPriceFormatted);
         return Mono.just("cart");
     }
 }

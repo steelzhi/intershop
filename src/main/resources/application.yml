@@ -34,3 +34,8 @@ spring:
 
   main:
     banner-mode: off
+
+logging:
+  level:
+    io.r2dbc.postgresql.QUERY: DEBUG # for queries
+    io.r2dbc.postgresql.PARAM: DEBUG # for parameters

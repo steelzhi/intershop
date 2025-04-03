@@ -26,10 +26,9 @@ public class OrderController {
     @PostMapping("/create-order")
     public Mono<String> createOrder(Model model) {
         Order order = orderService.createOrder().block();
-        int orderId = order.getId();
-        OrderDto orderDto = orderService.getOrder(orderId);
-        model.addAttribute("orderDto", orderDto);
         if (order != null) {
+            int orderId = order.getId();
+            OrderDto orderDto = orderService.getOrder(orderId);
             model.addAttribute("orderDto", orderDto);
             //cartService.getCart().clear();
             return Mono.just("order");

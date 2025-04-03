@@ -21,7 +21,8 @@ public class CartService {
     // Для снижения обращений к БД будем также хранить текущие заказы в кэше
     // ключ - товар, значение - id объекта CartItem
     //private Map<ItemDto, Integer> cart = new HashMap<>();
-    private static double totalPrice;
+    private static double[] totalPriceArray = new double[1];
+
 
     @Autowired
     private CartRepository cartRepository;
@@ -101,8 +102,8 @@ public class CartService {
         return Mono.empty();
     }
 
-    public Flux<ItemDto> getItemsDtosInCart() {
-        totalPrice = 0;
+    public Iterable<ItemDto> getItemsDtosInCart() {
+        totalPriceArray[0] = 0;
         Flux<CartItem> cartItems = cartRepository.findAll();
         Flux<ItemDto> itemDtoFlux = cartItems
                 .flatMap(cartItem -> {
@@ -111,12 +112,17 @@ public class CartService {
                             .filter(itemDto -> itemDto.getAmount() > 0)
                             // Вычислим в этом потоке общую стоимость товаров в "Корзине"
                             .map(itemDto -> {
-                                totalPrice += itemDto.getPrice() * itemDto.getAmount();
+                                totalPriceArray[0] += itemDto.getPrice() * itemDto.getAmount();
                                 return itemDto;
-                            });
+                            })
+                            .subscribe();
                     return itemDtoMono;
                 });
-        return itemDtoFlux;
+
+        itemDtoFlux.blockLast();
+
+        return itemDtoFlux.toIterable();
+
 
 
         // Старый метод с блокировками:
@@ -136,16 +142,16 @@ public class CartService {
         return Flux.fromIterable(itemDtos);*/
     }
 
-    public double getTotalPrice() {
-        return totalPrice;
-    }
-
 /*    public Map<ItemDto, Integer> getCart() {
         return cart;
     }*/
 
-    public Mono<String> getTotalPriceFormatted() {
-        double totalPrice = getTotalPrice();
-        return Mono.just(Formatter.DECIMAL_FORMAT.format(totalPrice));
+/*    public String getTotalPriceFormatted() {
+        return Formatter.DECIMAL_FORMAT.format(totalPrice);
+
+    }*/
+
+    public String getTotalPriceFormatted() {
+        return Formatter.DECIMAL_FORMAT.format(totalPriceArray[0]);
     }
 }

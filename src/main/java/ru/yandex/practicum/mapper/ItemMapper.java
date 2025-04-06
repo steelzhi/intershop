@@ -12,7 +12,9 @@ public class ItemMapper {
     }
 
     public static ItemDto mapToItemDto(Item item, Mono<Image> savedImage) throws IOException {
-        return new ItemDto(item.getName(), item.getDescription(), savedImage.block().getId(), item.getPrice(), 0);
+        Image image = savedImage.block();
+
+        return new ItemDto(item.getName(), item.getDescription(), image != null ? image.getId() : 0, item.getPrice(), 0);
     }
 
     /*

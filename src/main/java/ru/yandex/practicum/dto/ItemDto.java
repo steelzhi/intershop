@@ -25,13 +25,13 @@ public class ItemDto {
     String description;
 
     @Column("image_id")
-    int imageId;
+    Integer imageId;
 
     double price;
 
     int amount;
 
-    public ItemDto(String name, String description, int imageId, double price, int amount) {
+    public ItemDto(String name, String description, Integer imageId, double price, int amount) {
         this.name = name;
         this.description = description;
         this.imageId = imageId;

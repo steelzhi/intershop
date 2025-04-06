@@ -1,4 +1,3 @@
-/*
 package ru.yandex.practicum.service;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -7,6 +6,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import reactor.core.publisher.Mono;
 import ru.yandex.practicum.dao.ImageRepository;
 import ru.yandex.practicum.dao.ItemRepository;
 import ru.yandex.practicum.model.Image;
@@ -38,16 +38,14 @@ public class ImageServiceWithMockedRepoTest {
 
     @Test
     void testGetImage() throws IOException {
-        byte[] imageBytes = Files.readAllBytes(Paths.get("src/test/resources/images-bytes/beam.txt"));
-        Image image = new Image(imageBytes);
+        byte[] imageBytes1 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\armature.txt"));
+        Image image1 = new Image(imageBytes1);
         Mockito.when(imageRepository.findById(1))
-                .thenReturn(Optional.of(image));
+                .thenReturn(Mono.just(image1));
 
-        byte[] imageFromDb = imageService.getImage(1);
-        assertNotNull(imageFromDb, "Image should exist");
-        assertArrayEquals(imageBytes, imageFromDb, "Image was saved or retrieved incorrectly");
+        Mono<Image> imageMono = imageService.getImage(1);
+        assertNotNull(imageMono.block(), "Image should exist");
 
         Mockito.verify(imageRepository, times(1)).findById(1);
     }
 }
-*/

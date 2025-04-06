@@ -12,5 +12,13 @@ import lombok.Setter;
 public class Pages {
     private int itemsOnPage;
     private int numberOfPages;
+
+    public int getItemsOnPage() {
+        return itemsOnPage;
+    }
+
+    public int getNumberOfPages() {
+        return numberOfPages;
+    }
 }
 

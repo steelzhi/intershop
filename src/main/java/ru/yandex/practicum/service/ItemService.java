@@ -35,7 +35,7 @@ public class ItemService {
     public Flux<ItemDto> getItemsList(int itemsOnPage, int pageNumber) throws IOException {
 
         // Добавим тестовые товары
-        if (!wasTestItemAdded) {
+        /*if (!wasTestItemAdded) {
             byte[] imageBytes1 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\armature.txt"));
             Image image1 = new Image(imageBytes1);
             Mono<Image> imageMono1 = imageRepository.save(image1);
@@ -53,7 +53,7 @@ public class ItemService {
             itemRepository.save(itemDto2).subscribe();
 
             wasTestItemAdded = true;
-        }
+        }*/
 
         PageRequest page = PageRequest.of(pageNumber - 1, itemsOnPage);
 
@@ -89,6 +89,10 @@ public class ItemService {
     }
 
     private Mono<Image> addImageToDbAndGetMono(MultipartFile imageFile) throws IOException {
+        if (imageFile == null) {
+            return Mono.empty();
+        }
+
         Mono<MultipartFile> multipartFileMono = Mono.just(imageFile);
         Mono<Image> imageMono = multipartFileMono.hasElement()
                 .flatMap(hasMultipartFile -> {

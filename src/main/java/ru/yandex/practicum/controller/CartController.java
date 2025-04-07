@@ -44,8 +44,12 @@ public class CartController {
 
     @GetMapping("/cart/items")
     public Mono<String> getCart(Model model) {
-        Iterable<ItemDto> itemDtosFlux = cartService.getItemsDtosInCart();
-        String totalPriceFormatted = cartService.getTotalPriceFormatted();
+        Flux<ItemDto> itemDtosFlux = cartService.getItemsDtosInCart();
+        Mono<String> totalPriceFormatted = cartService.getTotalPriceFormatted();
+        // Это не отрабатывает - общая сумма товаров в "Корзине" не выводится
+        itemDtosFlux
+                .then(totalPriceFormatted)
+                .subscribe();
 
         model.addAttribute("items", itemDtosFlux);
         model.addAttribute("totalPriceFormatted", totalPriceFormatted);

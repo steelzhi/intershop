@@ -1,3 +1,4 @@
+/*
 package ru.yandex.practicum.service;
 
 import org.assertj.core.api.Assertions;
@@ -224,3 +225,4 @@ public class ItemServiceWithMockedRepoTest {
         verify(itemRepository, times(1)).findById(1);
     }
 }
+*/

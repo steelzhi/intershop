@@ -11,12 +11,4 @@ public interface OrderRepository extends R2dbcRepository<Order, Integer> {
             FROM orders
             """)
     Mono<Double> getSumOfAllOrders();
-
-    // Метод ниже почему-то не работает!
-    @Query("""
-            UPDATE orders
-            SET total_sum = ?1
-            WHERE id = ?2
-            """)
-    Mono<Void> setTotalSum(double totalSum, int orderId);
 }

@@ -46,7 +46,7 @@ public class ItemDto {
                ", name='" + name + '\'' +
                ", description='" + description + '\'' +
                ", price=" + price +
-               ", count=" + amount +
+               ", amount=" + amount +
                '}';
     }
 

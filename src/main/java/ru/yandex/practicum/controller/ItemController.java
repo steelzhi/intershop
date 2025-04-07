@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import ru.yandex.practicum.dto.ItemDto;
@@ -25,20 +26,21 @@ public class ItemController {
 
     @GetMapping(value = {"/", "/main/items"})
     public Mono<String> getItemsList(Model model,
-                                      @RequestParam(name = "itemsOnPage", required = false) Integer itemsOnPage,
-                                      @RequestParam(name = "pageNumber", required = false) Integer pageNumber) throws IOException {
+                                     @RequestParam(name = "itemsOnPage", required = false) Integer itemsOnPage,
+                                     @RequestParam(name = "pageNumber", required = false) Integer pageNumber) throws IOException {
 
         /*
-        * Действие ниже нужно, чтобы при изменении количества товаров на странице такое новое количество фиксировалось
-        * и до последующего его изменения на странице всегда отображалось именно такое количество товаров
+         * Действие ниже нужно, чтобы при изменении количества товаров на странице такое новое количество фиксировалось
+         * и до последующего его изменения на странице всегда отображалось именно такое количество товаров
          */
         itemsOnPage = getHandledItemsOnPage(itemsOnPage);
         pageNumber = getHandledItemsPageNumber(pageNumber);
         Flux<ItemDto> itemList = itemService.getItemsList(itemsOnPage, pageNumber);
 
-        Mono<Pages> pages = getPages(itemsOnPage);
-        model.addAttribute("items", itemList.toIterable());
-        model.addAttribute("pages", pages.block());
+        Mono<Pages> pagesMono = getPages(itemsOnPage);
+
+        model.addAttribute("items", itemList);
+        model.addAttribute("pages", pagesMono);
         return Mono.just("main");
     }
 
@@ -46,14 +48,14 @@ public class ItemController {
     @GetMapping("/items/{id}")
     public String getItemDto(Model model, @PathVariable int id) throws IOException {
         Mono<ItemDto> itemDto = itemService.getItemDto(id);
-        model.addAttribute("itemDto", itemDto.block());
+        model.addAttribute("itemDto", itemDto);
         return "item";
     }
 
     @GetMapping("/search")
     public Mono<String> search(Model model, @RequestParam String key, @RequestParam SortingCategory sortingCategory) {
         Flux<ItemDto> foundItemDtos = itemService.search(key, sortingCategory);
-        model.addAttribute("items", foundItemDtos.toIterable());
+        model.addAttribute("items", foundItemDtos);
         Pages pages = new Pages();
         model.addAttribute("pages", pages);
 
@@ -77,15 +79,33 @@ public class ItemController {
         };
     }
 
-    @PostMapping("/item/{id}/plus")
+/*    @PostMapping("/item/{id}/plus")
     public Mono<String>  increaseItemAmount(@PathVariable int id, @RequestParam String pageName) {
-        itemService.increaseItemAmount(id).subscribe();
+        itemService.increaseItemAmount(id);
         PageNames pageNames = PageNames.valueOf(pageName);
         return switch (pageNames) {
             case MAIN -> Mono.just("redirect:/main/items");
             case ITEM -> Mono.just("redirect:/items/" + id);
             case CART -> Mono.just("redirect:/cart/items");
         };
+    }*/
+
+    @PostMapping("/item/{id}/plus")
+    public Mono<String> increaseItemAmount(ServerWebExchange exchange, @PathVariable int id) {
+        return exchange.getFormData()
+                        .flatMap(formData -> {
+                            String pageName = formData.getFirst("pageName");
+                            itemService.increaseItemAmount(id);
+                            PageNames pageNames = PageNames.valueOf(pageName);
+                            return switch (pageNames) {
+                                case MAIN -> Mono.just("redirect:/main/items");
+                                case ITEM -> Mono.just("redirect:/items/" + id);
+                                case CART -> Mono.just("redirect:/cart/items");
+                            };
+
+                        });
+
+
     }
 
     private int getHandledItemsOnPage(Integer itemsOnPage) {

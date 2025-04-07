@@ -20,5 +20,13 @@ public class Pages {
     public int getNumberOfPages() {
         return numberOfPages;
     }
+
+    public void setItemsOnPage(int itemsOnPage) {
+        this.itemsOnPage = itemsOnPage;
+    }
+
+    public void setNumberOfPages(int numberOfPages) {
+        this.numberOfPages = numberOfPages;
+    }
 }
 

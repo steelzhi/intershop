@@ -11,7 +11,11 @@ public class ImageService {
     @Autowired
     private ImageRepository imageRepository;
 
-    public Mono<Image> getImage(int imageId) {
-        return imageRepository.findById(imageId);
+    public Mono<byte[]> getImage(int imageId) {
+        Mono<Image> imageMono = imageRepository.findById(imageId);
+        imageMono.subscribe();
+        Mono<byte[]> imageBytes = imageMono.map(image -> image.getImageBytes());
+        imageBytes.subscribe();
+        return imageBytes;
     }
 }

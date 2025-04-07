@@ -1,11 +1,15 @@
-/*
 package ru.yandex.practicum.controller;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.test.web.servlet.MockMvc;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import ru.yandex.practicum.dao.*;
 import ru.yandex.practicum.dto.ItemDto;
 import ru.yandex.practicum.enums.SortingCategory;
 import ru.yandex.practicum.mapper.ItemMapper;
@@ -20,13 +24,28 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(ItemController.class)
+@WebFluxTest(ItemController.class)
 public class ItemControllerWebLayerTest {
     @Autowired
-    private MockMvc mockMvc;
+    private WebTestClient webTestClient;
 
     @MockitoBean
     private ItemService itemService;
+
+    @MockitoBean
+    private OrderRepository orderRepository;
+
+    @MockitoBean
+    private CartRepository cartRepository;
+
+    @MockitoBean
+    private OrderItemRepository orderItemRepository;
+
+    @MockitoBean
+    private ImageRepository imageRepository;
+
+    @MockitoBean
+    private ItemRepository itemRepository;
 
     @Test
     void getItemsList_shouldReturnItemsList() throws Exception {
@@ -34,11 +53,18 @@ public class ItemControllerWebLayerTest {
         ItemDto itemDto2 = new ItemDto("itemDto2", "desc2", null, 2.0, 3);
         List<ItemDto> itemDtoList = List.of(itemDto1, itemDto2);
         when(itemService.getItemsList(10, 1))
-                .thenReturn(itemDtoList);
+                .thenReturn(Flux.fromIterable(itemDtoList));
         when(itemService.getItemListSize())
-                .thenReturn(itemDtoList.size());
+                .thenReturn(Mono.just(itemDtoList.size()));
 
-        mockMvc.perform(get("/main/items"))
+        webTestClient.get()
+                        .uri("/main/items")
+                                .exchange()
+                                        .expectStatus().isOk();
+
+
+
+/*        mockMvc.perform(get("/main/items"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("main"))
                 .andExpect(model().attributeExists("items"))
@@ -48,13 +74,13 @@ public class ItemControllerWebLayerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("main"))
                 .andExpect(model().attributeExists("items"))
-                .andExpect(model().attributeExists("pages"));
+                .andExpect(model().attributeExists("pages"));*/
 
         verify(itemService, times(2)).getItemsList(10, 1);
         verify(itemService, times(2)).getItemListSize();
     }
 
-    @Test
+    /*@Test
     void getItemsListSplittedByPages_shouldReturnSplittedItemsList() throws Exception {
         ItemDto itemDto1 = new ItemDto("itemDto1", "desc1", null, 1.0, 2);
         ItemDto itemDto2 = new ItemDto("itemDto2", "desc2", null, 2.0, 3);
@@ -161,6 +187,5 @@ public class ItemControllerWebLayerTest {
                 .andExpect(redirectedUrl("/cart/items"));
 
         verify(itemService, times(1)).increaseItemAmount(1);
-    }
+    }*/
 }
-*/

@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import ru.yandex.practicum.util.Formatter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @AllArgsConstructor
@@ -13,7 +14,7 @@ public class OrderDto {
 
     private double totalSum;
 
-    private List<OrderItemDto> orderItemDto;
+    private List<OrderItemDto> orderItemDtoList = new ArrayList<>();
 
     public String getTotalSumFormatted() {
         return Formatter.DECIMAL_FORMAT.format(totalSum);

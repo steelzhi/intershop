@@ -35,25 +35,29 @@ public class ItemService {
     public Flux<ItemDto> getItemsList(int itemsOnPage, int pageNumber) throws IOException {
 
         // Добавим тестовые товары
-        /*if (!wasTestItemAdded) {
+        if (!wasTestItemAdded) {
             byte[] imageBytes1 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\armature.txt"));
             Image image1 = new Image(imageBytes1);
             Mono<Image> imageMono1 = imageRepository.save(image1);
             Item item1 = new Item("Арматура", "Арматура для строительства", null, 65_000);
-            ItemDto itemDto1 = ItemMapper.mapToItemDto(item1, imageMono1);
-            itemDto1.setAmount(1);
-            itemRepository.save(itemDto1).subscribe();
+            Mono<ItemDto> itemDto1 = ItemMapper.mapToItemDto(Mono.just(item1), imageMono1);
+            itemDto1.doOnNext(itemDto -> itemDto.setAmount(1))
+                            .flatMap(itemDto -> itemRepository.save(itemDto))
+                                    .subscribe();
 
-            byte[] imageBytes2 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\beam.txt"));
+/*            itemDto1.setAmount(1);
+            itemRepository.save(itemDto1).subscribe();*/
+
+/*            byte[] imageBytes2 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\beam.txt"));
             Image image2 = new Image(imageBytes2);
             Mono<Image> imageMono2 = imageRepository.save(image2);
             Item item2 = new Item("Балка", "Балка для перекрытий", null, 130_000);
             ItemDto itemDto2 = ItemMapper.mapToItemDto(item2, imageMono2);
             itemDto2.setAmount(5);
-            itemRepository.save(itemDto2).subscribe();
+            itemRepository.save(itemDto2).subscribe();*/
 
             wasTestItemAdded = true;
-        }*/
+        }
 
         PageRequest page = PageRequest.of(pageNumber - 1, itemsOnPage);
 
@@ -81,8 +85,13 @@ public class ItemService {
         Mono<Image> savedImageMono = addImageToDbAndGetMono(item.getImageFile());
 /*      Mono<ItemDto> itemDtoMono = ItemMapper.mapToItemDto(itemMono, savedImageMono);
         Mono<ItemDto> savedItemDto = itemDtoMono.flatMap(itemDto -> itemRepository.save(itemDto));*/
-        ItemDto itemDtoMono = ItemMapper.mapToItemDto(itemMono.block(), savedImageMono);
-        Mono<ItemDto> savedItemDto = itemRepository.save(itemDtoMono);
+        //ItemDto itemDtoMono = ItemMapper.mapToItemDto(itemMono.block(), savedImageMono);
+        Mono<ItemDto> itemDtoMono = ItemMapper.mapToItemDto(itemMono, savedImageMono);
+        itemDtoMono.subscribe();
+        Mono<ItemDto> savedItemDto = itemDtoMono.flatMap(itemDto -> itemRepository.save(itemDto));
+        savedItemDto.subscribe();
+
+                //itemRepository.save(itemDtoMono);
 
         //existingItemsDtos.put(savedItemDto.getId(), savedItemDto);
         return savedItemDto;

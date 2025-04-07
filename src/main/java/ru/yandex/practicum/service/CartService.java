@@ -23,7 +23,6 @@ public class CartService {
     //private Map<ItemDto, Integer> cart = new HashMap<>();
     private static double[] totalPriceArray = new double[1];
 
-
     @Autowired
     private CartRepository cartRepository;
 
@@ -31,22 +30,25 @@ public class CartService {
     private ItemRepository itemRepository;
 
     public Mono<CartItem> addItemToCart(@PathVariable int id) {
-       /* // Получаем товар из БД
+        // Получаем товар из БД
         Mono<ItemDto> itemDtoMono = itemRepository.findById(id);
+        itemDtoMono.subscribe();
 
         // Оцениваем его количество (> 0 или нет)
         Mono<Boolean> doesItemDtoHasPositiveAmount = itemDtoMono
                 .filter(itemDto -> itemDto.getAmount() > 0)
                 .hasElement();
+        doesItemDtoHasPositiveAmount.subscribe();
 
-        *//* Если количество товара = 0, товар в "Корзину" не добавляется. Если количество > 0, то смотрим, был ли
+        /* Если количество товара = 0, товар в "Корзину" не добавляется. Если количество > 0, то смотрим, был ли
         * этот товар уже добавлен в "Корзину" ранее. Если был, заменяем количество товара в "Корзине" на текущее.
         * Если не был, добавляем в "Корзину".
-         *//*
+         */
         Mono<CartItem> cartItemMono = doesItemDtoHasPositiveAmount
                 .flatMap(hasPositiveAmount -> {
                     if (hasPositiveAmount) {
                         Mono<CartItem> cartItemMono2 = cartRepository.findByItemId(id);
+                        cartItemMono2.subscribe();
                         cartItemMono2
                                 .hasElement()
                                 .flatMap(hasCartItem -> {
@@ -56,30 +58,15 @@ public class CartService {
                                         CartItem cartItem = new CartItem(id);
                                         return cartRepository.save(cartItem);
                                     }
-                                });
+                                })
+                                .subscribe();
                         return cartItemMono2;
                     } else {
                         return Mono.empty();
                     }
                 });
 
-        return cartItemMono;*/
-
-        Mono<Boolean> isItemAmountPositive = itemRepository.findById(id)
-                .filter(itemDto -> itemDto.getAmount() > 0)
-                .hasElement();
-
-        if (!isItemAmountPositive.block()) {
-            return Mono.empty();
-        }
-
-        Mono<CartItem> cartItemMono = cartRepository.findByItemId(id);
-        if (cartItemMono.block() == null) {
-            CartItem cartItem = new CartItem(id);
-            cartItemMono = cartRepository.save(cartItem);
-        }
         return cartItemMono;
-
     }
 
     public Mono<Void> removeItemFromCart(int id) {
@@ -102,7 +89,7 @@ public class CartService {
         return Mono.empty();
     }
 
-    public Iterable<ItemDto> getItemsDtosInCart() {
+    public Flux<ItemDto> getItemsDtosInCart() {
         totalPriceArray[0] = 0;
         Flux<CartItem> cartItems = cartRepository.findAll();
         Flux<ItemDto> itemDtoFlux = cartItems
@@ -111,47 +98,19 @@ public class CartService {
                     itemDtoMono
                             .filter(itemDto -> itemDto.getAmount() > 0)
                             // Вычислим в этом потоке общую стоимость товаров в "Корзине"
-                            .map(itemDto -> {
-                                totalPriceArray[0] += itemDto.getPrice() * itemDto.getAmount();
-                                return itemDto;
-                            })
+                            .doOnNext(itemDto -> totalPriceArray[0] += itemDto.getPrice() * itemDto.getAmount())
                             .subscribe();
                     return itemDtoMono;
                 });
 
-        itemDtoFlux.blockLast();
-
-        return itemDtoFlux.toIterable();
-
-
-
-        // Старый метод с блокировками:
-/*        List<ItemDto> itemDtos = new ArrayList<>();
-        for (CartItem cartItem : cartItems.toIterable()) {
-            Mono<ItemDto> itemDtoMono = itemRepository.findById(cartItem.getItemId());
-            itemDtoMono
-                    .filter(itemDto -> itemDto.getAmount() > 0)
-                    .map(itemDto -> {
-                        totalPrice += itemDto.getPrice() * itemDto.getAmount();
-                        itemDtos.add(itemDto);
-                        return itemDto;
-                    }).subscribe();
-            itemDtoMono.block();
-        }
-
-        return Flux.fromIterable(itemDtos);*/
+        return itemDtoFlux;
     }
 
-/*    public Map<ItemDto, Integer> getCart() {
+    /*public Map<ItemDto, Integer> getCart() {
         return cart;
     }*/
 
-/*    public String getTotalPriceFormatted() {
-        return Formatter.DECIMAL_FORMAT.format(totalPrice);
-
-    }*/
-
-    public String getTotalPriceFormatted() {
-        return Formatter.DECIMAL_FORMAT.format(totalPriceArray[0]);
+    public Mono<String> getTotalPriceFormatted() {
+        return Mono.just(Formatter.DECIMAL_FORMAT.format(totalPriceArray[0]));
     }
 }

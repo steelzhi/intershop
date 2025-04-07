@@ -2,6 +2,7 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 
 <head>
+    <meta charset="utf-8"/>
     <title>Заказы</title>
 
     <style>
@@ -47,9 +48,9 @@
     <h4>
         <a th:text="${'Заказ № ' + orderDto.getId()}" th:href="${'/orders/' + orderDto.getId()}"></a>
     </h4>
-    <table th:each="orderItemDto : ${orderDto.getOrderItemDto()}">
+    <table th:each="orderItemDto : ${orderDto.getOrderItemDtoList()}">
         <td>
-            <a th:href="${'/items/'+orderItemDto.getItemDto.getId()}">
+            <a th:href="${'/items/' + orderItemDto.getItemDto.getId()}">
                 <img th:src="@{/image/{imageId}(imageId=${orderItemDto.getItemDto.imageId})}" width="300" height="300">
             </a>
         </td>

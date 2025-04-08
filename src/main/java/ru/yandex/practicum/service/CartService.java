@@ -89,7 +89,7 @@ public class CartService {
         return Mono.empty();
     }
 
-    public Flux<ItemDto> getItemsDtosInCart() {
+/*    public Flux<ItemDto> getItemsDtosInCart() {
         totalPriceArray[0] = 0;
         Flux<CartItem> cartItems = cartRepository.findAll();
         Flux<ItemDto> itemDtoFlux = cartItems
@@ -104,13 +104,25 @@ public class CartService {
                 });
 
         return itemDtoFlux;
+    }*/
+
+    public Flux<ItemDto> getItemsDtosInCart() {
+        Flux<CartItem> cartItems = cartRepository.findAll();
+        // Вычислим в этом потоке общую стоимость товаров в "Корзине"
+        return cartItems.flatMap(cartItem -> {
+            Mono<ItemDto> itemDtoMono = itemRepository.findById(cartItem.getItemId());
+            return itemDtoMono.filter(itemDto -> itemDto.getAmount() > 0);
+        });
     }
 
     /*public Map<ItemDto, Integer> getCart() {
         return cart;
     }*/
 
-    public Mono<String> getTotalPriceFormatted() {
-        return Mono.just(Formatter.DECIMAL_FORMAT.format(totalPriceArray[0]));
+    public Mono<String> getTotalPriceFormatted(Flux<ItemDto> itemDtosFlux) {
+        return itemDtosFlux
+                .map(itemDto -> itemDto.getPrice() * itemDto.getAmount())
+                .reduce(0d, Double::sum)
+                .map(Formatter.DECIMAL_FORMAT::format);
     }
 }

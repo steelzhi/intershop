@@ -1,6 +1,7 @@
 package ru.yandex.practicum.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -44,7 +45,6 @@ public class ItemController {
         return Mono.just("main");
     }
 
-
     @GetMapping("/items/{id}")
     public String getItemDto(Model model, @PathVariable int id) throws IOException {
         Mono<ItemDto> itemDto = itemService.getItemDto(id);
@@ -62,50 +62,73 @@ public class ItemController {
         return Mono.just("main");
     }
 
-    @PostMapping("/item")
-    public Mono<String> addItemToList(@ModelAttribute Item item) throws IOException {
-        itemService.addItem(item).subscribe();
+/*    @PostMapping("/item")
+    public Mono<String> addItemToList(ServerRequest request) throws IOException {
+        itemService.addItem(item);
         return Mono.just("redirect:/main/items");
+    }*/
+
+    @PostMapping(value = "/item", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Mono<String> addItemToList(@ModelAttribute Mono<Item> itemMono) {
+        try {
+            itemMono.subscribe(item -> System.out.println(item));
+            itemMono.subscribe(item -> System.out.println(item));
+            itemMono.subscribe(item -> System.out.println(item));
+            itemMono.subscribe(item -> System.out.println(item));
+            itemMono.subscribe(item -> System.out.println(item));
+            itemMono.subscribe(item -> System.out.println(item));
+            itemMono.subscribe(item -> System.out.println(item));
+
+            itemMono
+                    .flatMap(item -> {
+                        System.out.println(item);
+                        try {
+                            Mono<ItemDto> itemDtoMono = itemService.addItem(item);
+                            itemDtoMono.subscribe();
+                            return itemDtoMono;
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
+            itemMono.subscribe();
+
+            return Mono.just("redirect:/main/items");
+        } catch (Exception e) {
+            e.printStackTrace();;
+        }
+
+        return null;
+
     }
 
     @PostMapping("/item/{id}/minus")
-    public Mono<String> decreaseItemAmount(@PathVariable int id, @RequestParam String pageName) {
-        itemService.decreaseItemAmount(id).subscribe();
-        PageNames pageNames = PageNames.valueOf(pageName);
-        return switch (pageNames) {
-            case MAIN -> Mono.just("redirect:/main/items");
-            case ITEM -> Mono.just("redirect:/items/" + id);
-            case CART -> Mono.just("redirect:/cart/items");
-        };
+    public Mono<String> decreaseItemAmount(ServerWebExchange exchange, @PathVariable int id) {
+        return exchange.getFormData()
+                .flatMap(formData -> {
+                    String pageName = formData.getFirst("pageName");
+                    itemService.decreaseItemAmount(id);
+                    PageNames pageNames = PageNames.valueOf(pageName);
+                    return switch (pageNames) {
+                        case MAIN -> Mono.just("redirect:/main/items");
+                        case ITEM -> Mono.just("redirect:/items/" + id);
+                        case CART -> Mono.just("redirect:/cart/items");
+                    };
+                });
     }
-
-/*    @PostMapping("/item/{id}/plus")
-    public Mono<String>  increaseItemAmount(@PathVariable int id, @RequestParam String pageName) {
-        itemService.increaseItemAmount(id);
-        PageNames pageNames = PageNames.valueOf(pageName);
-        return switch (pageNames) {
-            case MAIN -> Mono.just("redirect:/main/items");
-            case ITEM -> Mono.just("redirect:/items/" + id);
-            case CART -> Mono.just("redirect:/cart/items");
-        };
-    }*/
 
     @PostMapping("/item/{id}/plus")
     public Mono<String> increaseItemAmount(ServerWebExchange exchange, @PathVariable int id) {
         return exchange.getFormData()
-                        .flatMap(formData -> {
-                            String pageName = formData.getFirst("pageName");
-                            itemService.increaseItemAmount(id);
-                            PageNames pageNames = PageNames.valueOf(pageName);
-                            return switch (pageNames) {
-                                case MAIN -> Mono.just("redirect:/main/items");
-                                case ITEM -> Mono.just("redirect:/items/" + id);
-                                case CART -> Mono.just("redirect:/cart/items");
-                            };
-
-                        });
-
-
+                .flatMap(formData -> {
+                    String pageName = formData.getFirst("pageName");
+                    itemService.increaseItemAmount(id);
+                    PageNames pageNames = PageNames.valueOf(pageName);
+                    return switch (pageNames) {
+                        case MAIN -> Mono.just("redirect:/main/items");
+                        case ITEM -> Mono.just("redirect:/items/" + id);
+                        case CART -> Mono.just("redirect:/cart/items");
+                    };
+                });
     }
 
     private int getHandledItemsOnPage(Integer itemsOnPage) {

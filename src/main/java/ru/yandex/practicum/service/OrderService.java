@@ -32,11 +32,41 @@ public class OrderService {
     CartRepository cartRepository;
 
     public Mono<Order> createOrder() {
-        Flux<CartItem> cartItems = cartRepository.findAll();
-        cartItems.subscribe();
+        Flux<CartItem> cartItemsFlux = cartRepository.findAll();
+        cartItemsFlux.subscribe();
         int orderId[] = new int[1];
+        double[] totalSumArray = new double[1];
 
-        return cartItems
+        Order order = new Order();
+        Mono<Order> savedOrderMono = orderRepository.save(order);
+
+        Flux<Void> orderItemsFlux = cartItemsFlux.flatMap(cartItem -> itemRepository.findById(cartItem.getItemId()))
+                .filter(itemDto -> itemDto.getAmount() > 0)
+                .map(itemDto -> {
+                    OrderItem orderItem = new OrderItem(orderId[0], itemDto.getId(), itemDto.getPrice(), itemDto.getAmount());
+
+                    orderItemRepository.save(orderItem).subscribe();
+                    totalSumArray[0] += orderItem.getItemAmount() * orderItem.getItemPrice();
+
+                    return itemDto;
+                })
+                .flatMap(itemDto -> cartRepository.deleteAll());
+
+        Mono<Order> orderWithTotalSumMono = orderRepository.findById(orderId[0])
+                .doOnNext(order1 -> order1.setTotalSum(totalSumArray[0]))
+                .flatMap(order1 -> orderRepository.save(order1));
+
+        savedOrderMono.doOnNext(savedOrder -> orderId[0] = savedOrder.getId())
+                .thenMany(orderItemsFlux)
+                .then(orderWithTotalSumMono)
+                .subscribe(order1 ->  System.out.println(order1.toString().isEmpty() ? "Order is empty" : order1));
+
+  /*              .then(updatedOrder)
+                .subscribe();*/
+
+        return orderWithTotalSumMono;
+
+        /*Mono<Order> orderMono = cartItems
                 .hasElements()
                 .flatMap(hasElements -> {
                     if (!hasElements) {
@@ -52,8 +82,8 @@ public class OrderService {
                                         Order order = new Order();
                                         Mono<Order> savedOrderMono = orderRepository.save(order);
                                         savedOrderMono.subscribe();
-                                        /*Order savedOrder = savedOrderMono.block();
-                                        int savedOrderId = savedOrder.getId();*/
+                                        *//*Order savedOrder = savedOrderMono.block();
+                                        int savedOrderId = savedOrder.getId();*//*
 
                                         savedOrderMono.doOnNext(savedOrder -> orderId[0] = savedOrder.getId())
                                                 .subscribe();
@@ -85,7 +115,12 @@ public class OrderService {
                                     }
                                 });
                     }
-                });
+                });*/
+
+/*        Order order = orderMono.block();
+        return orderMono;*/
+
+
 
 /*        if (!cartItems.hasElements().block()
             || !doesCartHaveNotNullItems(cartItems).block()) {

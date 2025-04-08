@@ -38,18 +38,34 @@ Order order = orderService.createOrder().block();
             return Mono.just("redirect:/main/items");
         }*/
 
-        Mono<Order> order = orderService.createOrder();
-        order.subscribe();
-        return order.hasElement()
+        Mono<Order> orderMono = orderService.createOrder();
+        //orderMono.subscribe(order -> System.out.println(order.toString().isEmpty() ? "Order is empty" : order));
+
+        Mono<Boolean> hasElement1 = orderMono.hasElement();
+        orderMono
+                .then(hasElement1)
+                .subscribe(i -> System.out.println(i));
+
+
+        Mono<String> stringMono = orderMono.hasElement()
                 .flatMap(hasElement -> {
                     if (hasElement) {
-                        Mono<OrderDto> orderDtoMono = order.flatMap(order1 -> orderService.getOrder(order1.getId()));
+                        Mono<OrderDto> orderDtoMono = orderMono.flatMap(order1 -> orderService.getOrder(order1.getId()));
                         model.addAttribute("orderDto", orderDtoMono);
                         return Mono.just("order");
                     } else {
                         return Mono.just("redirect:/main/items");
                     }
                 });
+
+        orderMono
+                .then(stringMono)
+                .subscribe(s -> System.out.println(s));
+
+/*        orderMono
+                .then(stringMono)
+                .subscribe();*/
+        return stringMono;
     }
 
     @GetMapping("/orders")

@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import ru.yandex.practicum.dto.ItemDto;
@@ -30,29 +31,29 @@ public class CartController {
     }
 
     @PostMapping("/cart/remove/{id}")
-    public Mono<String> removeItemFromCart(@PathVariable int id, @RequestParam String pageName) {
-        cartService.removeItemFromCart(id).subscribe();
+    public Mono<String> removeItemFromCart(ServerWebExchange exchange, @PathVariable int id) {
+        return exchange.getFormData()
+                .flatMap(formData -> {
+                    String pageName = formData.getFirst("pageName");
+                    cartService.removeItemFromCart(id).subscribe();
 
-        //itemService.setInExistingItemDtosItemDtoAmountToZero(id);
-        PageNames pageNames = PageNames.valueOf(pageName);
-        return switch (pageNames) {
-            case MAIN -> Mono.just("redirect:/main/items");
-            case ITEM -> Mono.just("redirect:/items/" + id);
-            case CART -> Mono.just("redirect:/cart/items");
-        };
+                    //itemService.setInExistingItemDtosItemDtoAmountToZero(id);
+                    PageNames pageNames = PageNames.valueOf(pageName);
+                    return switch (pageNames) {
+                        case MAIN -> Mono.just("redirect:/main/items");
+                        case ITEM -> Mono.just("redirect:/items/" + id);
+                        case CART -> Mono.just("redirect:/cart/items");
+                    };
+                });
     }
 
     @GetMapping("/cart/items")
     public Mono<String> getCart(Model model) {
         Flux<ItemDto> itemDtosFlux = cartService.getItemsDtosInCart();
-        Mono<String> totalPriceFormatted = cartService.getTotalPriceFormatted();
-        // Это не отрабатывает - общая сумма товаров в "Корзине" не выводится
-        itemDtosFlux
-                .then(totalPriceFormatted)
-                .subscribe();
+        Mono<String> totalPriceFormattedMono = cartService.getTotalPriceFormatted(itemDtosFlux);
 
         model.addAttribute("items", itemDtosFlux);
-        model.addAttribute("totalPriceFormatted", totalPriceFormatted);
+        model.addAttribute("totalPriceFormatted", totalPriceFormattedMono);
         return Mono.just("cart");
     }
 }

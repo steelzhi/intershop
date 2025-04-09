@@ -1,0 +1,10 @@
+spring:
+  r2dbc:
+    #url: r2dbc:h2:mem:///~/db/testdb;MODE=MYSQL # URL подключения к БД
+    url: r2dbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa # имя пользователя
+    password: # пароль
+logging:
+  level:
+    org.springframework.r2dbc.core.DefaultDatabaseClient: DEBUG # заодно включим логирование SQL-запросов
+    io.r2dbc: DEBUG # и добавим больше деталей (не включать в настоящем приложении)

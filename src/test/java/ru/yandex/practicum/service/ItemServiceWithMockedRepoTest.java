@@ -1,4 +1,3 @@
-/*
 package ru.yandex.practicum.service;
 
 import org.assertj.core.api.Assertions;
@@ -29,8 +28,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest(classes = ItemService.class)
@@ -48,7 +46,6 @@ public class ItemServiceWithMockedRepoTest {
     @BeforeEach
     void setUp() throws IOException {
         Mockito.reset(itemRepository);
-
     }
 
     @Test
@@ -58,94 +55,153 @@ public class ItemServiceWithMockedRepoTest {
         when(imageRepository.save(image1))
                 .thenReturn(Mono.just(image1));
         Item item1 = new Item("item1", "desc", null, 1.0);
-        ItemDto itemDto1 = ItemMapper.mapToItemDto(item1, Mono.just(image1));
+        Mono<ItemDto> itemDtoMono1 = ItemMapper.mapToItemDto(Mono.just(item1), Mono.just(image1))
+                .doOnNext(itemDto -> itemDto.setId(1));
 
         byte[] imageBytes2 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\beam.txt"));
         Image image2 = new Image(imageBytes2);
         when(imageRepository.save(image2))
                 .thenReturn(Mono.just(image2));
         Item item2 = new Item("item2", "desc", null, 1.0);
-        ItemDto itemDto2 = ItemMapper.mapToItemDto(item2, Mono.just(image2));
+        Mono<ItemDto> itemDtoMono2 = ItemMapper.mapToItemDto(Mono.just(item2), Mono.just(image2))
+                .doOnNext(itemDto -> itemDto.setId(2));
+
+        Flux<ItemDto> itemDtoFlux = Flux.concat(itemDtoMono1, itemDtoMono2);
 
         PageRequest page = PageRequest.of(0, 10);
 
         when(itemRepository.findAllByOrderById(page))
-                .thenReturn(Flux.fromIterable(List.of(itemDto1, itemDto2)));
+                .thenReturn(itemDtoFlux);
 
-        Iterable<ItemDto> itemDtos = itemService.getItemsList(10, 1)
-                .toIterable();
-        List<ItemDto> itemDtos1 = new ArrayList<>();
-        itemDtos.forEach(itemDtos1::add);
-        assertTrue(itemDtos1.contains(itemDto1), "Flux should contain itemDto1");
-        assertTrue(itemDtos1.contains(itemDto2), "Flux should contain itemDto2");
+        Flux<ItemDto> itemDtoFlux1 = itemService.getItemsList(10, 1);
+        itemDtoFlux1.blockLast();
+        List<ItemDto> itemDtos = itemDtoFlux1.toStream().toList();
+
+        assertTrue(itemDtos.contains(itemDtoMono1.block()), "Flux should contain itemDto1");
+        assertTrue(itemDtos.contains(itemDtoMono2.block()), "Flux should contain itemDto2");
 
         verify(itemRepository, times(1)).findAllByOrderById(page);
     }
 
     @Test
-    void testSearchWithDifferentSorting() throws IOException {
+    void testSearchAndOrderById() throws IOException {
         byte[] imageBytes1 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\armature.txt"));
         Image image1 = new Image(imageBytes1);
         when(imageRepository.save(image1))
                 .thenReturn(Mono.just(image1));
         Item item1 = new Item("itemDto1", "abcdesc1", null, 1.0);
-        ItemDto itemDto1 = ItemMapper.mapToItemDto(item1, Mono.just(image1));
+        Mono<ItemDto> itemDtoMono1 = ItemMapper.mapToItemDto(Mono.just(item1), Mono.just(image1))
+                .doOnNext(itemDto -> itemDto.setId(1));
 
         byte[] imageBytes2 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\beam.txt"));
         Image image2 = new Image(imageBytes2);
         when(imageRepository.save(image2))
                 .thenReturn(Mono.just(image2));
         Item item2 = new Item("itemDto2z", "descghy", null, 12.0);
-        ItemDto itemDto2 = ItemMapper.mapToItemDto(item2, Mono.just(image2));
+        Mono<ItemDto> itemDtoMono2 = ItemMapper.mapToItemDto(Mono.just(item2), Mono.just(image2))
+                .doOnNext(itemDto -> itemDto.setId(2));
 
         byte[] imageBytes3 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\pipe.txt"));
         Image image3 = new Image(imageBytes3);
         when(imageRepository.save(image3))
                 .thenReturn(Mono.just(image3));
         Item item3 = new Item("itemDto3", "desczzy", null, 4.0);
-        ItemDto itemDto3 = ItemMapper.mapToItemDto(item3, Mono.just(image3));
+        Mono<ItemDto> itemDtoMono3 = ItemMapper.mapToItemDto(Mono.just(item3), Mono.just(image3))
+                .doOnNext(itemDto -> itemDto.setId(3));
 
+        Flux<ItemDto> itemDtoFluxForOrderById = Flux.concat(itemDtoMono1, itemDtoMono2, itemDtoMono3);
         when(itemRepository.findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderById(
                 "itemdto", "itemdto"))
-                .thenReturn(Flux.fromIterable(List.of(itemDto1, itemDto2, itemDto3)));
+                .thenReturn(itemDtoFluxForOrderById);
 
-        Iterable<ItemDto> seachedItemDtos1 = itemService.search("itemdto", SortingCategory.NO)
-                .toIterable();
-        List<ItemDto> seachedItemDtos1List = new ArrayList<>();
-        seachedItemDtos1.forEach(seachedItemDtos1List::add);
-        assertTrue(seachedItemDtos1List.contains(itemDto1), "Flux should contain itemDto1");
-        assertTrue(seachedItemDtos1List.contains(itemDto2), "Flux should contain itemDto2");
-        assertTrue(seachedItemDtos1List.contains(itemDto3), "Flux should contain itemDto3");
+        List<ItemDto> searchedItemDtos = itemService.search("itemdto", SortingCategory.NO)
+                .toStream().toList();
+        assertTrue(searchedItemDtos.contains(itemDtoMono1.block()), "Flux should contain itemDto1");
+        assertTrue(searchedItemDtos.contains(itemDtoMono2.block()), "Flux should contain itemDto2");
+        assertTrue(searchedItemDtos.contains(itemDtoMono3.block()), "Flux should contain itemDto3");
 
         verify(itemRepository, times(1))
                 .findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderById(
                         "itemdto", "itemdto");
+    }
 
+    @Test
+    void testSearchAndOrderByName() throws IOException {
+        byte[] imageBytes1 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\armature.txt"));
+        Image image1 = new Image(imageBytes1);
+        when(imageRepository.save(image1))
+                .thenReturn(Mono.just(image1));
+        Item item1 = new Item("itemDto1", "abcdesc1", null, 1.0);
+        Mono<ItemDto> itemDtoMono1 = ItemMapper.mapToItemDto(Mono.just(item1), Mono.just(image1))
+                .doOnNext(itemDto -> itemDto.setId(1));
 
-        when(itemRepository.findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderByName("z", "z"))
-                .thenReturn(Flux.fromIterable(List.of(itemDto2, itemDto3)));
+        byte[] imageBytes2 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\beam.txt"));
+        Image image2 = new Image(imageBytes2);
+        when(imageRepository.save(image2))
+                .thenReturn(Mono.just(image2));
+        Item item2 = new Item("itemDto2z", "descghy", null, 12.0);
+        Mono<ItemDto> itemDtoMono2 = ItemMapper.mapToItemDto(Mono.just(item2), Mono.just(image2))
+                .doOnNext(itemDto -> itemDto.setId(2));
 
-        Iterable<ItemDto> seachedItemDtos2 = itemService.search("z", SortingCategory.ALPHA)
-                .toIterable();
-        List<ItemDto> seachedItemDtos2List = new ArrayList<>();
-        seachedItemDtos2.forEach(seachedItemDtos2List::add);
-        assertTrue(seachedItemDtos2List.size() == 2, "List size should be 2");
-        assertTrue(seachedItemDtos2List.contains(itemDto3), "Flux should contain itemDto3");
+        byte[] imageBytes3 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\pipe.txt"));
+        Image image3 = new Image(imageBytes3);
+        when(imageRepository.save(image3))
+                .thenReturn(Mono.just(image3));
+        Item item3 = new Item("itemDto3", "desczzy", null, 4.0);
+        Mono<ItemDto> itemDtoMono3 = ItemMapper.mapToItemDto(Mono.just(item3), Mono.just(image3))
+                .doOnNext(itemDto -> itemDto.setId(3));
+
+        Flux<ItemDto> itemDtoFluxForOrderByName = Flux.concat(itemDtoMono2, itemDtoMono3);
+        when(itemRepository.findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderByName(
+                "z", "z"))
+                .thenReturn(itemDtoFluxForOrderByName);
+
+        List<ItemDto> searchedItemDtos = itemService.search("z", SortingCategory.ALPHA)
+                .toStream().toList();
+        assertFalse(searchedItemDtos.contains(itemDtoMono1.block()), "Flux shouldn't contain itemDto1");
+        assertTrue(searchedItemDtos.contains(itemDtoMono2.block()), "Flux should contain itemDto2");
+        assertTrue(searchedItemDtos.contains(itemDtoMono3.block()), "Flux should contain itemDto3");
 
         verify(itemRepository, times(1))
-                .findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderByName("z", "z");
+                .findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderByName(
+                        "z", "z");
+    }
 
+    @Test
+    void testSearchAndOrderByPrice() throws IOException {
+        byte[] imageBytes1 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\armature.txt"));
+        Image image1 = new Image(imageBytes1);
+        when(imageRepository.save(image1))
+                .thenReturn(Mono.just(image1));
+        Item item1 = new Item("itemDto1", "abcdesc1", null, 1.0);
+        Mono<ItemDto> itemDtoMono1 = ItemMapper.mapToItemDto(Mono.just(item1), Mono.just(image1))
+                .doOnNext(itemDto -> itemDto.setId(1));
 
+        byte[] imageBytes2 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\beam.txt"));
+        Image image2 = new Image(imageBytes2);
+        when(imageRepository.save(image2))
+                .thenReturn(Mono.just(image2));
+        Item item2 = new Item("itemDto2z", "descghy", null, 12.0);
+        Mono<ItemDto> itemDtoMono2 = ItemMapper.mapToItemDto(Mono.just(item2), Mono.just(image2))
+                .doOnNext(itemDto -> itemDto.setId(2));
+
+        byte[] imageBytes3 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\pipe.txt"));
+        Image image3 = new Image(imageBytes3);
+        when(imageRepository.save(image3))
+                .thenReturn(Mono.just(image3));
+        Item item3 = new Item("itemDto3", "desczzy", null, 4.0);
+        Mono<ItemDto> itemDtoMono3 = ItemMapper.mapToItemDto(Mono.just(item3), Mono.just(image3))
+                .doOnNext(itemDto -> itemDto.setId(3));
+
+        Flux<ItemDto> itemDtoFluxForOrderByName = Flux.concat(itemDtoMono1, itemDtoMono3, itemDtoMono2);
         when(itemRepository.findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderByPrice(
                 "DTO", "DTO"))
-                .thenReturn(Flux.fromIterable(List.of(itemDto1, itemDto3, itemDto2)));
+                .thenReturn(itemDtoFluxForOrderByName);
 
-        Iterable<ItemDto> seachedItemDtos3 = itemService.search("DTO", SortingCategory.PRICE)
-                .toIterable();
-        List<ItemDto> seachedItemDtos3List = new ArrayList<>();
-        seachedItemDtos3.forEach(seachedItemDtos3List::add);
-        assertTrue(seachedItemDtos3List.size() == 3, "List size should be 3");
-        assertEquals(seachedItemDtos3List.get(1), itemDto3, "On 2nd place in list should be itemDto3");
+        List<ItemDto> searchedItemDtos = itemService.search("DTO", SortingCategory.PRICE)
+                .toStream().toList();
+        assertTrue(searchedItemDtos.size() == 3, "List size should be 3");
+        assertEquals(searchedItemDtos.get(1), itemDtoMono3.block(), "On 2nd place in list should be itemDto3");
 
         verify(itemRepository, times(1))
                 .findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderByPrice(
@@ -156,73 +212,68 @@ public class ItemServiceWithMockedRepoTest {
     void testAddItem() throws IOException {
         byte[] imageBytes1 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\armature.txt"));
         Image image1 = new Image(imageBytes1);
+        Mono<Image> imageMono = Mono.just(image1);
         when(imageRepository.save(image1))
-                .thenReturn(Mono.just(image1));
+                .thenReturn(imageMono);
 
         Item item = new Item("item", "desc", null, 1.0);
-        ItemDto itemDto = ItemMapper.mapToItemDto(item, Mono.just(image1));
+        Mono<ItemDto> itemDtoMono = ItemMapper.mapToItemDto(Mono.just(item), imageMono);
+        ItemDto itemDto = itemDtoMono.block();
         when(itemRepository.save(itemDto))
-                .thenReturn(Mono.just(itemDto));
+                .thenReturn(itemDtoMono);
 
         itemService.addItem(item)
                 .doOnNext(itemDto1 -> Assertions.assertThat(itemDto1)
                         .isNotNull()
                         .isEqualTo(itemDto)
                 ).block();
-
-        verify(itemRepository, times(1)).save(itemDto);
     }
 
     @Test
     void testDecreaseItemAmount() throws IOException {
         byte[] imageBytes1 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\armature.txt"));
         Image image1 = new Image(imageBytes1);
+        Mono<Image> imageMono = Mono.just(image1);
         when(imageRepository.save(image1))
-                .thenReturn(Mono.just(image1));
+                .thenReturn(imageMono);
 
+        int id = 1;
         Item item = new Item("item", "desc", null, 1.0);
-        ItemDto itemDto = ItemMapper.mapToItemDto(item, Mono.just(image1));
-        itemDto.setId(1);
+        Mono<ItemDto> itemDtoMono = ItemMapper.mapToItemDto(Mono.just(item), imageMono);
         int amount = 1;
-        itemDto.setAmount(amount);
-        ItemDto itemDtoDecreased = ItemMapper.mapToItemDto(item, Mono.just(image1));
-        itemDtoDecreased.setId(1);
-        itemDtoDecreased.setAmount(itemDto.getAmount() - 1);
+        ItemDto itemDto = itemDtoMono.doOnNext(itemDto1 -> itemDto1.setAmount(amount))
+                .doOnNext(itemDto1 -> itemDto1.setId(id))
+                .block();
 
-        when(itemRepository.findById(1))
+        when(itemRepository.findById(id))
                 .thenReturn(Mono.just(itemDto));
-        when(itemRepository.save(itemDtoDecreased))
-                .thenReturn(Mono.just(itemDtoDecreased));
-        Mono<ItemDto> itemDtoMonoDecreased = itemService.decreaseItemAmount(1);
-        assertEquals(amount - 1, itemDtoMonoDecreased.block().getAmount(), "Incorrect amount decreasing");
+        ItemDto itemDtoDecreased = itemService.decreaseItemAmount(id).block();
+        assertEquals(amount - 1, itemDtoDecreased.getAmount(), "Incorrect amount decreasing");
 
-        verify(itemRepository, times(1)).findById(1);
+        verify(itemRepository, times(1)).findById(id);
     }
 
     @Test
     void testIncreaseItemAmount() throws IOException {
         byte[] imageBytes1 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\armature.txt"));
         Image image1 = new Image(imageBytes1);
+        Mono<Image> imageMono = Mono.just(image1);
         when(imageRepository.save(image1))
-                .thenReturn(Mono.just(image1));
+                .thenReturn(imageMono);
 
+        int id = 1;
         Item item = new Item("item", "desc", null, 1.0);
-        ItemDto itemDto = ItemMapper.mapToItemDto(item, Mono.just(image1));
-        itemDto.setId(1);
+        Mono<ItemDto> itemDtoMono = ItemMapper.mapToItemDto(Mono.just(item), imageMono);
         int amount = 1;
-        itemDto.setAmount(amount);
-        ItemDto itemDtoIncreased = ItemMapper.mapToItemDto(item, Mono.just(image1));
-        itemDtoIncreased.setId(1);
-        itemDtoIncreased.setAmount(itemDto.getAmount() - 1);
+        ItemDto itemDto = itemDtoMono.doOnNext(itemDto1 -> itemDto1.setAmount(amount))
+                .doOnNext(itemDto1 -> itemDto1.setId(id))
+                .block();
 
-        when(itemRepository.findById(1))
+        when(itemRepository.findById(id))
                 .thenReturn(Mono.just(itemDto));
-        when(itemRepository.save(itemDtoIncreased))
-                .thenReturn(Mono.just(itemDtoIncreased));
-        Mono<ItemDto> itemDtoMonoIncreased = itemService.increaseItemAmount(1);
-        assertEquals(amount + 1, itemDtoMonoIncreased.block().getAmount(), "Incorrect amount increasing");
+        ItemDto itemDtoIncreased = itemService.increaseItemAmount(id).block();
+        assertEquals(amount + 1, itemDtoIncreased.getAmount(), "Incorrect amount increasing");
 
-        verify(itemRepository, times(1)).findById(1);
+        verify(itemRepository, times(1)).findById(id);
     }
 }
-*/

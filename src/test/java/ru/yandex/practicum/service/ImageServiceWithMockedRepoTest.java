@@ -36,16 +36,17 @@ public class ImageServiceWithMockedRepoTest {
         Mockito.reset(itemRepository);
     }
 
-/*    @Test
+    @Test
     void testGetImage() throws IOException {
         byte[] imageBytes1 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\armature.txt"));
         Image image1 = new Image(imageBytes1);
         Mockito.when(imageRepository.findById(1))
                 .thenReturn(Mono.just(image1));
 
-        Mono<Image> imageMono = imageService.getImage(1);
-        assertNotNull(imageMono.block(), "Image should exist");
+
+        Mono<byte[]> imageBytes = imageService.getImage(1);
+        assertNotNull(imageBytes.block(), "Image should exist");
 
         Mockito.verify(imageRepository, times(1)).findById(1);
-    }*/
+    }
 }

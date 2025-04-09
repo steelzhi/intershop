@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.codec.multipart.FilePart;
-import org.springframework.http.codec.multipart.Part;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -16,10 +15,8 @@ import ru.yandex.practicum.mapper.ItemMapper;
 import ru.yandex.practicum.model.Image;
 import ru.yandex.practicum.model.Item;
 
-import java.awt.image.DataBuffer;
-import java.io.*;
+import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +38,7 @@ public class ItemService {
     public Flux<ItemDto> getItemsList(int itemsOnPage, int pageNumber) throws IOException {
 
         // Добавим тестовые товары
-        if (!wasTestItemAdded) {
+        /*if (!wasTestItemAdded) {
             byte[] imageBytes1 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\armature.txt"));
             Image image1 = new Image(imageBytes1);
             Mono<Image> imageMono1 = imageRepository.save(image1);
@@ -63,7 +60,7 @@ public class ItemService {
                     .subscribe();
 
             wasTestItemAdded = true;
-        }
+        }*/
 
         PageRequest page = PageRequest.of(pageNumber - 1, itemsOnPage);
 

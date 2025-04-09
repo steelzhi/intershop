@@ -32,13 +32,11 @@ public class CartService {
     public Mono<CartItem> addItemToCart(@PathVariable int id) {
         // Получаем товар из БД
         Mono<ItemDto> itemDtoMono = itemRepository.findById(id);
-        itemDtoMono.subscribe();
 
         // Оцениваем его количество (> 0 или нет)
         Mono<Boolean> doesItemDtoHasPositiveAmount = itemDtoMono
                 .filter(itemDto -> itemDto.getAmount() > 0)
                 .hasElement();
-        doesItemDtoHasPositiveAmount.subscribe();
 
         /* Если количество товара = 0, товар в "Корзину" не добавляется. Если количество > 0, то смотрим, был ли
         * этот товар уже добавлен в "Корзину" ранее. Если был, заменяем количество товара в "Корзине" на текущее.
@@ -48,7 +46,6 @@ public class CartService {
                 .flatMap(hasPositiveAmount -> {
                     if (hasPositiveAmount) {
                         Mono<CartItem> cartItemMono2 = cartRepository.findByItemId(id);
-                        cartItemMono2.subscribe();
                         cartItemMono2
                                 .hasElement()
                                 .flatMap(hasCartItem -> {
@@ -66,6 +63,8 @@ public class CartService {
                     }
                 });
 
+        cartItemMono.subscribe();
+
         return cartItemMono;
     }
 
@@ -76,10 +75,7 @@ public class CartService {
 
         // Обнуляем количество у удаленного из "Корзины" товара
         Mono<ItemDto> itemDtoSetZeroAmount = itemRepository.findById(id)
-                .map(itemDto -> {
-                    itemDto.setAmount(0);
-                    return itemDto;
-                })
+                .doOnNext(itemDto -> itemDto.setAmount(0))
                 .flatMap(itemDto -> itemRepository.save(itemDto));
 
         itemDtoSetZeroAmount

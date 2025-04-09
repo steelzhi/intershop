@@ -26,7 +26,7 @@ public class CartController {
 
     @PostMapping("/cart/add/{id}")
     public Mono<String> addItemToCart(@PathVariable int id) {
-        cartService.addItemToCart(id).subscribe();
+        cartService.addItemToCart(id);
         return Mono.just("redirect:/main/items");
     }
 

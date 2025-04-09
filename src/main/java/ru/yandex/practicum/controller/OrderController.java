@@ -13,8 +13,6 @@ import ru.yandex.practicum.model.Order;
 import ru.yandex.practicum.service.CartService;
 import ru.yandex.practicum.service.OrderService;
 
-import java.util.List;
-
 @Controller
 public class OrderController {
 
@@ -26,46 +24,37 @@ public class OrderController {
 
     @PostMapping("/create-order")
     public Mono<String> createOrder(Model model) {
-/*        Рабочий метод с блокировкой
-Order order = orderService.createOrder().block();
-        if (order != null) {
-            int orderId = order.getId();
-            Mono<OrderDto> orderDtoMono = orderService.getOrder(orderId);
-            model.addAttribute("orderDto", orderDtoMono);
-            //cartService.getCart().clear();
-            return Mono.just("order");
-        } else {
-            return Mono.just("redirect:/main/items");
-        }*/
-
         Mono<Order> orderMono = orderService.createOrder();
-        //orderMono.subscribe(order -> System.out.println(order.toString().isEmpty() ? "Order is empty" : order));
 
-        Mono<Boolean> hasElement1 = orderMono.hasElement();
-        orderMono
-                .then(hasElement1)
-                .subscribe(i -> System.out.println(i));
+        Mono<OrderDto> orderDtoMono = orderMono.flatMap(order -> {
+            Mono<OrderDto> orderDtoMono1 = orderService.getOrder(order.getId());
+            orderDtoMono1
+                    .doOnNext(orderDto -> System.out.println("This is OrderDto: " + orderDto))
+                    .subscribe();
+            return orderDtoMono1;
+        });
 
+        return orderDtoMono // orderDtoMono - Mono, содержащий заказ с добавленными товарами
+                .map(orderDto -> {
+                    System.out.println("This is OrderDto: " + orderDto);
+                    model.addAttribute("orderDto", orderDto); // добавляем OrderDto во view для дальнейшего отображения
+                    System.out.println(orderDto + " was added to view");
+                    return orderDto;
+                })
+                .then(Mono.just("order") // Возвращаем view "order"
+                        .doOnNext(s -> System.out.println("Viewing data from: " + s)));
 
-        Mono<String> stringMono = orderMono.hasElement()
+                /* Mono<String> stringMono = orderMono.hasElement()
                 .flatMap(hasElement -> {
                     if (hasElement) {
                         Mono<OrderDto> orderDtoMono = orderMono.flatMap(order1 -> orderService.getOrder(order1.getId()));
+                        orderDtoMono.subscribe();
                         model.addAttribute("orderDto", orderDtoMono);
                         return Mono.just("order");
                     } else {
                         return Mono.just("redirect:/main/items");
                     }
-                });
-
-        orderMono
-                .then(stringMono)
-                .subscribe(s -> System.out.println(s));
-
-/*        orderMono
-                .then(stringMono)
-                .subscribe();*/
-        return stringMono;
+                });*/
     }
 
     @GetMapping("/orders")

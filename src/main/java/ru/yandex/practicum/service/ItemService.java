@@ -1,9 +1,11 @@
 package ru.yandex.practicum.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.codec.multipart.FilePart;
+import org.springframework.http.codec.multipart.Part;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import ru.yandex.practicum.dao.ImageRepository;
@@ -14,9 +16,13 @@ import ru.yandex.practicum.mapper.ItemMapper;
 import ru.yandex.practicum.model.Image;
 import ru.yandex.practicum.model.Item;
 
-import java.io.IOException;
+import java.awt.image.DataBuffer;
+import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class ItemService {
@@ -42,7 +48,7 @@ public class ItemService {
             Item item1 = new Item("Арматура", "Арматура для строительства", null, 65_000);
             Mono<ItemDto> itemDto1 = ItemMapper.mapToItemDto(Mono.just(item1), imageMono1)
                     .doOnNext(itemDto -> itemDto.setAmount(1))
-                            .flatMap(itemDto -> itemRepository.save(itemDto));
+                    .flatMap(itemDto -> itemRepository.save(itemDto));
 
             byte[] imageBytes2 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\beam.txt"));
             Image image2 = new Image(imageBytes2);
@@ -72,9 +78,12 @@ public class ItemService {
 
     public Flux<ItemDto> search(String key, SortingCategory sortingCategory) {
         Flux<ItemDto> itemDtos = switch (sortingCategory) {
-            case NO -> itemRepository.findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderById(key, key);
-            case ALPHA -> itemRepository.findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderByName(key, key);
-            case PRICE -> itemRepository.findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderByPrice(key, key);
+            case NO ->
+                    itemRepository.findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderById(key, key);
+            case ALPHA ->
+                    itemRepository.findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderByName(key, key);
+            case PRICE ->
+                    itemRepository.findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderByPrice(key, key);
         };
 
         return itemDtos;
@@ -84,34 +93,36 @@ public class ItemService {
         Mono<Item> itemMono = Mono.just(item);
         Mono<Image> savedImageMono = addImageToDbAndGetMono(item.getImageFile());
         Mono<ItemDto> itemDtoMono = ItemMapper.mapToItemDto(itemMono, savedImageMono);
-        itemDtoMono.subscribe();
         Mono<ItemDto> savedItemDto = itemDtoMono.flatMap(itemDto -> itemRepository.save(itemDto));
-        savedItemDto.subscribe();
-
-                //itemRepository.save(itemDtoMono);
 
         //existingItemsDtos.put(savedItemDto.getId(), savedItemDto);
         return savedItemDto;
     }
 
-    private Mono<Image> addImageToDbAndGetMono(MultipartFile imageFile) throws IOException {
-        if (imageFile == null) {
+    private Mono<Image> addImageToDbAndGetMono(FilePart filePart) throws IOException {
+        if (filePart == null) {
             return Mono.empty();
         }
 
-        Mono<MultipartFile> multipartFileMono = Mono.just(imageFile);
-        Mono<Image> imageMono = multipartFileMono.hasElement()
-                .flatMap(hasMultipartFile -> {
-                    if (hasMultipartFile) {
-                        byte[] imageBytes;
-                        try {
-                            imageBytes = imageFile.getBytes();
+        List<byte[]> bytesList = new ArrayList<>();
+
+        Mono<Boolean> booleanFlux = DataBufferUtils.join(filePart.content())
+                .map(content ->
+                        bytesList.add(content.asByteBuffer().array()));
+
+        Mono<Image> imageMono = booleanFlux
+                .flatMap(hasImage -> {
+                    if (hasImage) {
+                        Image image = new Image(bytesList.get(0));
+/*                        try {
+                            Files.write(Path.of("src/main/resources/images-bytes/aaa.txt"), bytesList.get(0));
+                            try (OutputStream out = new BufferedOutputStream(new FileOutputStream("src/main/resources/images-bytes/aaa.jpg"))) {
+                                out.write(bytesList.get(0));
+                            }
                         } catch (IOException e) {
                             throw new RuntimeException(e);
-                        }
-                        Image image = new Image(imageBytes);
+                        }*/
                         Mono<Image> savedImage = imageRepository.save(image);
-                        savedImage.subscribe();
                         return savedImage;
                     } else {
                         return Mono.empty();

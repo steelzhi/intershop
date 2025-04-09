@@ -71,26 +71,16 @@ public class ItemController {
     @PostMapping(value = "/item", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Mono<String> addItemToList(@ModelAttribute Mono<Item> itemMono) {
         try {
-            itemMono.subscribe(item -> System.out.println(item));
-            itemMono.subscribe(item -> System.out.println(item));
-            itemMono.subscribe(item -> System.out.println(item));
-            itemMono.subscribe(item -> System.out.println(item));
-            itemMono.subscribe(item -> System.out.println(item));
-            itemMono.subscribe(item -> System.out.println(item));
-            itemMono.subscribe(item -> System.out.println(item));
-
             itemMono
                     .flatMap(item -> {
-                        System.out.println(item);
                         try {
                             Mono<ItemDto> itemDtoMono = itemService.addItem(item);
-                            itemDtoMono.subscribe();
                             return itemDtoMono;
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
-                    });
-            itemMono.subscribe();
+                    })
+                    .subscribe(System.out::println);
 
             return Mono.just("redirect:/main/items");
         } catch (Exception e) {
@@ -98,7 +88,6 @@ public class ItemController {
         }
 
         return null;
-
     }
 
     @PostMapping("/item/{id}/minus")

@@ -16,6 +16,8 @@ import ru.yandex.practicum.model.Order;
 import ru.yandex.practicum.model.OrderItem;
 import ru.yandex.practicum.util.Formatter;
 
+import java.util.List;
+
 @Service
 public class OrderService {
 
@@ -32,131 +34,35 @@ public class OrderService {
     CartRepository cartRepository;
 
     public Mono<Order> createOrder() {
-        Flux<CartItem> cartItemsFlux = cartRepository.findAll();
-        cartItemsFlux.subscribe();
-        int orderId[] = new int[1];
+        int[] orderId = new int[1];
         double[] totalSumArray = new double[1];
 
         Order order = new Order();
-        Mono<Order> savedOrderMono = orderRepository.save(order);
+        Mono<Order> orderMono = orderRepository.save(order);
 
-        Flux<Void> orderItemsFlux = cartItemsFlux.flatMap(cartItem -> itemRepository.findById(cartItem.getItemId()))
+        Flux<CartItem> cartItemsFlux = cartRepository.findAll();
+        Flux<ItemDto> itemDtosFlux = cartItemsFlux.flatMap(cartItem -> itemRepository.findById(cartItem.getItemId()))
                 .filter(itemDto -> itemDto.getAmount() > 0)
-                .map(itemDto -> {
+                .doOnNext(itemDto -> {
                     OrderItem orderItem = new OrderItem(orderId[0], itemDto.getId(), itemDto.getPrice(), itemDto.getAmount());
-
                     orderItemRepository.save(orderItem).subscribe();
                     totalSumArray[0] += orderItem.getItemAmount() * orderItem.getItemPrice();
+                });
 
-                    return itemDto;
+        orderMono
+                .map(savedOrder -> {
+                    orderId[0] = savedOrder.getId();
+                    System.out.println("Order got id = " + orderId[0]);
+                    return savedOrder;
                 })
-                .flatMap(itemDto -> cartRepository.deleteAll());
+                //.doOnNext(order1 -> System.out.println(order1 + " was saved ib DB"))
+                .thenMany(itemDtosFlux)
+                .doOnNext(itemDto -> System.out.println(itemDto + " was saved in DB"))
+                .then(cartRepository.deleteAll()
+                        .doOnNext(i -> System.out.println("All cartItems were deleted from DB")))
+                .subscribe();
 
-        Mono<Order> orderWithTotalSumMono = orderRepository.findById(orderId[0])
-                .doOnNext(order1 -> order1.setTotalSum(totalSumArray[0]))
-                .flatMap(order1 -> orderRepository.save(order1));
-
-        savedOrderMono.doOnNext(savedOrder -> orderId[0] = savedOrder.getId())
-                .thenMany(orderItemsFlux)
-                .then(orderWithTotalSumMono)
-                .subscribe(order1 ->  System.out.println(order1.toString().isEmpty() ? "Order is empty" : order1));
-
-  /*              .then(updatedOrder)
-                .subscribe();*/
-
-        return orderWithTotalSumMono;
-
-        /*Mono<Order> orderMono = cartItems
-                .hasElements()
-                .flatMap(hasElements -> {
-                    if (!hasElements) {
-                        return Mono.empty();
-                    } else {
-                        Mono<Boolean> doesCartHaveNotNullItems = doesCartHaveNotNullItems(cartItems);
-                        return doesCartHaveNotNullItems
-                                .hasElement()
-                                .flatMap(hasElement -> {
-                                    if (!hasElement) {
-                                        return Mono.empty();
-                                    } else {
-                                        Order order = new Order();
-                                        Mono<Order> savedOrderMono = orderRepository.save(order);
-                                        savedOrderMono.subscribe();
-                                        *//*Order savedOrder = savedOrderMono.block();
-                                        int savedOrderId = savedOrder.getId();*//*
-
-                                        savedOrderMono.doOnNext(savedOrder -> orderId[0] = savedOrder.getId())
-                                                .subscribe();
-
-                                        double[] totalSumArray = new double[1];
-
-                                        cartItems.flatMap(cartItem -> itemRepository.findById(cartItem.getItemId()))
-                                                .filter(itemDto -> itemDto.getAmount() > 0)
-                                                .map(itemDto -> {
-                                                    OrderItem orderItem = new OrderItem(orderId[0], itemDto.getId(), itemDto.getPrice(), itemDto.getAmount());
-
-
-                                                    orderItemRepository.save(orderItem).subscribe();
-                                                    totalSumArray[0] += orderItem.getItemAmount() * orderItem.getItemPrice();
-
-                                                    return itemDto;
-                                                })
-                                                .flatMap(itemDto -> cartRepository.deleteAll())
-                                                .subscribe();
-
-                                        double totalSum = totalSumArray[0];
-
-                                        Mono<Order> updatedOrder = orderRepository.findById(orderId[0])
-                                                .doOnNext(order1 -> order1.setTotalSum(totalSum))
-                                                .flatMap(order1 -> orderRepository.save(order1));
-                                        updatedOrder.subscribe();
-
-                                        return updatedOrder;
-                                    }
-                                });
-                    }
-                });*/
-
-/*        Order order = orderMono.block();
-        return orderMono;*/
-
-
-
-/*        if (!cartItems.hasElements().block()
-            || !doesCartHaveNotNullItems(cartItems).block()) {
-            return Mono.empty();
-        }*/
-
-/*        Order order = new Order();
-        Mono<Order> savedOrderMono = orderRepository.save(order);
-        Order savedOrder = savedOrderMono.block();
-        int savedOrderId = savedOrder.getId();
-        double[] totalSumArray = new double[1];
-
-        cartItems.flatMap(cartItem -> itemRepository.findById(cartItem.getItemId()))
-                .filter(itemDto -> itemDto.getAmount() > 0)
-                .map(itemDto -> {
-                    OrderItem orderItem = new OrderItem(savedOrderId, itemDto.getId(), itemDto.getPrice(), itemDto.getAmount());
-                    orderItemRepository.save(orderItem).subscribe();
-                    totalSumArray[0] += orderItem.getItemAmount() * orderItem.getItemPrice();
-
-                    return itemDto;
-                })
-                .flatMap(itemDto -> cartRepository.deleteAll())
-                .blockLast();
-
-        double totalSum = totalSumArray[0];
-
-        Mono<Order> updatedOrder = orderRepository.findById(savedOrderId)
-                .doOnNext(order1 -> order1.setTotalSum(totalSum))
-                .flatMap(order1 -> orderRepository.save(order1));
-        updatedOrder.subscribe();*/
-
-        /*        return updatedOrder;*/
-    }
-
-    public Flux<OrderItem> getOrderItems() {
-        return orderItemRepository.findAll();
+        return Mono.just(order);
     }
 
     public Flux<OrderDto> getOrders() {
@@ -170,75 +76,9 @@ public class OrderService {
         orderFlux.subscribe();
 
         return orderDtoFlux;
-
-
-/*        Iterable<Order> orderIterable = orderFlux.toIterable();
-        List<OrderDto> orderDtos = new ArrayList<>();
-        for (Order order : orderIterable) {
-            orderDtos.add(getOrder(order.getId()));
-        }
-
-        return orderDtos;*/
-
-/*        Flux<OrderDto> orderDtoFlux = orderFlux
-                .map(order -> new OrderDto(order.getId(), order.getTotalSum()))
-                .map(orderDto -> {
-                    int orderId = orderDto.getId();
-                    Flux<OrderItem> orderItemFlux = orderItemRepository.findAllByOrderId(orderId);
-                    orderItemFlux.map(orderItem -> {
-                        Flux<>
-
-                    })
-                    orderDto.setOrderItemFlux(orderItemFlux);
-                    return orderDto;
-                });
-
-        return orderDtoFlux;*/
     }
 
     public Mono<OrderDto> getOrder(int id) {
-       /* Рабочий метод с блокировками
-       Mono<Order> orderMono = orderRepository.findById(id);
-        orderMono.subscribe();
-        Mono<OrderDto> orderDtoMono = orderMono.map(order -> new OrderDto(order.getId(), order.getTotalSum()));
-        orderDtoMono.subscribe();
-        Flux<OrderItem> orderItemFlux
-                = orderDtoMono.flatMapMany(orderDto -> orderItemRepository.findAllByOrderId(orderDto.getId()));
-        Flux<OrderItemDto> orderItemDtoFlux = orderItemFlux.flatMap(orderItem -> {
-            Mono<ItemDto> itemDtoMono = itemRepository.findById(orderItem.getItemId());
-            itemDtoMono.subscribe();
-            Mono<OrderItemDto> orderItemDtoMono
-                    = itemDtoMono.map(itemDto -> new OrderItemDto(orderItem.getOrderId(), orderItem.getOrderId(), itemDto));
-
-            return orderItemDtoMono;
-        });
-
-        Iterable<OrderItemDto> orderItemDtoIterable = orderItemDtoFlux.toIterable();
-        List<OrderItemDto> orderItemDtoList = new ArrayList<>();
-        orderItemDtoIterable.forEach(orderItemDtoList::add);
-
-        orderDtoMono.map(orderDto -> {
-            orderDto.setOrderItemDto(orderItemDtoList);
-            return orderDto;
-        });
-        return orderDtoMono.block();*/
-
-/*        Order order = orderRepository.findById(id).block();
-        OrderDto orderDto = new OrderDto(order.getId(), order.getTotalSum());
-
-        Flux<OrderItem> orderItemFlux = orderItemRepository.findAllByOrderId(orderDto.getId());
-        Iterable<OrderItem> orderItemIterable = orderItemFlux.toIterable();
-        List<OrderItemDto> orderItemDtoList = new ArrayList<>();
-        orderItemIterable.forEach(orderItem -> {
-            ItemDto itemDto = itemRepository.findById(orderItem.getItemId()).block();
-            OrderItemDto orderItemDto = new OrderItemDto(orderItem.getOrderId(), order.getId(), itemDto);
-            orderItemDtoList.add(orderItemDto);
-        });
-
-        orderDto.setOrderItemDto(orderItemDtoList);
-        return orderDto;*/
-
-
         Mono<Order> orderMono = orderRepository.findById(id);
         Mono<OrderDto> orderDtoMono = orderMono.map(order1 -> new OrderDto(order1.getId(), order1.getTotalSum()));
         Flux<OrderItem> orderItemFlux = orderDtoMono.flatMapMany(orderDto1 -> orderItemRepository.findAllByOrderId(orderDto1.getId()));
@@ -249,29 +89,21 @@ public class OrderService {
                 OrderItemDto orderItemDto = new OrderItemDto(orderItem.getId(), orderItem.getOrderId(), itemDto);
                 return orderItemDto;
             });
-            itemDtoMono
-                    .then(orderItemDtoMono)
+            orderItemDtoMono
+                    .doOnNext(System.out::println)
                     .subscribe();
             return orderItemDtoMono;
         });
 
-/*                 List<OrderItemDto> orderItemsDto = new ArrayList<>();
-        orderItemDtoFlux.toIterable().forEach(orderItemDto -> orderItemsDto.add(orderItemDto));*/
-
-        // Это в итоге не работает: orderItemDto не добавляются в orderDto
         Mono<OrderDto> orderDtoMonoWithAddedOrderItems = orderDtoMono
-                .map(orderDto -> {
-                            orderItemDtoFlux
-                                    .map(orderItemDto -> orderDto.getOrderItemDtoList().add(orderItemDto)).subscribe();
-                            return orderDto;
-                        }
-                );
+                .doOnNext(orderDto -> {
+                    orderItemDtoFlux
+                            .map(orderItemDto -> orderDto.getOrderItemDtoList().add(orderItemDto)).subscribe();
+                })
+                .doOnNext(System.out::println);
 
-        orderMono
-                .then(orderDtoMono
-                        .then(orderItemFlux
-                                .then(orderItemDtoFlux
-                                        .then(orderDtoMonoWithAddedOrderItems))))
+        orderDtoMonoWithAddedOrderItems
+                .doOnNext(System.out::println)
                 .subscribe();
 
         return orderDtoMonoWithAddedOrderItems;

@@ -1,6 +1,7 @@
 package ru.yandex.practicum.model;
 
 import lombok.Data;
+import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.web.multipart.MultipartFile;
 
 @Data
@@ -9,11 +10,11 @@ public class Item {
 
     String description;
 
-    MultipartFile imageFile;
+    FilePart imageFile;
 
     double price;
 
-    public Item(String name, String description, MultipartFile imageFile, double price) {
+    public Item(String name, String description, FilePart imageFile, double price) {
         this.name = name;
         this.description = description;
         this.imageFile = imageFile;

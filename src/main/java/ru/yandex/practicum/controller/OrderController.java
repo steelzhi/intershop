@@ -28,20 +28,16 @@ public class OrderController {
 
         Mono<OrderDto> orderDtoMono = orderMono.flatMap(order -> {
             Mono<OrderDto> orderDtoMono1 = orderService.getOrder(order.getId());
-            orderDtoMono1
-                    .doOnNext(orderDto -> System.out.println("This is OrderDto: " + orderDto))
-                    .subscribe();
             return orderDtoMono1;
         });
 
-        return orderDtoMono // orderDtoMono - Mono, содержащий заказ с добавленными товарами
-                .map(orderDto -> {
-                    System.out.println("This is OrderDto: " + orderDto);
-                    model.addAttribute("orderDto", orderDto); // добавляем OrderDto во view для дальнейшего отображения
+        return orderDtoMono
+                .doOnNext(orderDto -> {
+                    System.out.println("This is OrderDto (# 2): " + orderDto);
+                    model.addAttribute("orderDto", orderDto);
                     System.out.println(orderDto + " was added to view");
-                    return orderDto;
                 })
-                .then(Mono.just("order") // Возвращаем view "order"
+                .then(Mono.just("order")
                         .doOnNext(s -> System.out.println("Viewing data from: " + s)));
 
                 /* Mono<String> stringMono = orderMono.hasElement()
@@ -61,16 +57,28 @@ public class OrderController {
     public Mono<String> getOrders(Model model) {
         Flux<OrderDto> orderDtoFlux = orderService.getOrders();
         Mono<String> sumOfAllOrdersFormatted = orderService.getOrdersTotalSumFormatted();
-        model.addAttribute("ordersDto", orderDtoFlux);
-        model.addAttribute("sumOfAllOrdersFormatted", sumOfAllOrdersFormatted);
+        Mono<String> mono = orderDtoFlux
+                .doOnNext(i -> {
+                    model.addAttribute("ordersDto", orderDtoFlux);
+                    System.out.println("Adding view \"ordersDto\"");
+                })
+                .then(sumOfAllOrdersFormatted)
+                .doOnNext(i -> {
+                    model.addAttribute("sumOfAllOrdersFormatted", sumOfAllOrdersFormatted);
+                    System.out.println("Adding view \"sumOfAllOrdersFormatted\"");
+                })
+                .flatMap(s -> Mono.just("orders"));
 
-        return Mono.just("orders");
+        return mono;
     }
 
     @GetMapping("/orders/{id}")
     public Mono<String> getOrder(Model model, @PathVariable int id) {
         Mono<OrderDto> orderDtoMono = orderService.getOrder(id);
-        model.addAttribute("orderDto", orderDtoMono);
-        return Mono.just("order");
+        Mono<String> mono = orderDtoMono
+                .doOnNext(i -> model.addAttribute("orderDto", orderDtoMono))
+                .flatMap(s -> Mono.just("order"));
+
+        return mono;
     }
 }

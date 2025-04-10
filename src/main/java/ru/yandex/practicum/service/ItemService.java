@@ -38,7 +38,7 @@ public class ItemService {
     public Flux<ItemDto> getItemsList(int itemsOnPage, int pageNumber) throws IOException {
 
         // Добавим тестовые товары
-        /*if (!wasTestItemAdded) {
+        if (!wasTestItemAdded) {
             byte[] imageBytes1 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\armature.txt"));
             Image image1 = new Image(imageBytes1);
             Mono<Image> imageMono1 = imageRepository.save(image1);
@@ -60,7 +60,7 @@ public class ItemService {
                     .subscribe();
 
             wasTestItemAdded = true;
-        }*/
+        }
 
         PageRequest page = PageRequest.of(pageNumber - 1, itemsOnPage);
 

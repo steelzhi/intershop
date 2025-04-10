@@ -2,8 +2,10 @@ package ru.yandex.practicum.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.yaml.snakeyaml.util.Tuple;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
 import ru.yandex.practicum.dao.CartRepository;
 import ru.yandex.practicum.dao.ItemRepository;
 import ru.yandex.practicum.dao.OrderItemRepository;
@@ -16,6 +18,7 @@ import ru.yandex.practicum.model.Order;
 import ru.yandex.practicum.model.OrderItem;
 import ru.yandex.practicum.util.Formatter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -49,20 +52,27 @@ public class OrderService {
                     totalSumArray[0] += orderItem.getItemAmount() * orderItem.getItemPrice();
                 });
 
-        orderMono
+        Mono<Void> voidMono = orderMono
+                .doOnNext(order1 -> System.out.println(order1 + " was saved in DB"))
                 .map(savedOrder -> {
                     orderId[0] = savedOrder.getId();
                     System.out.println("Order got id = " + orderId[0]);
                     return savedOrder;
                 })
-                //.doOnNext(order1 -> System.out.println(order1 + " was saved ib DB"))
-                .thenMany(itemDtosFlux)
-                .doOnNext(itemDto -> System.out.println(itemDto + " was saved in DB"))
+                .thenMany(itemDtosFlux
+                        .doOnNext(itemDto -> System.out.println(itemDto + " was saved in DB")))
+                .flatMap(itemDto -> orderRepository.findById(orderId[0]))
+                .doOnNext(order1 -> {
+                    order1.setTotalSum(totalSumArray[0]);
+                    orderRepository.save(order1).subscribe();
+                    System.out.println("totalSum = " + totalSumArray[0] + ". Order saved with totalSum");
+                })
                 .then(cartRepository.deleteAll()
-                        .doOnNext(i -> System.out.println("All cartItems were deleted from DB")))
-                .subscribe();
+                        .doOnNext(i -> System.out.println("All cartItems were deleted from DB")));
 
-        return Mono.just(order);
+        return voidMono
+                .then(Mono.just(order))
+                .doOnNext(i -> System.out.println("Returning from OrderService#createOrder"));
     }
 
     public Flux<OrderDto> getOrders() {
@@ -73,7 +83,6 @@ public class OrderService {
 
             return orderDto;
         });
-        orderFlux.subscribe();
 
         return orderDtoFlux;
     }
@@ -82,31 +91,29 @@ public class OrderService {
         Mono<Order> orderMono = orderRepository.findById(id);
         Mono<OrderDto> orderDtoMono = orderMono.map(order1 -> new OrderDto(order1.getId(), order1.getTotalSum()));
         Flux<OrderItem> orderItemFlux = orderDtoMono.flatMapMany(orderDto1 -> orderItemRepository.findAllByOrderId(orderDto1.getId()));
+        List<OrderItemDto> orderItemDtoList = new ArrayList<>();
 
         Flux<OrderItemDto> orderItemDtoFlux = orderItemFlux.flatMap(orderItem -> {
             Mono<ItemDto> itemDtoMono = itemRepository.findById(orderItem.getItemId());
             Mono<OrderItemDto> orderItemDtoMono = itemDtoMono.map(itemDto -> {
                 OrderItemDto orderItemDto = new OrderItemDto(orderItem.getId(), orderItem.getOrderId(), itemDto);
+                orderItemDtoList.add(orderItemDto);
+                System.out.println("OrderItemDto " + orderItemDto + " was created and added to list");
                 return orderItemDto;
             });
-            orderItemDtoMono
-                    .doOnNext(System.out::println)
-                    .subscribe();
+
+            System.out.println("Returning created orderItemDtoMono");
             return orderItemDtoMono;
         });
 
-        Mono<OrderDto> orderDtoMonoWithAddedOrderItems = orderDtoMono
-                .doOnNext(orderDto -> {
-                    orderItemDtoFlux
-                            .map(orderItemDto -> orderDto.getOrderItemDtoList().add(orderItemDto)).subscribe();
-                })
-                .doOnNext(System.out::println);
+        Mono<OrderDto> orderDtoWithOrderItemsMono = orderDtoMono.doOnNext(orderDto -> orderDto.setOrderItemDtoList(orderItemDtoList));
 
-        orderDtoMonoWithAddedOrderItems
-                .doOnNext(System.out::println)
-                .subscribe();
+        Mono<OrderDto> orderDtoMono1 = orderItemDtoFlux
+                .doOnNext(orderItemDto -> System.out.println("Entering OrderService#getOrder"))
+                .doOnNext(orderItemDto -> System.out.println(orderItemDto + " was created from itemDto"))
+                .then(orderDtoWithOrderItemsMono);
 
-        return orderDtoMonoWithAddedOrderItems;
+        return orderDtoMono1;
     }
 
     private Mono<Boolean> doesCartHaveNotNullItems(Flux<CartItem> cartItems) {
@@ -124,7 +131,6 @@ public class OrderService {
 
     public Mono<String> getOrdersTotalSumFormatted() {
         Mono<Double> sumOfAllOrdersMono = getOrdersTotalSum();
-        sumOfAllOrdersMono.subscribe();
         Mono<String> sumOfAllOrdersFormattedMono = sumOfAllOrdersMono
                 .map(sumOfAllOrders -> Formatter.DECIMAL_FORMAT.format(sumOfAllOrders != null ? sumOfAllOrders : 0));
 

@@ -96,7 +96,7 @@ public class OrderService {
         Flux<OrderItemDto> orderItemDtoFlux = orderItemFlux.flatMap(orderItem -> {
             Mono<ItemDto> itemDtoMono = itemRepository.findById(orderItem.getItemId());
             Mono<OrderItemDto> orderItemDtoMono = itemDtoMono.map(itemDto -> {
-                OrderItemDto orderItemDto = new OrderItemDto(orderItem.getId(), orderItem.getOrderId(), itemDto);
+                OrderItemDto orderItemDto = new OrderItemDto(orderItem.getId(), orderItem.getOrderId(), orderItem.getItemAmount(), itemDto);
                 orderItemDtoList.add(orderItemDto);
                 System.out.println("OrderItemDto " + orderItemDto + " was created and added to list");
                 return orderItemDto;

@@ -12,15 +12,18 @@ public class OrderItemDto {
 
     int orderId;
 
+    int itemDtoAmount;
+
     ItemDto itemDto;
 
     double orderItemTotalSum;
 
-    public OrderItemDto(int id, int orderId, ItemDto itemDto) {
+    public OrderItemDto(int id, int orderId, int itemDtoAmount, ItemDto itemDto) {
         this.id = id;
         this.orderId = orderId;
+        this.itemDtoAmount = itemDtoAmount;
         this.itemDto = itemDto;
-        this.orderItemTotalSum = itemDto.getAmount() * itemDto.getPrice();
+        this.orderItemTotalSum = itemDtoAmount * itemDto.getPrice();
     }
 
     public String getOrderItemTotalSumFormatted() {

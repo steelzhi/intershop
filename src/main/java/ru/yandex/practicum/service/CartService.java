@@ -29,9 +29,9 @@ public class CartService {
     @Autowired
     private ItemRepository itemRepository;
 
-    public Mono<CartItem> addItemToCart(@PathVariable int id) {
+    public Mono<CartItem> addItemToCart(@PathVariable int itemId) {
         // Получаем товар из БД
-        Mono<ItemDto> itemDtoMono = itemRepository.findById(id);
+        Mono<ItemDto> itemDtoMono = itemRepository.findById(itemId);
 
         // Оцениваем его количество (> 0 или нет)
         Mono<Boolean> doesItemDtoHasPositiveAmount = itemDtoMono
@@ -45,14 +45,14 @@ public class CartService {
         Mono<CartItem> cartItemMono = doesItemDtoHasPositiveAmount
                 .flatMap(hasPositiveAmount -> {
                     if (hasPositiveAmount) {
-                        Mono<CartItem> cartItemMono2 = cartRepository.findByItemId(id);
+                        Mono<CartItem> cartItemMono2 = cartRepository.findByItemId(itemId);
                         cartItemMono2
                                 .hasElement()
                                 .flatMap(hasCartItem -> {
                                     if (hasCartItem) {
                                         return cartItemMono2;
                                     } else {
-                                        CartItem cartItem = new CartItem(id);
+                                        CartItem cartItem = new CartItem(itemId);
                                         return cartRepository.save(cartItem);
                                     }
                                 })
@@ -68,13 +68,13 @@ public class CartService {
         return cartItemMono;
     }
 
-    public Mono<Void> removeItemFromCart(int id) {
+    public Mono<Void> removeItemFromCart(int itemId) {
         // Удаляем товар из "Корзины"
-        Mono<Void> itemDtoDeleteFromCart = cartRepository.findByItemId(id)
+        Mono<Void> itemDtoDeleteFromCart = cartRepository.findByItemId(itemId)
                 .flatMap(cartItem -> cartRepository.deleteById(cartItem.getId()));
 
         // Обнуляем количество у удаленного из "Корзины" товара
-        Mono<ItemDto> itemDtoSetZeroAmount = itemRepository.findById(id)
+        Mono<ItemDto> itemDtoSetZeroAmount = itemRepository.findById(itemId)
                 .doOnNext(itemDto -> itemDto.setAmount(0))
                 .flatMap(itemDto -> itemRepository.save(itemDto));
 
@@ -85,26 +85,8 @@ public class CartService {
         return Mono.empty();
     }
 
-/*    public Flux<ItemDto> getItemsDtosInCart() {
-        totalPriceArray[0] = 0;
-        Flux<CartItem> cartItems = cartRepository.findAll();
-        Flux<ItemDto> itemDtoFlux = cartItems
-                .flatMap(cartItem -> {
-                    Mono<ItemDto> itemDtoMono = itemRepository.findById(cartItem.getItemId());
-                    itemDtoMono
-                            .filter(itemDto -> itemDto.getAmount() > 0)
-                            // Вычислим в этом потоке общую стоимость товаров в "Корзине"
-                            .doOnNext(itemDto -> totalPriceArray[0] += itemDto.getPrice() * itemDto.getAmount())
-                            .subscribe();
-                    return itemDtoMono;
-                });
-
-        return itemDtoFlux;
-    }*/
-
     public Flux<ItemDto> getItemsDtosInCart() {
         Flux<CartItem> cartItems = cartRepository.findAll();
-        // Вычислим в этом потоке общую стоимость товаров в "Корзине"
         return cartItems.flatMap(cartItem -> {
             Mono<ItemDto> itemDtoMono = itemRepository.findById(cartItem.getItemId());
             return itemDtoMono.filter(itemDto -> itemDto.getAmount() > 0);

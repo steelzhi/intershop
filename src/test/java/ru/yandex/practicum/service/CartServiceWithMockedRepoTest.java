@@ -1,4 +1,3 @@
-/*
 package ru.yandex.practicum.service;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -7,18 +6,27 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import ru.yandex.practicum.dao.CartRepository;
+import ru.yandex.practicum.dao.ImageRepository;
 import ru.yandex.practicum.dao.ItemRepository;
 import ru.yandex.practicum.dto.ItemDto;
+import ru.yandex.practicum.mapper.ItemMapper;
 import ru.yandex.practicum.model.CartItem;
+import ru.yandex.practicum.model.Image;
+import ru.yandex.practicum.model.Item;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest(classes = CartService.class)
@@ -32,6 +40,9 @@ public class CartServiceWithMockedRepoTest {
     @MockitoBean
     ItemRepository itemRepository;
 
+    @MockitoBean
+    ImageRepository imageRepository;
+
     @BeforeEach
     void setUp() {
         Mockito.reset(itemRepository);
@@ -39,73 +50,123 @@ public class CartServiceWithMockedRepoTest {
     }
 
     @Test
-    void testAddItemToCart() {
-        ItemDto itemDto = new ItemDto("ItemDto", "Desc", null, 1.0, 7);
-        itemDto.setId(1);
-        when(itemRepository.findById(itemDto.getId()))
-                .thenReturn(Optional.of(itemDto));
+    void testAddItemToCart() throws IOException {
+        byte[] imageBytes1 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\armature.txt"));
+        Image image1 = new Image(imageBytes1);
+        when(imageRepository.save(image1))
+                .thenReturn(Mono.just(image1));
 
-        CartItem cartItem = new CartItem(1, itemDto);
-        when(cartRepository.findById(cartItem.getId()))
-                .thenReturn(Optional.of(cartItem));
+        Item item1 = new Item("itemDto1", "abcdesc1", null, 1.0);
+        int itemId = 1;
+        Mono<ItemDto> itemDtoMono1 = ItemMapper.mapToItemDto(Mono.just(item1), Mono.just(image1))
+                .doOnNext(itemDto -> itemDto.setId(itemId))
+                .doOnNext(itemDto -> itemDto.setAmount(10));
+        when(itemRepository.findById(itemId))
+                .thenReturn(itemDtoMono1);
+        ItemDto itemDto = itemDtoMono1.block();
+
+        int cartId = 1;
+        CartItem cartItem = new CartItem(cartId, itemId);
+        Mono<CartItem> cartItemMono = Mono.just(cartItem);
+        when(cartRepository.findByItemId(cartItem.getItemId()))
+                .thenReturn(cartItemMono);
 
         when(cartRepository.save(cartItem))
-                .thenReturn(cartItem);
+                .thenReturn(cartItemMono);
 
-        Map<ItemDto, Integer> cart = cartService.getCart();
-        cart.put(itemDto, cartItem.getId());
-        CartItem cartItemFromDao = cartService.addItemToCart(1);
+        Mono<CartItem> savedCartItemMono = cartService.addItemToCart(itemId);
+        CartItem savedCartItem = savedCartItemMono.block();
 
-        assertTrue(cartItemFromDao != null, "cartItem should't be emplty");
-        ItemDto itemDtoFromCartItem = cartItemFromDao.getItemDto();
-        assertEquals(itemDtoFromCartItem.getName(), itemDto.getName(), "Names are different");
-        assertEquals(itemDtoFromCartItem.getDescription(), itemDto.getDescription(),
+        assertTrue(savedCartItem != null, "cartItem shouldn't be empty");
+        ItemDto itemDtoFromCart = itemRepository.findById(cartItem.getItemId()).block();
+
+        assertEquals(itemDtoFromCart.getName(), itemDto.getName(), "Names are different");
+        assertEquals(itemDtoFromCart.getDescription(), itemDto.getDescription(),
                 "Descriptions are different");
-        assertEquals(itemDtoFromCartItem.getPrice(), itemDto.getPrice(), "Prices are different");
-        assertEquals(itemDtoFromCartItem.getAmount(), itemDto.getAmount(), "Amounts are different");
+        assertEquals(itemDtoFromCart.getPrice(), itemDto.getPrice(), "Prices are different");
+        assertEquals(itemDtoFromCart.getAmount(), itemDto.getAmount(), "Amounts are different");
 
-        cart.clear();
-        verify(itemRepository, times(1)).findById(itemDto.getId());
-        verify(cartRepository, times(1)).findById(cartItem.getId());
-        verify(cartRepository, times(1)).save(cartItem);
+        verify(itemRepository, times(2)).findById(itemDto.getId());
+        verify(cartRepository, times(2)).findByItemId(cartItem.getItemId());
     }
 
     @Test
-    void testRemoveItemFromCart() {
-        ItemDto itemDto = new ItemDto("ItemDto", "Desc", null, 1.0, 7);
-        itemDto.setId(1);
-        when(itemRepository.findById(itemDto.getId()))
-                .thenReturn(Optional.of(itemDto));
+    void testRemoveItemFromCart() throws IOException {
+        byte[] imageBytes1 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\armature.txt"));
+        Image image1 = new Image(imageBytes1);
+        when(imageRepository.save(image1))
+                .thenReturn(Mono.just(image1));
 
-        CartItem cartItem = new CartItem(1, itemDto);
-        Map<ItemDto, Integer> cart = cartService.getCart();
-        cart.put(itemDto, cartItem.getId());
+        Item item1 = new Item("itemDto1", "abcdesc1", null, 1.0);
+        int itemId = 1;
+        Mono<ItemDto> itemDtoMono1 = ItemMapper.mapToItemDto(Mono.just(item1), Mono.just(image1))
+                .doOnNext(itemDto -> itemDto.setId(itemId))
+                .doOnNext(itemDto -> itemDto.setAmount(10));
+        when(itemRepository.findById(itemId))
+                .thenReturn(itemDtoMono1);
 
-        cartService.removeItemFromCart(itemDto.getId());
+        int cartId = 1;
+        CartItem cartItem = new CartItem(cartId, itemId);
+        Mono<CartItem> cartItemMono = Mono.just(cartItem);
+        when(cartRepository.findByItemId(cartItem.getItemId()))
+                .thenReturn(cartItemMono);
 
-        verify(cartRepository, times(1)).deleteById(cartItem.getId());
+        cartService.removeItemFromCart(itemId).block();
+
+        verify(cartRepository, times(1)).findByItemId(itemId);
     }
 
     @Test
-    void testGetItemsDtosInCart() {
-        ItemDto itemDto1 = new ItemDto("itemDto1", "desc1", null, 1.0, 2);
-        ItemDto itemDto2 = new ItemDto("itemDto2", "desc2", null, 2.0, 3);
+    void testGetItemsDtosInCart() throws IOException {
+        byte[] imageBytes1 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\armature.txt"));
+        Image image1 = new Image(imageBytes1);
+        when(imageRepository.save(image1))
+                .thenReturn(Mono.just(image1));
+        Item item1 = new Item("itemDto1", "abcdesc1", null, 1.0);
+        int itemId1 = 1;
+        Mono<ItemDto> itemDtoMono1 = ItemMapper.mapToItemDto(Mono.just(item1), Mono.just(image1))
+                .doOnNext(itemDto -> itemDto.setId(itemId1))
+                .doOnNext(itemDto -> itemDto.setAmount(10));
 
-        CartItem cartItem1 = new CartItem(1, itemDto1);
-        CartItem cartItem2 = new CartItem(2, itemDto2);
-        List<CartItem> cartItems = List.of(cartItem1, cartItem2);
+        byte[] imageBytes2 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\beam.txt"));
+        Image image2 = new Image(imageBytes2);
+        when(imageRepository.save(image2))
+                .thenReturn(Mono.just(image2));
+        Item item2 = new Item("itemDto2z", "descghy", null, 12.0);
+        int itemId2 = 2;
+        Mono<ItemDto> itemDtoMono2 = ItemMapper.mapToItemDto(Mono.just(item2), Mono.just(image2))
+                .doOnNext(itemDto -> itemDto.setId(itemId2))
+                .doOnNext(itemDto -> itemDto.setAmount(10));
+
+        int cartId1 = 1;
+        CartItem cartItem1 = new CartItem(cartId1, itemId1);
+
+        int cartId2 = 2;
+        CartItem cartItem2 = new CartItem(cartId2, itemId2);
+
+        Flux<CartItem> cartItemFlux = Flux.just(cartItem1, cartItem2);
 
         when(cartRepository.findAll())
-                .thenReturn(cartItems);
+                .thenReturn(cartItemFlux);
 
-        List<ItemDto> itemDtos = new ArrayList<>();
-        for (CartItem cartItem : cartItems) {
-            itemDtos.add(cartItem.getItemDto());
-        }
+        when(itemRepository.findById(itemId1))
+                .thenReturn(itemDtoMono1);
 
-        List<ItemDto> itemsDtosInCart = cartService.getItemsDtosInCart();
-        assertTrue(!itemsDtosInCart.isEmpty(), "List shouldn't be empty");
-        assertEquals(itemDtos, itemsDtosInCart, "Lists should be equal");
+        when(itemRepository.findById(itemId2))
+                .thenReturn(itemDtoMono2);
+
+        Flux<ItemDto> foundItemDtosFlux = cartService.getItemsDtosInCart();
+        foundItemDtosFlux.blockLast();
+        List<ItemDto> foundItemDtosList = foundItemDtosFlux.toStream().toList();
+
+        assertFalse(foundItemDtosList.isEmpty(), "List shouldn't be empty");
+        assertTrue(foundItemDtosList.contains(itemDtoMono1.block()), "List should contain itemDto1");
+        assertTrue(foundItemDtosList.contains(itemDtoMono2.block()), "List should contain itemDto2");
+
+        verify(cartRepository, times(1)).findAll();
+        verify(itemRepository, times(2)).findById(itemId1);
+        verify(itemRepository, times(2)).findById(itemId2);
+
+
     }
 }
-*/

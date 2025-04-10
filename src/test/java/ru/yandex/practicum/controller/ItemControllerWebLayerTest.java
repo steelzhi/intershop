@@ -76,8 +76,8 @@ public class ItemControllerWebLayerTest {
                 .andExpect(model().attributeExists("items"))
                 .andExpect(model().attributeExists("pages"));*/
 
-        verify(itemService, times(2)).getItemsList(10, 1);
-        verify(itemService, times(2)).getItemListSize();
+        verify(itemService, times(1)).getItemsList(10, 1);
+        verify(itemService, times(1)).getItemListSize();
     }
 
     /*@Test

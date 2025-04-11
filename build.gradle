@@ -37,6 +37,7 @@ dependencies {
 	testRuntimeOnly "io.r2dbc:r2dbc-h2"
 }
 
+
 tasks.named('test') {
 	useJUnitPlatform()
 }

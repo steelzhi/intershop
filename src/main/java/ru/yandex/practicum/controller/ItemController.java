@@ -36,11 +36,11 @@ public class ItemController {
          */
         itemsOnPage = getHandledItemsOnPage(itemsOnPage);
         pageNumber = getHandledItemsPageNumber(pageNumber);
-        Flux<ItemDto> itemList = itemService.getItemsList(itemsOnPage, pageNumber);
+        Flux<ItemDto> itemsFlux = itemService.getItemsList(itemsOnPage, pageNumber);
 
         Mono<Pages> pagesMono = getPages(itemsOnPage);
 
-        model.addAttribute("items", itemList);
+        model.addAttribute("items", itemsFlux);
         model.addAttribute("pages", pagesMono);
         return Mono.just("main");
     }
@@ -68,7 +68,7 @@ public class ItemController {
         return Mono.just("redirect:/main/items");
     }*/
 
-    @PostMapping(value = "/item", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/item")
     public Mono<String> addItemToList(@ModelAttribute Mono<Item> itemMono) {
         try {
             itemMono

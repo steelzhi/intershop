@@ -11,16 +11,11 @@ import ru.yandex.practicum.dto.ItemDto;
 import ru.yandex.practicum.model.CartItem;
 import ru.yandex.practicum.util.Formatter;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 @Service
 public class CartService {
-    // Для снижения обращений к БД будем также хранить текущие заказы в кэше
+/*    // Для снижения обращений к БД будем также хранить текущие заказы в кэше
     // ключ - товар, значение - id объекта CartItem
-    //private Map<ItemDto, Integer> cart = new HashMap<>();
+    private Map<ItemDto, Integer> cart = new HashMap<>();*/
     private static double[] totalPriceArray = new double[1];
 
     @Autowired
@@ -39,8 +34,8 @@ public class CartService {
                 .hasElement();
 
         /* Если количество товара = 0, товар в "Корзину" не добавляется. Если количество > 0, то смотрим, был ли
-        * этот товар уже добавлен в "Корзину" ранее. Если был, заменяем количество товара в "Корзине" на текущее.
-        * Если не был, добавляем в "Корзину".
+         * этот товар уже добавлен в "Корзину" ранее. Если был, заменяем количество товара в "Корзине" на текущее.
+         * Если не был, добавляем в "Корзину".
          */
         Mono<CartItem> cartItemMono = doesItemDtoHasPositiveAmount
                 .flatMap(hasPositiveAmount -> {

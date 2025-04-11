@@ -12,10 +12,7 @@ import ru.yandex.practicum.service.ImageService;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 @WebFluxTest(ImageController.class)
 public class ImageControllerTest {

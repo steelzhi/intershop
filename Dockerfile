@@ -1,7 +1,7 @@
 FROM gradle:8.13 AS BUILD
 WORKDIR /usr/app/
 COPY . .
-RUN gradle build
+RUN gradle clean build
 
 # Package stage
 FROM amazoncorretto:21

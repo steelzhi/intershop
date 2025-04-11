@@ -23,10 +23,10 @@ import java.util.List;
 
 @Service
 public class ItemService {
-    // Для снижения обращений к БД будем также хранить текущий список товаров в кэше
-    //private Map<Integer, ItemDto> existingItemsDtos = new HashMap<>();
+    /*    // Для снижения обращений к БД будем также хранить текущий список товаров в кэше
+    private Map<Integer, ItemDto> existingItemsDtos = new HashMap<>();*/
 
-    // Нужно для теста
+    // Нужно для тестового набора данных
     private boolean wasTestItemAdded;
 
     @Autowired
@@ -37,28 +37,9 @@ public class ItemService {
 
     public Flux<ItemDto> getItemsList(int itemsOnPage, int pageNumber) throws IOException {
 
-        // Добавим тестовые товары
+        // Для удобства добавим тестовые товары
         if (!wasTestItemAdded) {
-            byte[] imageBytes1 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\armature.txt"));
-            Image image1 = new Image(imageBytes1);
-            Mono<Image> imageMono1 = imageRepository.save(image1);
-            Item item1 = new Item("Арматура", "Арматура для строительства", null, 65_000);
-            Mono<ItemDto> itemDto1 = ItemMapper.mapToItemDto(Mono.just(item1), imageMono1)
-                    .doOnNext(itemDto -> itemDto.setAmount(1))
-                    .flatMap(itemDto -> itemRepository.save(itemDto));
-
-            byte[] imageBytes2 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\beam.txt"));
-            Image image2 = new Image(imageBytes2);
-            Mono<Image> imageMono2 = imageRepository.save(image2);
-            Item item2 = new Item("Балка", "Балка для перекрытий", null, 130_000);
-            Mono<ItemDto> itemDto2 = ItemMapper.mapToItemDto(Mono.just(item2), imageMono2)
-                    .doOnNext(itemDto -> itemDto.setAmount(5))
-                    .flatMap(itemDto -> itemRepository.save(itemDto));
-
-            itemDto1
-                    .then(itemDto2)
-                    .subscribe();
-
+            addTestItems();
             wasTestItemAdded = true;
         }
 
@@ -111,14 +92,6 @@ public class ItemService {
                 .flatMap(hasImage -> {
                     if (hasImage) {
                         Image image = new Image(bytesList.get(0));
-/*                        try {
-                            Files.write(Path.of("src/main/resources/images-bytes/aaa.txt"), bytesList.get(0));
-                            try (OutputStream out = new BufferedOutputStream(new FileOutputStream("src/main/resources/images-bytes/aaa.jpg"))) {
-                                out.write(bytesList.get(0));
-                            }
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }*/
                         Mono<Image> savedImage = imageRepository.save(image);
                         return savedImage;
                     } else {
@@ -159,6 +132,54 @@ public class ItemService {
 
     public Mono<Integer> getItemListSize() {
         return itemRepository.getItemListSize();
+    }
+
+    private void addTestItems() throws IOException {
+        byte[] imageBytes1 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\armature.txt"));
+        Image image1 = new Image(imageBytes1);
+        Mono<Image> imageMono1 = imageRepository.save(image1);
+        Item item1 = new Item("Арматура", "Арматура для строительства", null, 65_000);
+        Mono<ItemDto> itemDto1 = ItemMapper.mapToItemDto(Mono.just(item1), imageMono1)
+                .doOnNext(itemDto -> itemDto.setAmount(1))
+                .flatMap(itemDto -> itemRepository.save(itemDto));
+
+        byte[] imageBytes2 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\beam.txt"));
+        Image image2 = new Image(imageBytes2);
+        Mono<Image> imageMono2 = imageRepository.save(image2);
+        Item item2 = new Item("Балка", "Балка для перекрытий", null, 130_000);
+        Mono<ItemDto> itemDto2 = ItemMapper.mapToItemDto(Mono.just(item2), imageMono2)
+                .doOnNext(itemDto -> itemDto.setAmount(5))
+                .flatMap(itemDto -> itemRepository.save(itemDto));
+
+        byte[] imageBytes3 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\pipe.txt"));
+        Image image3 = new Image(imageBytes3);
+        Mono<Image> imageMono3 = imageRepository.save(image3);
+        Item item3 = new Item("Труба стальная", "Труба для водо- и газопроводов", null, 70_000);
+        Mono<ItemDto> itemDto3 = ItemMapper.mapToItemDto(Mono.just(item3), imageMono3)
+                .doOnNext(itemDto -> itemDto.setAmount(3))
+                .flatMap(itemDto -> itemRepository.save(itemDto));
+
+        byte[] imageBytes4 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\sheet.txt"));
+        Image image4 = new Image(imageBytes4);
+        Mono<Image> imageMono4 = imageRepository.save(image4);
+        Item item4 = new Item("Лист стальной", "Лист для изготовления конструкций", null, 68_000);
+        Mono<ItemDto> itemDto4 = ItemMapper.mapToItemDto(Mono.just(item4), imageMono4)
+                .doOnNext(itemDto -> itemDto.setAmount(12))
+                .flatMap(itemDto -> itemRepository.save(itemDto));
+
+        itemDto1
+                .then(itemDto2)
+                .then(itemDto3)
+                .then(itemDto4)
+                .subscribe();
+    }
+
+    public boolean isWasTestItemAdded() {
+        return wasTestItemAdded;
+    }
+
+    public void setWasTestItemAdded(boolean wasTestItemAdded) {
+        this.wasTestItemAdded = wasTestItemAdded;
     }
 
     /*public Map<Integer, ItemDto> getExistingItemsDtos() {

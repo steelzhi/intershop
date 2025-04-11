@@ -2,10 +2,8 @@ package ru.yandex.practicum.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.yaml.snakeyaml.util.Tuple;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.util.function.Tuple2;
 import ru.yandex.practicum.dao.CartRepository;
 import ru.yandex.practicum.dao.ItemRepository;
 import ru.yandex.practicum.dao.OrderItemRepository;
@@ -90,13 +88,15 @@ public class OrderService {
     public Mono<OrderDto> getOrder(int id) {
         Mono<Order> orderMono = orderRepository.findById(id);
         Mono<OrderDto> orderDtoMono = orderMono.map(order1 -> new OrderDto(order1.getId(), order1.getTotalSum()));
-        Flux<OrderItem> orderItemFlux = orderDtoMono.flatMapMany(orderDto1 -> orderItemRepository.findAllByOrderId(orderDto1.getId()));
+        Flux<OrderItem> orderItemFlux = orderDtoMono
+                .flatMapMany(orderDto1 -> orderItemRepository.findAllByOrderId(orderDto1.getId()));
         List<OrderItemDto> orderItemDtoList = new ArrayList<>();
 
         Flux<OrderItemDto> orderItemDtoFlux = orderItemFlux.flatMap(orderItem -> {
             Mono<ItemDto> itemDtoMono = itemRepository.findById(orderItem.getItemId());
             Mono<OrderItemDto> orderItemDtoMono = itemDtoMono.map(itemDto -> {
-                OrderItemDto orderItemDto = new OrderItemDto(orderItem.getId(), orderItem.getOrderId(), orderItem.getItemAmount(), itemDto);
+                OrderItemDto orderItemDto
+                        = new OrderItemDto(orderItem.getId(), orderItem.getOrderId(), orderItem.getItemAmount(), itemDto);
                 orderItemDtoList.add(orderItemDto);
                 System.out.println("OrderItemDto " + orderItemDto + " was created and added to list");
                 return orderItemDto;
@@ -106,7 +106,8 @@ public class OrderService {
             return orderItemDtoMono;
         });
 
-        Mono<OrderDto> orderDtoWithOrderItemsMono = orderDtoMono.doOnNext(orderDto -> orderDto.setOrderItemDtoList(orderItemDtoList));
+        Mono<OrderDto> orderDtoWithOrderItemsMono = orderDtoMono
+                .doOnNext(orderDto -> orderDto.setOrderItemDtoList(orderItemDtoList));
 
         Mono<OrderDto> orderDtoMono1 = orderItemDtoFlux
                 .doOnNext(orderItemDto -> System.out.println("Entering OrderService#getOrder"))

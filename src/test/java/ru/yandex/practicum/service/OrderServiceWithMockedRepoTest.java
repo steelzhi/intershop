@@ -1,20 +1,24 @@
-/*
 package ru.yandex.practicum.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.mockito.internal.matchers.Or;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import ru.yandex.practicum.dao.CartRepository;
-import ru.yandex.practicum.dao.OrderItemRepository;
-import ru.yandex.practicum.dao.OrderRepository;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import ru.yandex.practicum.dao.*;
 import ru.yandex.practicum.dto.ItemDto;
-import ru.yandex.practicum.model.CartItem;
-import ru.yandex.practicum.model.Order;
-import ru.yandex.practicum.model.OrderItem;
+import ru.yandex.practicum.dto.OrderDto;
+import ru.yandex.practicum.dto.OrderItemDto;
+import ru.yandex.practicum.mapper.ItemMapper;
+import ru.yandex.practicum.model.*;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -36,139 +40,187 @@ public class OrderServiceWithMockedRepoTest {
     @MockitoBean
     CartRepository cartRepository;
 
+    @MockitoBean
+    ImageRepository imageRepository;
+
+    @MockitoBean
+    ItemRepository itemRepository;
+
     @BeforeEach
     void setUp() {
         Mockito.reset(orderRepository);
+        Mockito.reset(orderItemRepository);
+        Mockito.reset(cartRepository);
+        Mockito.reset(imageRepository);
+        Mockito.reset(itemRepository);
     }
 
     @Test
-    void testCreateOrderNotEmpty() {
-        ItemDto itemDto1 = new ItemDto("itemDto1", "abcdesc1", null, 1.0, 2);
-        ItemDto itemDto2 = new ItemDto("itemDto2z", "descghy", null, 12.0, 2);
-        CartItem cartItem1 = new CartItem(1, itemDto1);
-        CartItem cartItem2 = new CartItem(2, itemDto2);
+    void testCreateOrderNotEmpty() throws IOException {
+        Order order = new Order();
+        int orderId = 0;
+        order.setId(orderId);
+        Mono<Order> orderMono = Mono.just(order);
+
+        when(orderRepository.save(any()))
+                .thenReturn(orderMono);
+
+        byte[] imageBytes1 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\armature.txt"));
+        Image image1 = new Image(imageBytes1);
+        when(imageRepository.save(image1))
+                .thenReturn(Mono.just(image1));
+        Item item1 = new Item("itemDto1", "abcdesc1", null, 1.0);
+        int itemId1 = 1;
+        Mono<ItemDto> itemDtoMono1 = ItemMapper.mapToItemDto(Mono.just(item1), Mono.just(image1))
+                .doOnNext(itemDto -> itemDto.setId(itemId1))
+                .doOnNext(itemDto -> itemDto.setAmount(10));
+        ItemDto itemDto1 = itemDtoMono1.block();
+
+        int cartId1 = 1;
+        CartItem cartItem1 = new CartItem(cartId1, itemId1);
+
+        Flux<CartItem> cartItemFlux = Flux.just(cartItem1);
 
         when(cartRepository.findAll())
-                .thenReturn(List.of(cartItem1, cartItem2));
+                .thenReturn(cartItemFlux);
 
-        Order order = new Order();
-        Order savedOrder = new Order();
+        when(itemRepository.findById(itemId1))
+                .thenReturn(itemDtoMono1);
 
-        when(orderRepository.save(order))
-                .thenReturn(savedOrder);
-
-        List<OrderItem> orderItems = new ArrayList<>();
-        double totalSum = 0;
-        OrderItem orderItem1 = new OrderItem(order, cartItem1.getItemDto(), itemDto1.getAmount());
-        OrderItem orderItem2 = new OrderItem(order, cartItem2.getItemDto(), itemDto2.getAmount());
-        orderItems.add(orderItem1);
-        orderItems.add(orderItem2);
-        totalSum += orderItem1.getItemAmount() * orderItem1.getItemDto().getPrice();
-        totalSum += orderItem2.getItemAmount() * orderItem2.getItemDto().getPrice();
+        OrderItem orderItem1 = new OrderItem(orderId, itemDto1.getId(), itemDto1.getPrice(), itemDto1.getAmount());
+        Mono<OrderItem> orderItemMono = Mono.just(orderItem1);
 
         when(orderItemRepository.save(orderItem1))
-                .thenReturn(orderItem1);
-        when(orderItemRepository.save(orderItem2))
-                .thenReturn(orderItem2);
+                .thenReturn(orderItemMono);
 
-        OrderItem savedOrderItem1 = orderItemRepository.save(orderItem1);
-        OrderItem savedOrderItem2 = orderItemRepository.save(orderItem2);
-        assertEquals(savedOrderItem1.getItemDto(), orderItem1.getItemDto(),
-                "ItemDto in savedOrderItem doesn't match to original itemDto");
-        assertEquals(savedOrderItem2.getItemDto(), orderItem2.getItemDto(),
-                "ItemDto in savedOrderItem doesn't match to original itemDto");
+        Mono<OrderItem> savedOrderItem1 = orderItemRepository.save(orderItem1);
+        assertNotNull(savedOrderItem1,
+                "savedOrderItem1 should exist");
+        assertEquals(savedOrderItem1.block().getOrderId(), orderId,
+                "orderId should be " + orderId);
+        assertEquals(savedOrderItem1.block().getItemId(), itemId1,
+                "itemId1 should be " + item1);
 
-        savedOrder.setOrderItems(orderItems);
-        savedOrder.setTotalSum(totalSum);
+        when(orderRepository.findById(orderId))
+                .thenReturn(orderMono);
 
-        when(orderRepository.save(order))
-                .thenReturn(savedOrder);
-        doNothing().when(cartRepository).deleteAll();
-        Order secondTimeSavedOrder = orderService.createOrder();
-        assertNotNull(secondTimeSavedOrder, "savedOrder was saved incorrectly");
-        assertTrue(secondTimeSavedOrder.getOrderItems().get(0).getItemDto().getAmount()
-                   == orderItem1.getItemDto().getAmount(),
-                "order doesn't contain savedOrderItem1");
-        assertTrue(secondTimeSavedOrder.getTotalSum() == totalSum, "saved total sum is incorrect");
+        when(cartRepository.deleteAll())
+                .thenReturn(Mono.empty());
 
-        verify(cartRepository, times(1)).findAll();
+        Mono<Order> savedOrderMono = orderService.createOrder();
+        Order savedOrder = savedOrderMono.block();
+        assertNotNull(savedOrder, "Order should exist");
+        assertEquals(savedOrder.getId(), orderId, "orderId should be = " + orderId);
+
         verify(orderRepository, times(1)).save(order);
-        verify(orderItemRepository, times(1)).save(orderItem1);
-        verify(orderItemRepository, times(1)).save(orderItem2);
-        verify(orderRepository, times(1)).save(savedOrder);
+        verify(cartRepository, times(1)).findAll();
+        verify(itemRepository, times(1)).findById(itemId1);
+        verify(orderItemRepository, times(2)).save(orderItem1);
+        verify(orderRepository, times(1)).findById(orderId);
         verify(cartRepository, times(1)).deleteAll();
     }
 
     @Test
-    void testGetOrders() {
-        ItemDto itemDto1 = new ItemDto("itemDto1", "abcdesc1", null, 1.0, 2);
-        ItemDto itemDto2 = new ItemDto("itemDto2z", "descghy", null, 12.0, 2);
+    void testGetOrders() throws IOException {
         Order order1 = new Order();
-        Order order2 = new Order();
-        List<OrderItem> orderItems1 = List.of(
-                new OrderItem(order1, itemDto1, itemDto1.getAmount())
-        );
-        List<OrderItem> orderItems2 = List.of(
-                new OrderItem(order2, itemDto2, itemDto2.getAmount())
-        );
-        order1.setOrderItems(orderItems1);
-        order2.setOrderItems(orderItems2);
-        when(orderRepository.findAll())
-                .thenReturn(List.of(order1, order2));
+        int orderId1 = 1;
+        order1.setId(orderId1);
+        Mono<Order> orderMono1 = Mono.just(order1);
 
-        List<Order> orders = orderService.getOrders();
-        assertTrue(orders.size() == 2, "Orders list don't contain all orders");
-        assertEquals(orders.get(0).getOrderItems(), orderItems1, "Order # 1 don't contain orderItems1");
+        when(orderRepository.findById(1))
+                .thenReturn(orderMono1);
+
+        byte[] imageBytes1 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\armature.txt"));
+        Image image1 = new Image(imageBytes1);
+        when(imageRepository.save(image1))
+                .thenReturn(Mono.just(image1));
+        Item item1 = new Item("item1", "desc", null, 1.0);
+        Mono<ItemDto> itemDtoMono1 = ItemMapper.mapToItemDto(Mono.just(item1), Mono.just(image1))
+                .doOnNext(itemDto -> itemDto.setId(1));
+        ItemDto itemDto1 = itemDtoMono1.block();
+
+        OrderItem orderItem1 = new OrderItem(orderId1, itemDto1.getId(), itemDto1.getPrice(), itemDto1.getAmount());
+        Flux<OrderItem> orderItemMono = Flux.just(orderItem1);
+
+        when(orderItemRepository.findAllByOrderId(orderId1))
+                .thenReturn(orderItemMono);
+
+        when(itemRepository.findById(1))
+                .thenReturn(itemDtoMono1);
+
+
+        Order order2 = new Order();
+        int orderId2 = 2;
+        order2.setId(orderId2);
+
+        Mono<Order> orderMono2 = Mono.just(order1);
+
+        when(orderRepository.findById(2))
+                .thenReturn(orderMono2);
+
+        byte[] imageBytes2 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\armature.txt"));
+        Image image2 = new Image(imageBytes2);
+        when(imageRepository.save(image2))
+                .thenReturn(Mono.just(image2));
+        Item item2 = new Item("item2", "desc", null, 1.0);
+        Mono<ItemDto> itemDtoMono2 = ItemMapper.mapToItemDto(Mono.just(item2), Mono.just(image1))
+                .doOnNext(itemDto -> itemDto.setId(2));
+        ItemDto itemDto2 = itemDtoMono2.block();
+
+        OrderItem orderItem2 = new OrderItem(orderId1, itemDto2.getId(), itemDto2.getPrice(), itemDto2.getAmount());
+        Flux<OrderItem> orderItemMono2 = Flux.just(orderItem2);
+
+        when(orderItemRepository.findAllByOrderId(orderId2))
+                .thenReturn(orderItemMono2);
+
+        when(itemRepository.findById(2))
+                .thenReturn(itemDtoMono2);
+
+        when(orderRepository.findAll())
+                .thenReturn(Flux.just(order1, order2));
+
+        Flux<OrderDto> orderDtoFlux = orderService.getOrders();
+        List<OrderDto> orderDtoList = orderDtoFlux.toStream().toList();
+
+        assertTrue(orderDtoList.size() == 2, "2 orders should exist");
+        assertTrue(orderDtoList.get(0).getId() == 1, "order1 should have id = 1");
 
         verify(orderRepository, times(1)).findAll();
     }
 
     @Test
-    void testGetOrder() {
-        ItemDto itemDto1 = new ItemDto("itemDto1", "abcdesc1", null, 1.0, 2);
-        ItemDto itemDto2 = new ItemDto("itemDto2z", "descghy", null, 12.0, 2);
+    void testGetOrder() throws IOException {
         Order order1 = new Order();
-        Order order2 = new Order();
-        List<OrderItem> orderItems1 = List.of(
-                new OrderItem(order1, itemDto1, itemDto1.getAmount())
-        );
-        List<OrderItem> orderItems2 = List.of(
-                new OrderItem(order2, itemDto2, itemDto2.getAmount())
-        );
-        order1.setOrderItems(orderItems1);
-        order2.setOrderItems(orderItems2);
+        int orderId = 1;
+        order1.setId(orderId);
+        Mono<Order> orderMono = Mono.just(order1);
+
         when(orderRepository.findById(1))
-                .thenReturn(Optional.of(order2));
+                .thenReturn(orderMono);
 
-        Order foundOrder2 = orderService.getOrder(1);
-        assertTrue(foundOrder2 != null, "Order 2 was not saved to DB");
-        assertEquals(foundOrder2.getOrderItems(), orderItems2, "Found order 2 doesn't contain orderItems2");
+        byte[] imageBytes1 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\armature.txt"));
+        Image image1 = new Image(imageBytes1);
+        when(imageRepository.save(image1))
+                .thenReturn(Mono.just(image1));
+        Item item1 = new Item("item1", "desc", null, 1.0);
+        Mono<ItemDto> itemDtoMono1 = ItemMapper.mapToItemDto(Mono.just(item1), Mono.just(image1))
+                .doOnNext(itemDto -> itemDto.setId(1));
+        ItemDto itemDto1 = itemDtoMono1.block();
 
-        verify(orderRepository, times(1)).findById(1);
-    }
+        OrderItem orderItem1 = new OrderItem(orderId, itemDto1.getId(), itemDto1.getPrice(), itemDto1.getAmount());
+        Flux<OrderItem> orderItemMono = Flux.just(orderItem1);
 
-    @Test
-    void testGetOrdersTotalSum() {
-        ItemDto itemDto1 = new ItemDto("itemDto1", "abcdesc1", null, 1.0, 2);
-        ItemDto itemDto2 = new ItemDto("itemDto2z", "descghy", null, 12.0, 2);
-        Order order1 = new Order();
-        List<OrderItem> orderItems1 = List.of(
-                new OrderItem(order1, itemDto1, itemDto1.getAmount()),
-                new OrderItem(order1, itemDto2, itemDto2.getAmount())
-        );
+        when(orderItemRepository.findAllByOrderId(1))
+                .thenReturn(orderItemMono);
 
-        double totalSum = 0;
-        for (OrderItem orderItem : orderItems1) {
-            totalSum += orderItem.getItemAmount() * orderItem.getItemDto().getPrice();
-        }
+        when(itemRepository.findById(1))
+                .thenReturn(itemDtoMono1);
 
-        order1.setOrderItems(orderItems1);
-        order1.setTotalSum(totalSum);
-        when(orderRepository.findById(1))
-                .thenReturn(Optional.of(order1));
-        double totalSum2 = itemDto1.getPrice() * itemDto1.getAmount() + itemDto2.getPrice() * itemDto2.getAmount();
-        Optional<Order> savedOrder = orderRepository.findById(1);
-        assertEquals(savedOrder.get().getTotalSum(), totalSum2, "Sum was processed incorrectly");
+        Mono<OrderDto> foundOrderDtoMono = orderService.getOrder(orderId);
+        assertEquals(foundOrderDtoMono.block().getId(), orderId, "orderId should be = " + orderId);
+
+        verify(orderRepository, times(1)).findById(orderId);
+        verify(orderItemRepository, times(1)).findAllByOrderId(1);
+        verify(itemRepository, times(1)).findById(1);
     }
 }
-*/

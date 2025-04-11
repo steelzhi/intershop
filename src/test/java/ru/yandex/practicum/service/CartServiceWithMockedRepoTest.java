@@ -17,14 +17,10 @@ import ru.yandex.practicum.model.CartItem;
 import ru.yandex.practicum.model.Image;
 import ru.yandex.practicum.model.Item;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;

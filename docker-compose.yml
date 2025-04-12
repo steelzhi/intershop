@@ -6,9 +6,9 @@ services:
     depends_on:
       - db
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/intershop
-      - SPRING_DATASOURCE_USERNAME=s
-      - SPRING_DATASOURCE_PASSWORD=sa
+      - SPRING_R2DBC_URL=r2dbc:postgresql://db:5432/intershop
+      - SPRING_R2DBC_USERNAME=s
+      - SPRING_R2DBC_PASSWORD=sa
 
   db:
     image: postgres:13.7-alpine
@@ -18,5 +18,3 @@ services:
       - POSTGRES_USER=s
       - POSTGRES_PASSWORD=sa
       - POSTGRES_DB=intershop
-      - DB_HOST=localhost
-      - DB_PORT=5432

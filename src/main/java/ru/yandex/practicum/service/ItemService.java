@@ -38,10 +38,12 @@ public class ItemService {
     public Flux<ItemDto> getItemsList(int itemsOnPage, int pageNumber) throws IOException {
 
         // Для удобства добавим тестовые товары
+/*
         if (!wasTestItemAdded) {
             addTestItems();
             wasTestItemAdded = true;
         }
+*/
 
         PageRequest page = PageRequest.of(pageNumber - 1, itemsOnPage);
 

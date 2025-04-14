@@ -45,11 +45,6 @@ public class ItemServiceWithMockedRepoTest {
 
     @Test
     void testGetItemsList() throws IOException {
-        boolean wasTestItemAddedChanged = false;
-        if (!itemService.isWasTestItemAdded()) {
-            itemService.setWasTestItemAdded(true);
-            wasTestItemAddedChanged = true;
-        }
         byte[] imageBytes1 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\armature.txt"));
         Image image1 = new Image(imageBytes1);
         when(imageRepository.save(image1))
@@ -81,9 +76,6 @@ public class ItemServiceWithMockedRepoTest {
         assertTrue(itemDtos.contains(itemDtoMono2.block()), "Flux should contain itemDto2");
 
         verify(itemRepository, times(1)).findAllByOrderById(page);
-        if (wasTestItemAddedChanged) {
-            itemService.setWasTestItemAdded(false);
-        }
     }
 
     @Test

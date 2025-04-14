@@ -13,9 +13,9 @@ import ru.yandex.practicum.util.Formatter;
 
 @Service
 public class CartService {
-/*    // Для снижения обращений к БД будем также хранить текущие заказы в кэше
-    // ключ - товар, значение - id объекта CartItem
-    private Map<ItemDto, Integer> cart = new HashMap<>();*/
+    /*    // Для снижения обращений к БД будем также хранить текущие заказы в кэше
+        // ключ - товар, значение - id объекта CartItem
+        private Map<ItemDto, Integer> cart = new HashMap<>();*/
     private static double[] totalPriceArray = new double[1];
 
     @Autowired
@@ -33,31 +33,8 @@ public class CartService {
                 .filter(itemDto -> itemDto.getAmount() > 0)
                 .hasElement();
 
-        /* Если количество товара = 0, товар в "Корзину" не добавляется. Если количество > 0, то смотрим, был ли
-         * этот товар уже добавлен в "Корзину" ранее. Если был, заменяем количество товара в "Корзине" на текущее.
-         * Если не был, добавляем в "Корзину".
-         */
         Mono<CartItem> cartItemMono = doesItemDtoHasPositiveAmount
-                .flatMap(hasPositiveAmount -> {
-                    if (hasPositiveAmount) {
-                        Mono<CartItem> cartItemMono2 = cartRepository.findByItemId(itemId);
-                        cartItemMono2
-                                .hasElement()
-                                .flatMap(hasCartItem -> {
-                                    if (hasCartItem) {
-                                        return cartItemMono2;
-                                    } else {
-                                        CartItem cartItem = new CartItem(itemId);
-                                        return cartRepository.save(cartItem);
-                                    }
-                                })
-                                .subscribe();
-                        return cartItemMono2;
-                    } else {
-                        return Mono.empty();
-                    }
-                });
-
+                .flatMap(hasPositiveAmount -> getCartItemForPositiveAmountMono(hasPositiveAmount, itemId));
         cartItemMono.subscribe();
 
         return cartItemMono;
@@ -97,5 +74,33 @@ public class CartService {
                 .map(itemDto -> itemDto.getPrice() * itemDto.getAmount())
                 .reduce(0d, Double::sum)
                 .map(Formatter.DECIMAL_FORMAT::format);
+    }
+
+
+    // Если количество товара = 0, товар в "Корзину" не добавляется.
+    private Mono<CartItem> getCartItemForPositiveAmountMono(boolean hasPositiveAmount, int itemId) {
+        if (hasPositiveAmount) {
+            Mono<CartItem> cartItemMono = cartRepository.findByItemId(itemId);
+            cartItemMono
+                    .hasElement()
+                    .flatMap(hasCartItem -> getCartItemForAlreadyAddedItemMono(cartItemMono, hasCartItem, itemId))
+                    .subscribe();
+            return cartItemMono;
+        } else {
+            return Mono.empty();
+        }
+    }
+
+    /*
+     * Если количество > 0, то смотрим, был ли этот товар уже добавлен в "Корзину" ранее. Если был, заменяем количество
+     * товара в "Корзине" на текущее. Если не был, добавляем в "Корзину".
+     */
+    private Mono<CartItem> getCartItemForAlreadyAddedItemMono(Mono<CartItem> cartItemMono, boolean hasCartItem, int itemId) {
+        if (hasCartItem) {
+            return cartItemMono;
+        } else {
+            CartItem cartItem = new CartItem(itemId);
+            return cartRepository.save(cartItem);
+        }
     }
 }

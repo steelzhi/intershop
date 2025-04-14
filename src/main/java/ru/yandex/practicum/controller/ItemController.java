@@ -13,6 +13,7 @@ import ru.yandex.practicum.enums.SortingCategory;
 import ru.yandex.practicum.model.Item;
 import ru.yandex.practicum.model.Pages;
 import ru.yandex.practicum.service.ItemService;
+import ru.yandex.practicum.util.RedirectionPage;
 
 import java.io.IOException;
 
@@ -61,30 +62,11 @@ public class ItemController {
         return Mono.just("main");
     }
 
-    /* @PostMapping("/item")
-    public Mono<String> addItemToList(ServerRequest request) throws IOException {
-        itemService.addItem(item);
-        return Mono.just("redirect:/main/items");
-    }*/
-
     @PostMapping(value = "/item")
     public Mono<String> addItemToList(@ModelAttribute Mono<Item> itemMono) {
-        try {
-            return itemMono
-                    .flatMap(item -> {
-                        try {
-                            Mono<ItemDto> itemDtoMono = itemService.addItem(item);
-                            return itemDtoMono;
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    })
-                    .then(Mono.just("redirect:/main/items"));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return null;
+        return itemMono
+                .flatMap(item -> itemService.addItem(item))
+                .then(Mono.just("redirect:/main/items"));
     }
 
     @PostMapping("/item/{id}/minus")
@@ -94,11 +76,8 @@ public class ItemController {
                         .flatMap(formData -> {
                             String pageName = formData.getFirst("pageName");
                             PageNames pageNames = PageNames.valueOf(pageName);
-                            return switch (pageNames) {
-                                case MAIN -> Mono.just("redirect:/main/items");
-                                case ITEM -> Mono.just("redirect:/items/" + id);
-                                case CART -> Mono.just("redirect:/cart/items");
-                            };
+                            Mono<String> redirectionPageMono = RedirectionPage.getRedirectionPage(pageNames, id);
+                            return redirectionPageMono;
                         }));
     }
 
@@ -109,11 +88,8 @@ public class ItemController {
                         .flatMap(formData -> {
                             String pageName = formData.getFirst("pageName");
                             PageNames pageNames = PageNames.valueOf(pageName);
-                            return switch (pageNames) {
-                                case MAIN -> Mono.just("redirect:/main/items");
-                                case ITEM -> Mono.just("redirect:/items/" + id);
-                                case CART -> Mono.just("redirect:/cart/items");
-                            };
+                            Mono<String> redirectionPageMono = RedirectionPage.getRedirectionPage(pageNames, id);
+                            return redirectionPageMono;
                         }));
     }
 

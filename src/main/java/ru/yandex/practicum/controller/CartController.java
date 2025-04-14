@@ -13,6 +13,7 @@ import ru.yandex.practicum.dto.ItemDto;
 import ru.yandex.practicum.enums.PageNames;
 import ru.yandex.practicum.service.CartService;
 import ru.yandex.practicum.service.ItemService;
+import ru.yandex.practicum.util.RedirectionPage;
 
 @Controller
 public class CartController {
@@ -38,11 +39,8 @@ public class CartController {
 
                     //itemService.setInExistingItemDtosItemDtoAmountToZero(id);
                     PageNames pageNames = PageNames.valueOf(pageName);
-                    return switch (pageNames) {
-                        case MAIN -> Mono.just("redirect:/main/items");
-                        case ITEM -> Mono.just("redirect:/items/" + id);
-                        case CART -> Mono.just("redirect:/cart/items");
-                    };
+                    Mono<String> redirectionPageMono = RedirectionPage.getRedirectionPage(pageNames, id);
+                    return redirectionPageMono;
                 });
     }
 

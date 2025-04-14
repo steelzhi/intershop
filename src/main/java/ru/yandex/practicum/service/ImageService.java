@@ -12,9 +12,8 @@ public class ImageService {
     private ImageRepository imageRepository;
 
     public Mono<byte[]> getImage(int imageId) {
-        Mono<Image> imageMono = imageRepository.findById(imageId);
-        imageMono.subscribe();
-        Mono<byte[]> imageBytes = imageMono.map(image -> image.getImageBytes());
+        Mono<byte[]> imageBytes = imageRepository.findById(imageId)
+                .map(image -> image.getImageBytes());
         imageBytes.subscribe();
         return imageBytes;
     }

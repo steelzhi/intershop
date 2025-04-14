@@ -32,25 +32,9 @@ public class OrderController {
         });
 
         return orderDtoMono
-                .doOnNext(orderDto -> {
-                    System.out.println("This is OrderDto (# 2): " + orderDto);
-                    model.addAttribute("orderDto", orderDto);
-                    System.out.println(orderDto + " was added to view");
-                })
+                .doOnNext(orderDto -> model.addAttribute("orderDto", orderDto))
                 .then(Mono.just("order")
                         .doOnNext(s -> System.out.println("Viewing data from: " + s)));
-
-                /* Mono<String> stringMono = orderMono.hasElement()
-                .flatMap(hasElement -> {
-                    if (hasElement) {
-                        Mono<OrderDto> orderDtoMono = orderMono.flatMap(order1 -> orderService.getOrder(order1.getId()));
-                        orderDtoMono.subscribe();
-                        model.addAttribute("orderDto", orderDtoMono);
-                        return Mono.just("order");
-                    } else {
-                        return Mono.just("redirect:/main/items");
-                    }
-                });*/
     }
 
     @GetMapping("/orders")
@@ -58,15 +42,9 @@ public class OrderController {
         Flux<OrderDto> orderDtoFlux = orderService.getOrders();
         Mono<String> sumOfAllOrdersFormatted = orderService.getOrdersTotalSumFormatted();
         Mono<String> mono = orderDtoFlux
-                .doOnNext(i -> {
-                    model.addAttribute("ordersDto", orderDtoFlux);
-                    System.out.println("Adding view \"ordersDto\"");
-                })
+                .doOnNext(i -> model.addAttribute("ordersDto", orderDtoFlux))
                 .then(sumOfAllOrdersFormatted)
-                .doOnNext(i -> {
-                    model.addAttribute("sumOfAllOrdersFormatted", sumOfAllOrdersFormatted);
-                    System.out.println("Adding view \"sumOfAllOrdersFormatted\"");
-                })
+                .doOnNext(i -> model.addAttribute("sumOfAllOrdersFormatted", sumOfAllOrdersFormatted))
                 .flatMap(s -> Mono.just("orders"));
 
         return mono;

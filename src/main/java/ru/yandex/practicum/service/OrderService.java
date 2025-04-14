@@ -44,27 +44,14 @@ public class OrderService {
         Flux<CartItem> cartItemsFlux = cartRepository.findAll();
         Flux<ItemDto> itemDtosFlux = cartItemsFlux.flatMap(cartItem -> itemRepository.findById(cartItem.getItemId()))
                 .filter(itemDto -> itemDto.getAmount() > 0)
-                .doOnNext(itemDto -> {
-                    OrderItem orderItem = new OrderItem(orderId[0], itemDto.getId(), itemDto.getPrice(), itemDto.getAmount());
-                    orderItemRepository.save(orderItem).subscribe();
-                    totalSumArray[0] += orderItem.getItemAmount() * orderItem.getItemPrice();
-                });
+                .doOnNext(itemDto -> saveOrderItemAndIncreaseTotalSum(itemDto, orderId, totalSumArray));
 
         Mono<Void> voidMono = orderMono
-                .doOnNext(order1 -> System.out.println(order1 + " was saved in DB"))
-                .map(savedOrder -> {
-                    orderId[0] = savedOrder.getId();
-                    System.out.println("Order got id = " + orderId[0]);
-                    return savedOrder;
-                })
+                .doOnNext(savedOrder -> orderId[0] = savedOrder.getId())
                 .thenMany(itemDtosFlux
                         .doOnNext(itemDto -> System.out.println(itemDto + " was saved in DB")))
                 .flatMap(itemDto -> orderRepository.findById(orderId[0]))
-                .doOnNext(order1 -> {
-                    order1.setTotalSum(totalSumArray[0]);
-                    orderRepository.save(order1).subscribe();
-                    System.out.println("totalSum = " + totalSumArray[0] + ". Order saved with totalSum");
-                })
+                .doOnNext(order1 -> setTotalSumAndSaveOrder(order1, totalSumArray))
                 .then(cartRepository.deleteAll()
                         .doOnNext(i -> System.out.println("All cartItems were deleted from DB")));
 
@@ -76,8 +63,7 @@ public class OrderService {
     public Flux<OrderDto> getOrders() {
         Flux<Order> orderFlux = orderRepository.findAll();
         Flux<OrderDto> orderDtoFlux = orderFlux.flatMap(order -> {
-            Mono<OrderDto> orderDto;
-            orderDto = getOrder(order.getId());
+            Mono<OrderDto> orderDto = getOrder(order.getId());
 
             return orderDto;
         });
@@ -92,38 +78,15 @@ public class OrderService {
                 .flatMapMany(orderDto1 -> orderItemRepository.findAllByOrderId(orderDto1.getId()));
         List<OrderItemDto> orderItemDtoList = new ArrayList<>();
 
-        Flux<OrderItemDto> orderItemDtoFlux = orderItemFlux.flatMap(orderItem -> {
-            Mono<ItemDto> itemDtoMono = itemRepository.findById(orderItem.getItemId());
-            Mono<OrderItemDto> orderItemDtoMono = itemDtoMono.map(itemDto -> {
-                OrderItemDto orderItemDto
-                        = new OrderItemDto(orderItem.getId(), orderItem.getOrderId(), orderItem.getItemAmount(), itemDto);
-                orderItemDtoList.add(orderItemDto);
-                System.out.println("OrderItemDto " + orderItemDto + " was created and added to list");
-                return orderItemDto;
-            });
-
-            System.out.println("Returning created orderItemDtoMono");
-            return orderItemDtoMono;
-        });
+        Flux<OrderItemDto> orderItemDtoFlux = orderItemFlux.flatMap(orderItem -> getDtoFromOrderItem(orderItem, orderItemDtoList));
 
         Mono<OrderDto> orderDtoWithOrderItemsMono = orderDtoMono
                 .doOnNext(orderDto -> orderDto.setOrderItemDtoList(orderItemDtoList));
 
         Mono<OrderDto> orderDtoMono1 = orderItemDtoFlux
-                .doOnNext(orderItemDto -> System.out.println("Entering OrderService#getOrder"))
-                .doOnNext(orderItemDto -> System.out.println(orderItemDto + " was created from itemDto"))
                 .then(orderDtoWithOrderItemsMono);
 
         return orderDtoMono1;
-    }
-
-    private Mono<Boolean> doesCartHaveNotNullItems(Flux<CartItem> cartItems) {
-        Mono<Boolean> doesCartHaveNotNullItems = cartItems.map(cartItem -> cartItem.getItemId())
-                .flatMap(itemId -> itemRepository.findById(itemId))
-                .filter(itemDto -> itemDto.getAmount() > 0)
-                .hasElements();
-
-        return doesCartHaveNotNullItems;
     }
 
     public Mono<Double> getOrdersTotalSum() {
@@ -136,5 +99,39 @@ public class OrderService {
                 .map(sumOfAllOrders -> Formatter.DECIMAL_FORMAT.format(sumOfAllOrders != null ? sumOfAllOrders : 0));
 
         return sumOfAllOrdersFormattedMono;
+    }
+
+    private void setTotalSumAndSaveOrder(Order order, double[] totalSumArray) {
+        order.setTotalSum(totalSumArray[0]);
+        orderRepository.save(order).subscribe();
+    }
+
+    private void saveOrderItemAndIncreaseTotalSum(ItemDto itemDto, int[] orderId, double[] totalSumArray) {
+        OrderItem orderItem = new OrderItem(orderId[0], itemDto.getId(), itemDto.getPrice(), itemDto.getAmount());
+        orderItemRepository.save(orderItem).subscribe();
+        totalSumArray[0] += orderItem.getItemAmount() * orderItem.getItemPrice();
+    }
+
+    private Mono<OrderItemDto> getDtoFromOrderItem(OrderItem orderItem, List<OrderItemDto> orderItemDtoList) {
+        Mono<ItemDto> itemDtoMono = itemRepository.findById(orderItem.getItemId());
+        Mono<OrderItemDto> orderItemDtoMono = itemDtoMono.map(itemDto -> {
+            OrderItemDto orderItemDto
+                    = new OrderItemDto(orderItem.getId(), orderItem.getOrderId(), orderItem.getItemAmount(), itemDto);
+            if (!orderItemDtoList.contains(orderItemDto)) {
+                orderItemDtoList.add(orderItemDto);
+            }
+            return orderItemDto;
+        });
+
+        return orderItemDtoMono;
+    }
+
+    private Mono<Boolean> doesCartHaveNotNullItems(Flux<CartItem> cartItems) {
+        Mono<Boolean> doesCartHaveNotNullItems = cartItems.map(cartItem -> cartItem.getItemId())
+                .flatMap(itemId -> itemRepository.findById(itemId))
+                .filter(itemDto -> itemDto.getAmount() > 0)
+                .hasElements();
+
+        return doesCartHaveNotNullItems;
     }
 }

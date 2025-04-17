@@ -1,8 +1,10 @@
 package ru.yandex.practicum.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.io.buffer.DataBufferUtils;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -15,14 +17,11 @@ import ru.yandex.practicum.mapper.ItemMapper;
 import ru.yandex.practicum.model.Image;
 import ru.yandex.practicum.model.Item;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class ItemService {
-    /*    // Для снижения обращений к БД будем также хранить текущий список товаров в кэше
-    private Map<Integer, ItemDto> existingItemsDtos = new HashMap<>();*/
 
     @Autowired
     private ItemRepository itemRepository;
@@ -30,20 +29,27 @@ public class ItemService {
     @Autowired
     private ImageRepository imageRepository;
 
-    public Flux<ItemDto> getItemsList(int itemsOnPage, int pageNumber) throws IOException {
-
+/*    public Flux<ItemDto> getItemsList(int itemsOnPage, int pageNumber) {
         PageRequest page = PageRequest.of(pageNumber - 1, itemsOnPage);
 
         Flux<ItemDto> allItems = itemRepository.findAllByOrderById(page);
         return allItems;
-    }
+    }*/
 
+/*    public Flux<ItemDto> getItemsList(int itemsOnPage, int pageNumber) {
+        Flux<Integer> allItemsIdsOnPage = itemRepository.getAllItemIdsOnPage(pageNumber, itemsOnPage);
+
+        Flux<ItemDto> allItems = allItemsIdsOnPage.flatMap(id -> getItemDto(id));
+        return allItems;
+    }*/
+
+    @Cacheable(value = "item", key = "#id")
     public Mono<ItemDto> getItemDto(int id) {
-        //return existingItemsDtos.get(id);
+        System.out.println("Cache doesn't contain item with id = " + id + ". Adding...");
         return itemRepository.findById(id);
     }
 
-    public Flux<ItemDto> search(String key, SortingCategory sortingCategory) {
+/*    public Flux<ItemDto> search(String key, SortingCategory sortingCategory) {
         Flux<ItemDto> itemDtos = switch (sortingCategory) {
             case NO ->
                     itemRepository.findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderById(key, key);
@@ -54,7 +60,7 @@ public class ItemService {
         };
 
         return itemDtos;
-    }
+    }*/
 
     public Mono<ItemDto> addItem(Item item) {
         Mono<Item> itemMono = Mono.just(item);
@@ -83,31 +89,36 @@ public class ItemService {
         return imageMono;
     }
 
+    @CachePut(value = "item", key = "#id")
     public Mono<ItemDto> decreaseItemAmount(int id) {
-        //ItemDto itemDto = existingItemsDtos.get(id);
-
         Mono<ItemDto> itemDtoMono = getItemDto(id);
         itemDtoMono
                 .doOnNext(itemDto -> itemDto.decreaseAmount())
                 .flatMap(itemDto -> itemRepository.save(itemDto))
+                .doOnNext(itemDto -> System.out.println("Item with id = " + itemDto.getId() + " was decreased: new amount = " + itemDto.getAmount() + ". Upserting cache"))
                 .subscribe();
         return itemDtoMono;
     }
 
+    @CachePut(value = "item", key = "#id")
     public Mono<ItemDto> increaseItemAmount(int id) {
-        //ItemDto itemDto = existingItemsDtos.get(id);
-
         Mono<ItemDto> itemDtoMono = getItemDto(id);
         itemDtoMono
                 .doOnNext(itemDto -> itemDto.increaseAmount())
                 .flatMap(itemDto -> itemRepository.save(itemDto))
+                .doOnNext(itemDto -> System.out.println("Item with id = " + itemDto.getId() + " was increased: new amount = " + itemDto.getAmount() + ". Upserting cache"))
                 .subscribe();
         return itemDtoMono;
     }
 
-    public Mono<Integer> getItemListSize() {
-        return itemRepository.getItemListSize();
+    @CacheEvict(value = "item", allEntries = true)
+    public void clearCache() {
+        System.out.println("Cache was cleared");
     }
+
+/*    public Mono<Integer> getItemListSize() {
+        return itemRepository.getItemListSize();
+    }*/
 
     private Mono<Image> getSavedImage(boolean hasImage, List<byte[]> bytesList) {
         if (hasImage) {
@@ -118,18 +129,4 @@ public class ItemService {
             return Mono.empty();
         }
     }
-
-    /*public Map<Integer, ItemDto> getExistingItemsDtos() {
-        return existingItemsDtos;
-    }
-
-    public void setExistingItemDtosAllDtosAmountToZero() {
-        for (Integer itemDtoId : existingItemsDtos.keySet()) {
-            setInExistingItemDtosItemDtoAmountToZero(itemDtoId);
-        }
-    }
-
-    public void setInExistingItemDtosItemDtoAmountToZero(int id) {
-        existingItemsDtos.get(id).setAmount(0);
-    }*/
 }

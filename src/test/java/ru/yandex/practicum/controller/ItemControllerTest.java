@@ -13,6 +13,7 @@ import ru.yandex.practicum.dao.*;
 import ru.yandex.practicum.dto.ItemDto;
 import ru.yandex.practicum.enums.SortingCategory;
 import ru.yandex.practicum.service.ItemService;
+import ru.yandex.practicum.service.ItemsService;
 
 import java.util.List;
 
@@ -27,6 +28,9 @@ public class ItemControllerTest {
 
     @MockitoBean
     private ItemService itemService;
+
+    @MockitoBean
+    private ItemsService itemsService;
 
     @MockitoBean
     private OrderRepository orderRepository;
@@ -58,9 +62,9 @@ public class ItemControllerTest {
         ItemDto itemDto1 = new ItemDto("itemDto1", "desc1", null, 1.0, 2);
         ItemDto itemDto2 = new ItemDto("itemDto2", "desc2", null, 2.0, 3);
         List<ItemDto> itemDtoList = List.of(itemDto1, itemDto2);
-        when(itemService.getItemsList(10, 1))
+        when(itemsService.getItemsList(10, 1))
                 .thenReturn(Flux.fromIterable(itemDtoList));
-        when(itemService.getItemListSize())
+        when(itemsService.getItemListSize())
                 .thenReturn(Mono.just(itemDtoList.size()));
 
         webTestClient.get()
@@ -75,8 +79,8 @@ public class ItemControllerTest {
                     assertTrue(body.contains(itemDto2.getDescription()));
                 });
 
-        verify(itemService, times(1)).getItemsList(10, 1);
-        verify(itemService, times(1)).getItemListSize();
+        verify(itemsService, times(1)).getItemsList(10, 1);
+        verify(itemsService, times(1)).getItemListSize();
     }
 
     @Test
@@ -84,9 +88,9 @@ public class ItemControllerTest {
         ItemDto itemDto1 = new ItemDto("itemDto1", "desc1", null, 1.0, 2);
         ItemDto itemDto2 = new ItemDto("itemDto2", "desc2", null, 2.0, 3);
         List<ItemDto> itemDtoList = List.of(itemDto1);
-        when(itemService.getItemsList(1, 1))
+        when(itemsService.getItemsList(1, 1))
                 .thenReturn(Flux.fromIterable(itemDtoList));
-        when(itemService.getItemListSize())
+        when(itemsService.getItemListSize())
                 .thenReturn(Mono.just(itemDtoList.size()));
 
         webTestClient.get()
@@ -106,8 +110,8 @@ public class ItemControllerTest {
                     assertFalse(body.contains(itemDto2.getDescription()));
                 });
 
-        verify(itemService, times(1)).getItemsList(1, 1);
-        verify(itemService, times(1)).getItemListSize();
+        verify(itemsService, times(1)).getItemsList(1, 1);
+        verify(itemsService, times(1)).getItemListSize();
     }
 
     @Test
@@ -136,12 +140,12 @@ public class ItemControllerTest {
         ItemDto itemDto1 = new ItemDto("DE", "zzz", null, 11.0, 2);
         ItemDto itemDto2 = new ItemDto("itemDto3", "def", null, 1.0, 2);
 
-        when(itemService.search("zz", SortingCategory.PRICE))
+        when(itemsService.search("zz", SortingCategory.PRICE))
                 .thenReturn(Flux.just(itemDto1));
 
         List<ItemDto> itemDtoList = List.of(itemDto1);
 
-        when(itemService.getItemListSize())
+        when(itemsService.getItemListSize())
                 .thenReturn(Mono.just(itemDtoList.size()));
 
         webTestClient.get()
@@ -162,6 +166,6 @@ public class ItemControllerTest {
                     assertFalse(body.contains(itemDto2.getDescription()));
                 });
 
-        verify(itemService, times(1)).search("zz", SortingCategory.PRICE);
+        verify(itemsService, times(1)).search("zz", SortingCategory.PRICE);
     }
 }

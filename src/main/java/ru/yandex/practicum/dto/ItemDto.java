@@ -1,10 +1,14 @@
 package ru.yandex.practicum.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.redis.core.RedisHash;
+import org.springframework.data.redis.core.index.Indexed;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 import ru.yandex.practicum.util.Formatter;
@@ -30,6 +34,10 @@ public class ItemDto {
     double price;
 
     int amount;
+
+    @JsonIgnore
+    @Transient
+    double priceFormatted;
 
     public ItemDto(String name, String description, Integer imageId, double price, int amount) {
         this.name = name;

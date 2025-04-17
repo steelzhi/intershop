@@ -5,12 +5,8 @@ spring:
     password: sa
     initialization-mode: always
 
-    #application:
-    #name: practicum
-
     #datasource:
       #driverClassName: org.postgresql.Driver
-
 
     #jpa:
       # generate-ddl: true
@@ -26,6 +22,14 @@ spring:
   sql:
     init:
       mode: always
+
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+  cache:
+    redis:
+      time-to-live: PT5S    # TTL по умолчанию для кешей
 
   servlet:
     multipart:

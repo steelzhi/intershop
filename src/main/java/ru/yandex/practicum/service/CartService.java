@@ -1,6 +1,7 @@
 package ru.yandex.practicum.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 import reactor.core.publisher.Flux;
@@ -23,6 +24,9 @@ public class CartService {
 
     @Autowired
     private ItemRepository itemRepository;
+
+    @Autowired
+    private ItemService itemService;
 
     public Mono<CartItem> addItemToCart(@PathVariable int itemId) {
         // Получаем товар из БД
@@ -59,8 +63,10 @@ public class CartService {
 
     public Flux<ItemDto> getItemsDtosInCart() {
         Flux<CartItem> cartItems = cartRepository.findAll();
-        return cartItems.flatMap(cartItem -> {
-            Mono<ItemDto> itemDtoMono = itemRepository.findById(cartItem.getItemId());
+        return cartItems
+                .flatMap(cartItem -> {
+            Mono<ItemDto> itemDtoMono = itemService.getItemDto(cartItem.getItemId());
+
             return itemDtoMono.filter(itemDto -> itemDto.getAmount() > 0);
         });
     }

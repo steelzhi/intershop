@@ -17,7 +17,6 @@ public class Image {
     @Id
     int id;
 
-    //@JdbcTypeCode(Types.BINARY)
     @Column("image_bytes")
     byte[] imageBytes;
 

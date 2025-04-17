@@ -13,6 +13,7 @@ import ru.yandex.practicum.enums.SortingCategory;
 import ru.yandex.practicum.model.Item;
 import ru.yandex.practicum.model.Pages;
 import ru.yandex.practicum.service.ItemService;
+import ru.yandex.practicum.service.ItemsService;
 import ru.yandex.practicum.util.RedirectionPage;
 
 import java.io.IOException;
@@ -21,14 +22,24 @@ import java.io.IOException;
 public class ItemController {
     private int itemsOnPageDefaultForAllItems = 10;
     private int pageNumberDefault = 1;
+    private boolean wasCacheCleared = false;
+
 
     @Autowired
     private ItemService itemService;
+
+    @Autowired
+    private ItemsService itemsService;
 
     @GetMapping(value = {"/", "/main/items"})
     public Mono<String> getItemsList(Model model,
                                      @RequestParam(name = "itemsOnPage", required = false) Integer itemsOnPage,
                                      @RequestParam(name = "pageNumber", required = false) Integer pageNumber) throws IOException {
+        // Нужно зачищать кэш на старте очередного запуска программы
+        if (!wasCacheCleared) {
+            itemService.clearCache();
+            wasCacheCleared = true;
+        }
 
         /*
          * Действие ниже нужно, чтобы при изменении количества товаров на странице такое новое количество фиксировалось
@@ -36,7 +47,8 @@ public class ItemController {
          */
         itemsOnPage = getHandledItemsOnPage(itemsOnPage);
         pageNumber = getHandledItemsPageNumber(pageNumber);
-        Flux<ItemDto> itemsFlux = itemService.getItemsList(itemsOnPage, pageNumber);
+ //       Flux<ItemDto> itemsFlux = itemService.getItemsList(itemsOnPage, pageNumber);
+        Flux<ItemDto> itemsFlux = itemsService.getItemsList(itemsOnPage, pageNumber);
 
         Mono<Pages> pagesMono = getPages(itemsOnPage);
 
@@ -54,7 +66,8 @@ public class ItemController {
 
     @GetMapping("/search")
     public Mono<String> search(Model model, @RequestParam String key, @RequestParam SortingCategory sortingCategory) {
-        Flux<ItemDto> foundItemDtos = itemService.search(key, sortingCategory);
+        //Flux<ItemDto> foundItemDtos = itemService.search(key, sortingCategory);
+        Flux<ItemDto> foundItemDtos = itemsService.search(key, sortingCategory);
         model.addAttribute("items", foundItemDtos);
         Pages pages = new Pages();
         model.addAttribute("pages", pages);
@@ -110,7 +123,7 @@ public class ItemController {
     }
 
     private Mono<Pages> getPages(Integer itemsOnPage) {
-        return itemService.getItemListSize()
+        return itemsService.getItemListSize()
                 .map(amount -> new Pages(itemsOnPage, (amount - 1) / itemsOnPage + 1));
     }
 }

@@ -4,3 +4,15 @@ spring:
 
 server:
   port:   9090
+
+springdoc:
+  swagger-ui:
+    # Флаг включения UI
+    enabled: true
+    # Путь UI-части
+    path: /swagger-ui-custom.html
+    # Флаг включения возможности отправлять запросы из браузера
+    tryItOutEnabled: true
+    # Флаг включения сохранения авторизации
+    # Если включить, при перезагрузке или закрытии страницы данные авторизации не потеряются
+    persistAuthorization: true

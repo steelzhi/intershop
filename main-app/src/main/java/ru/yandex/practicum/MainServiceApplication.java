@@ -10,10 +10,10 @@ import java.io.IOException;
 @EnableR2dbcRepositories
 @SpringBootApplication
 @EnableCaching
-public class PracticumApplication {
+public class MainServiceApplication {
 
 	public static void main(String[] args) throws IOException {
-		SpringApplication.run(PracticumApplication.class, args);
+		SpringApplication.run(MainServiceApplication.class, args);
 	}
 
 }

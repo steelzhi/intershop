@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.4.3'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'org.openapi.generator' version '7.12.0'
 }
 
 java {
@@ -10,9 +11,24 @@ java {
     }
 }
 
+openApiGenerate {
+    generatorName.set("spring")
+    inputSpec.set("$projectDir/src/main/resources/api-spec.yaml")
+    outputDir.set("$projectDir/build/generated")
+    apiPackage.set("ru.ya.api")
+    modelPackage.set("ru.ya.domain")
+    configOptions.set([
+            sourceFolder: "src/gen/java/main/codegen",
+            interfaceOnly: "false",
+            library: "spring-boot",
+            useTags: "true"
+    ])
+}
+
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.8.5'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

@@ -1,1 +1,3 @@
 rootProject.name = 'practicum'
+include 'main-app', 'payment-service'
+

@@ -10,6 +10,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import ru.yandex.practicum.dto.OrderDto;
+import ru.yandex.practicum.model.Balance;
 import ru.yandex.practicum.model.Order;
 import ru.yandex.practicum.service.CartService;
 import ru.yandex.practicum.service.OrderService;
@@ -39,13 +40,42 @@ public class OrderController {
             return orderDtoMono1;
         });
 
-        Mono<Double> balanceMono = webClient.get()
+        return orderDtoMono
+                .doOnNext(orderDto -> {
+                    model.addAttribute("orderDto", orderDto);
+                    model.addAttribute("balance", Balance.getBalance());
+                })
+                .flatMap(orderDto -> {
+                    if (orderDto.getTotalSum() <= Balance.getBalance()) {
+                        System.out.println("Order is successful");
+
+                        // Списываем сумму заказа с баланса
+                        webClient.post()
+                                .uri(uriBuilder -> uriBuilder
+                                        .scheme(SCHEME)
+                                        .host(HOST)
+                                        .port(PORT)
+                                        .path(ROOT_PATH + "/do-payment")
+                                        .queryParam("payment", String.valueOf(orderDto.getTotalSum()))
+                                        .build())
+                                .exchange()
+                                .doOnNext(i -> System.out.println("Deducting order sum from balance"))
+                                .subscribe();
+
+                        return Mono.just("order");
+                    } else {
+                        System.out.println("Order is unsuccessful - not enough money on account");
+                        return Mono.just("not-enough-money-on-account");
+                    }
+                });
+
+/*        Mono<Double> balanceMono = webClient.get()
                 .uri(SCHEME + "://" + HOST + ":" + PORT + ROOT_PATH + "/balance")
                 .retrieve()
                 .toEntity(Double.class)
                 .flatMap(doubleResponseEntity -> Mono.just(doubleResponseEntity.getBody()));
 
-        // Проверяем, хватает ли средств на балансе для совершения заказа. Если да, записываем true в поле ItemDto
+        // Проверяем, хватает ли средств на балансе для совершения заказа. Если да, записываем true в поле OrderDto
         Mono<OrderDto> orderDtoMonoAfterCheckingBalance
                 = Mono.zip(orderDtoMono, balanceMono)
                 .flatMap(tuple -> {
@@ -86,7 +116,7 @@ public class OrderController {
                         System.out.println("Order is unsuccessful - not enough money on account");
                         return Mono.just("not-enough-money-on-account");
                     }
-                });
+                });*/
     }
 
     @GetMapping("/orders")

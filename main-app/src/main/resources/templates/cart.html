@@ -71,8 +71,10 @@
 </table>
 
 <b th:text="'Итого: ' + ${totalPriceFormatted} + ' ₽'"></b>
-<form action="/create-order" method="post">
+<form th:if="${isPaymentServiceAvailable}" action="/create-order" method="post">
     <button>Купить</button>
 </form>
+<br/><br/>
+<b th:if="!(${isPaymentServiceAvailable})" th:text="'Невозможно сейчас сделать заказ - сервис платежей недоступен!'"></b>
 </body>
 </html>

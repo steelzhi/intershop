@@ -9,13 +9,13 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import ru.yandex.practicum.config.Configuration;
+import ru.yandex.practicum.config.WebClientConfiguration;
 import ru.yandex.practicum.constant.Constants;
 import ru.yandex.practicum.dao.*;
 import ru.yandex.practicum.dto.ItemDto;
 import ru.yandex.practicum.model.CartItem;
 import ru.yandex.practicum.service.CartService;
-import ru.yandex.practicum.service.ItemAddingGettingService;
+import ru.yandex.practicum.service.ItemGettingFromCacheService;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -23,7 +23,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
 
 @WebFluxTest(CartController.class)
-@Import(Configuration.class)
+@Import(WebClientConfiguration.class)
 public class CartControllerTest {
     @Autowired
     private WebTestClient webTestClient;
@@ -32,7 +32,7 @@ public class CartControllerTest {
     private CartService cartService;
 
     @MockitoBean
-    private ItemAddingGettingService itemService;
+    private ItemGettingFromCacheService itemService;
 
     @MockitoBean
     private OrderRepository orderRepository;

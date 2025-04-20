@@ -12,7 +12,7 @@ import ru.yandex.practicum.enums.PageNames;
 import ru.yandex.practicum.enums.SortingCategory;
 import ru.yandex.practicum.model.Item;
 import ru.yandex.practicum.model.Pages;
-import ru.yandex.practicum.service.ItemAddingGettingService;
+import ru.yandex.practicum.service.ItemGettingFromCacheService;
 import ru.yandex.practicum.service.ItemAllOtherOpsService;
 import ru.yandex.practicum.util.RedirectionPage;
 
@@ -24,9 +24,8 @@ public class ItemController {
     private int pageNumberDefault = 1;
     private boolean wasCacheCleared = false;
 
-
     @Autowired
-    private ItemAddingGettingService itemService;
+    private ItemGettingFromCacheService itemService;
 
     @Autowired
     private ItemAllOtherOpsService itemsService;
@@ -59,7 +58,7 @@ public class ItemController {
 
     @GetMapping("/items/{id}")
     public Mono<String> getItemDto(Model model, @PathVariable int id) throws IOException {
-        Mono<ItemDto> itemDtoMono = itemService.getItemDto(id);
+        Mono<ItemDto> itemDtoMono = itemsService.getItemDto(id);
         return itemDtoMono.doOnNext(itemDto -> System.out.println("ItemDto amount: " + itemDto.getAmount()))
                 .doOnNext(itemDto -> model.addAttribute("itemDto", itemDtoMono))
                 .flatMap(itemDto -> Mono.just("item"));
@@ -67,7 +66,6 @@ public class ItemController {
 
     @GetMapping("/search")
     public Mono<String> search(Model model, @RequestParam String key, @RequestParam SortingCategory sortingCategory) {
-        //Flux<ItemDto> foundItemDtos = itemService.search(key, sortingCategory);
         Flux<ItemDto> foundItemDtos = itemsService.search(key, sortingCategory);
         model.addAttribute("items", foundItemDtos);
         Pages pages = new Pages();
@@ -79,7 +77,7 @@ public class ItemController {
     @PostMapping(value = "/item")
     public Mono<String> addItemToList(@ModelAttribute Mono<Item> itemMono) {
         return itemMono
-                .flatMap(item -> itemService.addItem(item))
+                .flatMap(item -> itemsService.addItem(item))
                 .then(Mono.just("redirect:/main/items"));
     }
 

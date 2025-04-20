@@ -7,6 +7,8 @@ import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.yaml.snakeyaml.scanner.Constant;
+import ru.yandex.practicum.constant.Constants;
 import ru.yandex.practicum.dto.ItemDto;
 
 import java.time.Duration;
@@ -26,7 +28,7 @@ public class Configuration {
         return builder -> builder.withCacheConfiguration(
                 "item",                                         // Имя кеша
                 RedisCacheConfiguration.defaultCacheConfig()
-                        .entryTtl(Duration.of(5, ChronoUnit.SECONDS))  // TTL
+                        .entryTtl(Duration.of(Constants.TTL, ChronoUnit.SECONDS))  // TTL
                         .serializeValuesWith(                          // Сериализация JSON
                                 RedisSerializationContext.SerializationPair.fromSerializer(
                                         new Jackson2JsonRedisSerializer<>(ItemDto.class)

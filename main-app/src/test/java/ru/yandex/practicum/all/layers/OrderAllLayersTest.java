@@ -61,7 +61,7 @@ public class OrderAllLayersTest {
         imageRepository.deleteAll();
     }
 
-    @AfterEach
+    @BeforeEach
     void clearBalance() {
         Balance.setBalance(0);
     }

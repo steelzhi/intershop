@@ -25,7 +25,7 @@ public class CartService {
     private ItemRepository itemRepository;
 
     @Autowired
-    private ItemAddingGettingService itemService;
+    private ItemGettingFromCacheService itemService;
 
     public Mono<CartItem> addItemToCart(@PathVariable int itemId) {
         // Получаем товар из БД

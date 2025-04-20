@@ -9,7 +9,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import ru.yandex.practicum.config.Configuration;
+import ru.yandex.practicum.config.WebClientConfiguration;
 import ru.yandex.practicum.dao.*;
 import ru.yandex.practicum.dto.OrderDto;
 import ru.yandex.practicum.model.Order;
@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 @WebFluxTest(OrderController.class)
-@Import(Configuration.class)
+@Import(WebClientConfiguration.class)
 public class OrderControllerTest {
     @Autowired
     private WebTestClient webTestClient;

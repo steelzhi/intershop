@@ -1,5 +1,6 @@
 package ru.yandex.practicum.service;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -24,14 +25,14 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@SpringBootTest(classes = {ItemAllOtherOpsService.class, ItemAddingGettingService.class})
+@SpringBootTest(classes = {ItemAllOtherOpsService.class, ItemGettingFromCacheService.class})
 public class ItemAllOtherOpsServiceWithMockedRepoTest {
 
     @Autowired
     ItemAllOtherOpsService itemsService;
 
-    @MockitoBean
-    ItemAddingGettingService itemService;
+    @Autowired
+    ItemGettingFromCacheService itemService;
 
     @MockitoBean
     ItemRepository itemRepository;
@@ -79,8 +80,6 @@ public class ItemAllOtherOpsServiceWithMockedRepoTest {
         assertTrue(itemDtos.contains(itemDtoMono2.block()), "Flux should contain itemDto2");
 
         verify(itemRepository, times(1)).getAllItemIdsOnPage(1, 10);
-        verify(itemService, times(2)).getItemDto(1);
-        verify(itemService, times(2)).getItemDto(2);
     }
 
     @Test
@@ -228,6 +227,27 @@ public class ItemAllOtherOpsServiceWithMockedRepoTest {
                 .findIdsByNameOrDescriptionOrderByPrice("DTO");
     }
 
+    @Test
+    void testAddItem() throws IOException {
+        byte[] imageBytes1 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\armature.txt"));
+        Image image1 = new Image(imageBytes1);
+        Mono<Image> imageMono = Mono.just(image1);
+        when(imageRepository.save(image1))
+                .thenReturn(imageMono);
+
+        Item item = new Item("item", "desc", null, 1.0);
+        Mono<ItemDto> itemDtoMono = ItemMapper.mapToItemDto(Mono.just(item), imageMono);
+        ItemDto itemDto = itemDtoMono.block();
+        when(itemRepository.save(itemDto))
+                .thenReturn(itemDtoMono);
+
+        itemsService.addItem(item)
+                .doOnNext(itemDto1 -> Assertions.assertThat(itemDto1)
+                        .isNotNull()
+                        .isEqualTo(itemDto)
+                ).block();
+    }
+
 
     @Test
     void testDecreaseItemAmount() throws IOException {
@@ -271,6 +291,7 @@ public class ItemAllOtherOpsServiceWithMockedRepoTest {
 
         when(itemRepository.findById(id))
                 .thenReturn(Mono.just(itemDto));
+
         ItemDto itemDtoIncreased = itemsService.increaseItemAmount(id).block();
         assertEquals(amount + 1, itemDtoIncreased.getAmount(), "Incorrect amount increasing");
 

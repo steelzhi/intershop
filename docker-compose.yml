@@ -1,14 +1,20 @@
 services:
-  server:
-    build: .
+  main-service:
+    build: main-app/
     ports:
       - "8080:8080"
     depends_on:
       - db
+      - redis
     environment:
       - SPRING_R2DBC_URL=r2dbc:postgresql://db:5432/intershop
       - SPRING_R2DBC_USERNAME=s
       - SPRING_R2DBC_PASSWORD=sa
+
+  payment-service:
+    build: payment-service/
+    ports:
+      - "9090:9090"
 
   db:
     image: postgres:13.7-alpine
@@ -18,3 +24,16 @@ services:
       - POSTGRES_USER=s
       - POSTGRES_PASSWORD=sa
       - POSTGRES_DB=intershop
+
+  redis:
+    image: redis:latest
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - /path/to/local/dаta:/root/redis
+      - /path/to/local/redis.conf:/usr/local/etc/redis/redis.conf
+    environment:
+      - REDIS_PASSWORD=my-password
+      - REDIS_PORT=6379
+      - REDIS_DATABASES=16

@@ -12,7 +12,7 @@ import reactor.core.publisher.Mono;
 import ru.yandex.practicum.dao.*;
 import ru.yandex.practicum.dto.ItemDto;
 import ru.yandex.practicum.enums.SortingCategory;
-import ru.yandex.practicum.service.ItemAddingGettingService;
+import ru.yandex.practicum.service.ItemGettingFromCacheService;
 import ru.yandex.practicum.service.ItemAllOtherOpsService;
 
 import java.util.List;
@@ -27,7 +27,7 @@ public class ItemControllerTest {
     private WebTestClient webTestClient;
 
     @MockitoBean
-    private ItemAddingGettingService itemService;
+    private ItemGettingFromCacheService itemService;
 
     @MockitoBean
     private ItemAllOtherOpsService itemsService;
@@ -117,7 +117,7 @@ public class ItemControllerTest {
     @Test
     void getItemDto_shouldReturnItemDto() throws Exception {
         ItemDto itemDto1 = new ItemDto("itemDto1", "desc1", null, 1.0, 2);
-        when((itemService.getItemDto(anyInt())))
+        when((itemsService.getItemDto(anyInt())))
                 .thenReturn(Mono.just(itemDto1));
 
         webTestClient.get()
@@ -132,7 +132,7 @@ public class ItemControllerTest {
                     assertTrue(body.contains(itemDto1.getDescription()));
                 });
 
-        verify(itemService, times(1)).getItemDto(anyInt());
+        verify(itemsService, times(1)).getItemDto(anyInt());
     }
 
     @Test

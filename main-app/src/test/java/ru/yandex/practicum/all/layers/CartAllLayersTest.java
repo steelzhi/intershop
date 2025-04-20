@@ -16,7 +16,7 @@ import ru.yandex.practicum.mapper.ItemMapper;
 import ru.yandex.practicum.model.CartItem;
 import ru.yandex.practicum.model.Image;
 import ru.yandex.practicum.model.Item;
-import ru.yandex.practicum.service.ItemService;
+import ru.yandex.practicum.service.ItemAddingGettingService;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -37,7 +37,7 @@ public class CartAllLayersTest {
     ItemRepository itemRepository;
 
     @Autowired
-    ItemService itemService;
+    ItemAddingGettingService itemService;
 
     @Autowired
     ImageRepository imageRepository;

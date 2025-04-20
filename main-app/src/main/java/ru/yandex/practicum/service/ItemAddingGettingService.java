@@ -1,7 +1,6 @@
 package ru.yandex.practicum.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.io.buffer.DataBufferUtils;
@@ -18,28 +17,19 @@ import ru.yandex.practicum.model.Item;
 import java.util.ArrayList;
 import java.util.List;
 
+/*
+ * Пришлось разбить первоначальный сервис ItemService на 2 сервиса: ItemAddingGettingService и ItemAllOtherOpsService.
+ * 1-й сервис содержит метод получения товара из кэша. Соответственно, чтобы не происходило @Cacheable self-invocation,
+ * другие аннотированные методы были вынесены во 2-й сервис
+ */
 @Service
-public class ItemService {
+public class ItemAddingGettingService {
 
     @Autowired
     private ItemRepository itemRepository;
 
     @Autowired
     private ImageRepository imageRepository;
-
-/*    public Flux<ItemDto> getItemsList(int itemsOnPage, int pageNumber) {
-        PageRequest page = PageRequest.of(pageNumber - 1, itemsOnPage);
-
-        Flux<ItemDto> allItems = itemRepository.findAllByOrderById(page);
-        return allItems;
-    }*/
-
-/*    public Flux<ItemDto> getItemsList(int itemsOnPage, int pageNumber) {
-        Flux<Integer> allItemsIdsOnPage = itemRepository.getAllItemIdsOnPage(pageNumber, itemsOnPage);
-
-        Flux<ItemDto> allItems = allItemsIdsOnPage.flatMap(id -> getItemDto(id));
-        return allItems;
-    }*/
 
     // сначала берет данные их кэша, а потом уже вычисляет новое значение
     @Cacheable(value = "item", key = "#id")
@@ -48,19 +38,6 @@ public class ItemService {
         Mono<ItemDto> itemDtoMono = itemRepository.findById(id);
         return itemDtoMono;
     }
-
-/*    public Flux<ItemDto> search(String key, SortingCategory sortingCategory) {
-        Flux<ItemDto> itemDtos = switch (sortingCategory) {
-            case NO ->
-                    itemRepository.findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderById(key, key);
-            case ALPHA ->
-                    itemRepository.findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderByName(key, key);
-            case PRICE ->
-                    itemRepository.findByNameIgnoreCaseContainingOrDescriptionIgnoreCaseContainingOrderByPrice(key, key);
-        };
-
-        return itemDtos;
-    }*/
 
     @CachePut(value = "item", key = "#item.id")
     public Mono<ItemDto> addItem(Item item) {
@@ -88,37 +65,6 @@ public class ItemService {
 
         return imageMono;
     }
-
-    @CachePut(value = "item", key = "#id")
-    public Mono<ItemDto> decreaseItemAmount(int id) {
-        Mono<ItemDto> itemDtoMono = getItemDto(id);
-        itemDtoMono
-                .doOnNext(itemDto -> itemDto.decreaseAmount())
-                .flatMap(itemDto -> itemRepository.save(itemDto))
-                .doOnNext(itemDto -> System.out.println("Item with id = " + itemDto.getId() + " was decreased: new amount = " + itemDto.getAmount() + ". Upserting cache"))
-                .subscribe();
-        return itemDtoMono;
-    }
-
-    @CachePut(value = "item", key = "#id")
-    public Mono<ItemDto> increaseItemAmount(int id) {
-        Mono<ItemDto> itemDtoMono = getItemDto(id);
-        itemDtoMono
-                .doOnNext(itemDto -> itemDto.increaseAmount())
-                .flatMap(itemDto -> itemRepository.save(itemDto))
-                .doOnNext(itemDto -> System.out.println("Item with id = " + itemDto.getId() + " was increased: new amount = " + itemDto.getAmount() + ". Upserting cache"))
-                .subscribe();
-        return itemDtoMono;
-    }
-
-    @CacheEvict(value = "item", allEntries = true)
-    public void clearCache() {
-        System.out.println("Cache was cleared");
-    }
-
-/*    public Mono<Integer> getItemListSize() {
-        return itemRepository.getItemListSize();
-    }*/
 
     private Mono<Image> getSavedImage(boolean hasImage, List<byte[]> bytesList) {
         if (hasImage) {

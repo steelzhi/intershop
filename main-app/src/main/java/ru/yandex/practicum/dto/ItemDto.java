@@ -23,6 +23,7 @@ public class ItemDto implements Serializable {
     @Id
     int id;
 
+    // Это поле нужно для тестов
     @JsonIgnore
     @Transient
     static final long serialVersionUID = 1234567L;

@@ -12,8 +12,8 @@ import ru.yandex.practicum.enums.PageNames;
 import ru.yandex.practicum.enums.SortingCategory;
 import ru.yandex.practicum.model.Item;
 import ru.yandex.practicum.model.Pages;
-import ru.yandex.practicum.service.ItemService;
-import ru.yandex.practicum.service.ItemsService;
+import ru.yandex.practicum.service.ItemAddingGettingService;
+import ru.yandex.practicum.service.ItemAllOtherOpsService;
 import ru.yandex.practicum.util.RedirectionPage;
 
 import java.io.IOException;
@@ -26,10 +26,10 @@ public class ItemController {
 
 
     @Autowired
-    private ItemService itemService;
+    private ItemAddingGettingService itemService;
 
     @Autowired
-    private ItemsService itemsService;
+    private ItemAllOtherOpsService itemsService;
 
     @GetMapping(value = {"/", "/main/items"})
     public Mono<String> getItemsList(Model model,
@@ -37,7 +37,7 @@ public class ItemController {
                                      @RequestParam(name = "pageNumber", required = false) Integer pageNumber) throws IOException {
         // Нужно зачищать кэш на старте очередного запуска программы
         if (!wasCacheCleared) {
-            itemService.clearCache();
+            itemsService.clearCache();
             wasCacheCleared = true;
         }
 
@@ -85,7 +85,7 @@ public class ItemController {
 
     @PostMapping("/item/{id}/minus")
     public Mono<String> decreaseItemAmount(ServerWebExchange exchange, @PathVariable int id) {
-        return itemService.decreaseItemAmount(id)
+        return itemsService.decreaseItemAmount(id)
                 .then(exchange.getFormData()
                         .flatMap(formData -> {
                             String pageName = formData.getFirst("pageName");
@@ -97,7 +97,7 @@ public class ItemController {
 
     @PostMapping("/item/{id}/plus")
     public Mono<String> increaseItemAmount(ServerWebExchange exchange, @PathVariable int id) {
-        return itemService.increaseItemAmount(id)
+        return itemsService.increaseItemAmount(id)
                 .then(exchange.getFormData()
                         .flatMap(formData -> {
                             String pageName = formData.getFirst("pageName");

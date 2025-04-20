@@ -1,6 +1,8 @@
 package ru.yandex.practicum.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -16,8 +18,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+/*
+ * Пришлось разбить первоначальный сервис ItemService на 2 сервиса: ItemAddingGettingService и ItemAllOtherOpsService.
+ * 1-й сервис содержит метод получения товара из кэша. Соответственно, чтобы не происходило @Cacheable self-invocation,
+ * другие аннотированные методы были вынесены во 2-й сервис
+ */
 @Service
-public class ItemsService {
+public class ItemAllOtherOpsService {
     private boolean wereTestItemsAdded;
 
     @Autowired
@@ -27,13 +34,13 @@ public class ItemsService {
     private ImageRepository imageRepository;
 
     @Autowired
-    private ItemService itemService;
+    private ItemAddingGettingService itemService;
 
     public Flux<ItemDto> getItemsList(int itemsOnPage, int pageNumber) throws IOException {
-/*        if (!wereTestItemsAdded) {
+        if (!wereTestItemsAdded) {
             addTestItems();
             wereTestItemsAdded = true;
-        }*/
+        }
 
         Flux<Integer> allItemsIdsOnPage = itemRepository.getAllItemIdsOnPage(pageNumber, itemsOnPage);
 
@@ -59,6 +66,33 @@ public class ItemsService {
 
     public Mono<Integer> getItemListSize() {
         return itemRepository.getItemListSize();
+    }
+
+    @CachePut(value = "item", key = "#id")
+    public Mono<ItemDto> decreaseItemAmount(int id) {
+        Mono<ItemDto> itemDtoMono = itemService.getItemDto(id);
+        itemDtoMono
+                .doOnNext(itemDto -> itemDto.decreaseAmount())
+                .flatMap(itemDto -> itemRepository.save(itemDto))
+                .doOnNext(itemDto -> System.out.println("Item with id = " + itemDto.getId() + " was decreased: new amount = " + itemDto.getAmount() + ". Upserting cache"))
+                .subscribe();
+        return itemDtoMono;
+    }
+
+    @CachePut(value = "item", key = "#id")
+    public Mono<ItemDto> increaseItemAmount(int id) {
+        Mono<ItemDto> itemDtoMono = itemService.getItemDto(id);
+        itemDtoMono
+                .doOnNext(itemDto -> itemDto.increaseAmount())
+                .flatMap(itemDto -> itemRepository.save(itemDto))
+                .doOnNext(itemDto -> System.out.println("Item with id = " + itemDto.getId() + " was increased: new amount = " + itemDto.getAmount() + ". Upserting cache"))
+                .subscribe();
+        return itemDtoMono;
+    }
+
+    @CacheEvict(value = "item", allEntries = true)
+    public void clearCache() {
+        System.out.println("Cache was cleared");
     }
 
     private void addTestItems() throws IOException {

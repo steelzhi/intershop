@@ -12,8 +12,8 @@ import reactor.core.publisher.Mono;
 import ru.yandex.practicum.dao.*;
 import ru.yandex.practicum.dto.ItemDto;
 import ru.yandex.practicum.enums.SortingCategory;
-import ru.yandex.practicum.service.ItemService;
-import ru.yandex.practicum.service.ItemsService;
+import ru.yandex.practicum.service.ItemAddingGettingService;
+import ru.yandex.practicum.service.ItemAllOtherOpsService;
 
 import java.util.List;
 
@@ -27,10 +27,10 @@ public class ItemControllerTest {
     private WebTestClient webTestClient;
 
     @MockitoBean
-    private ItemService itemService;
+    private ItemAddingGettingService itemService;
 
     @MockitoBean
-    private ItemsService itemsService;
+    private ItemAllOtherOpsService itemsService;
 
     @MockitoBean
     private OrderRepository orderRepository;

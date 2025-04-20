@@ -15,7 +15,7 @@ import ru.yandex.practicum.dto.ItemDto;
 import ru.yandex.practicum.enums.PageNames;
 import ru.yandex.practicum.model.Balance;
 import ru.yandex.practicum.service.CartService;
-import ru.yandex.practicum.service.ItemService;
+import ru.yandex.practicum.service.ItemAddingGettingService;
 import ru.yandex.practicum.util.RedirectionPage;
 
 @Controller
@@ -25,7 +25,7 @@ public class CartController {
     private CartService cartService;
 
     @Autowired
-    private ItemService itemService;
+    private ItemAddingGettingService itemService;
 
     @Autowired
     private WebClient webClient;

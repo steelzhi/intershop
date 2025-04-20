@@ -2,13 +2,11 @@ package ru.yandex.practicum.controller;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
-import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import ru.yandex.practicum.config.Configuration;
@@ -17,7 +15,7 @@ import ru.yandex.practicum.dao.*;
 import ru.yandex.practicum.dto.ItemDto;
 import ru.yandex.practicum.model.CartItem;
 import ru.yandex.practicum.service.CartService;
-import ru.yandex.practicum.service.ItemService;
+import ru.yandex.practicum.service.ItemAddingGettingService;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -34,7 +32,7 @@ public class CartControllerTest {
     private CartService cartService;
 
     @MockitoBean
-    private ItemService itemService;
+    private ItemAddingGettingService itemService;
 
     @MockitoBean
     private OrderRepository orderRepository;

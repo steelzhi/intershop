@@ -24,14 +24,14 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@SpringBootTest(classes = {ItemsService.class, ItemService.class})
-public class ItemsServiceWithMockedRepoTest {
+@SpringBootTest(classes = {ItemAllOtherOpsService.class, ItemAddingGettingService.class})
+public class ItemAllOtherOpsServiceWithMockedRepoTest {
 
     @Autowired
-    ItemsService itemsService;
+    ItemAllOtherOpsService itemsService;
 
     @MockitoBean
-    ItemService itemService;
+    ItemAddingGettingService itemService;
 
     @MockitoBean
     ItemRepository itemRepository;
@@ -226,5 +226,54 @@ public class ItemsServiceWithMockedRepoTest {
 
         verify(itemRepository, times(1))
                 .findIdsByNameOrDescriptionOrderByPrice("DTO");
+    }
+
+
+    @Test
+    void testDecreaseItemAmount() throws IOException {
+        byte[] imageBytes1 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\armature.txt"));
+        Image image1 = new Image(imageBytes1);
+        Mono<Image> imageMono = Mono.just(image1);
+        when(imageRepository.save(image1))
+                .thenReturn(imageMono);
+
+        int id = 1;
+        Item item = new Item("item", "desc", null, 1.0);
+        Mono<ItemDto> itemDtoMono = ItemMapper.mapToItemDto(Mono.just(item), imageMono);
+        int amount = 1;
+        ItemDto itemDto = itemDtoMono.doOnNext(itemDto1 -> itemDto1.setAmount(amount))
+                .doOnNext(itemDto1 -> itemDto1.setId(id))
+                .block();
+
+        when(itemRepository.findById(id))
+                .thenReturn(Mono.just(itemDto));
+        ItemDto itemDtoDecreased = itemsService.decreaseItemAmount(id).block();
+        assertEquals(amount - 1, itemDtoDecreased.getAmount(), "Incorrect amount decreasing");
+
+        verify(itemRepository, times(1)).findById(id);
+    }
+
+    @Test
+    void testIncreaseItemAmount() throws IOException {
+        byte[] imageBytes1 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\armature.txt"));
+        Image image1 = new Image(imageBytes1);
+        Mono<Image> imageMono = Mono.just(image1);
+        when(imageRepository.save(image1))
+                .thenReturn(imageMono);
+
+        int id = 1;
+        Item item = new Item("item", "desc", null, 1.0);
+        Mono<ItemDto> itemDtoMono = ItemMapper.mapToItemDto(Mono.just(item), imageMono);
+        int amount = 1;
+        ItemDto itemDto = itemDtoMono.doOnNext(itemDto1 -> itemDto1.setAmount(amount))
+                .doOnNext(itemDto1 -> itemDto1.setId(id))
+                .block();
+
+        when(itemRepository.findById(id))
+                .thenReturn(Mono.just(itemDto));
+        ItemDto itemDtoIncreased = itemsService.increaseItemAmount(id).block();
+        assertEquals(amount + 1, itemDtoIncreased.getAmount(), "Incorrect amount increasing");
+
+        verify(itemRepository, times(1)).findById(id);
     }
 }

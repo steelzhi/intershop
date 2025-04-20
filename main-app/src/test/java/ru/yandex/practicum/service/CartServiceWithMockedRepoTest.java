@@ -25,7 +25,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@SpringBootTest(classes = CartService.class)
+@SpringBootTest(classes = {CartService.class, ItemService.class})
 public class CartServiceWithMockedRepoTest {
     @Autowired
     CartService cartService;

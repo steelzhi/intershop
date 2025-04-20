@@ -11,16 +11,21 @@ import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 import ru.yandex.practicum.util.Formatter;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @NoArgsConstructor
 @Table(name = "items")
-public class ItemDto {
+public class ItemDto implements Serializable {
 
     @Id
     int id;
+
+    @JsonIgnore
+    @Transient
+    static final long serialVersionUID = 1234567L;
 
     String name;
 

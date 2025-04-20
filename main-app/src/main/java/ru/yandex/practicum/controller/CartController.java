@@ -10,6 +10,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import ru.yandex.practicum.constant.Constants;
 import ru.yandex.practicum.dto.ItemDto;
 import ru.yandex.practicum.enums.PageNames;
 import ru.yandex.practicum.model.Balance;
@@ -19,10 +20,6 @@ import ru.yandex.practicum.util.RedirectionPage;
 
 @Controller
 public class CartController {
-    private static final String SCHEME = "http";
-    private static final String HOST = "localhost";
-    private static final String PORT = "9090";
-    private static final String ROOT_PATH = "/payments";
 
     @Autowired
     private CartService cartService;
@@ -62,7 +59,7 @@ public class CartController {
         isPaymentServiceAvailable[0] = true;
 
         Mono<Double> balanceMono = webClient.get()
-                .uri(SCHEME + "://" + HOST + ":" + PORT + ROOT_PATH + "/balance")
+                .uri(Constants.SCHEME + "://" + Constants.HOST + ":" + Constants.PORT + Constants.ROOT_PATH + "/balance")
                 .retrieve()
                 .toEntity(Double.class)
                 .flatMap(doubleResponseEntity -> {

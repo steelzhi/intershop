@@ -1,6 +1,7 @@
 package ru.yandex.practicum.all.layers;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
@@ -8,14 +9,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
+import ru.yandex.practicum.constant.Constants;
 import ru.yandex.practicum.dao.*;
 import ru.yandex.practicum.dto.ItemDto;
+import ru.yandex.practicum.dto.OrderDto;
+import ru.yandex.practicum.dto.OrderItemDto;
 import ru.yandex.practicum.mapper.ItemMapper;
-import ru.yandex.practicum.model.CartItem;
-import ru.yandex.practicum.model.Image;
-import ru.yandex.practicum.model.Item;
-import ru.yandex.practicum.model.Order;
+import ru.yandex.practicum.model.*;
 import ru.yandex.practicum.service.CartService;
+import ru.yandex.practicum.service.OrderService;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -45,6 +47,9 @@ public class OrderAllLayersTest {
     ImageRepository imageRepository;
 
     @Autowired
+    OrderService orderService;
+
+    @Autowired
     CartService cartService;
 
     @AfterEach
@@ -56,8 +61,15 @@ public class OrderAllLayersTest {
         imageRepository.deleteAll();
     }
 
+    @AfterEach
+    void clearBalance() {
+        Balance.setBalance(0);
+    }
+
     @Test
-    void createNotEmptyOrder_shouldReturnCreatedOrder() throws Exception {
+    void createNotEmptyOrderWhenBalanceIsEnoughForMakingOrder_shouldOrder() throws Exception {
+        double balance = 1_000_000;
+        Balance.setBalance(balance);
         byte[] imageBytes1 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\armature.txt"));
         Image image1 = new Image(imageBytes1);
         Mono<Image> imageMono1 = imageRepository.save(image1);
@@ -84,6 +96,31 @@ public class OrderAllLayersTest {
     }
 
     @Test
+    void createNotEmptyOrderWhenBalanceIsNotEnoughForMakingOrder_shouldReturnDenialMessage() throws Exception {
+        byte[] imageBytes1 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\armature.txt"));
+        Image image1 = new Image(imageBytes1);
+        Mono<Image> imageMono1 = imageRepository.save(image1);
+        Item item1 = new Item("Арматура", "Арматура для строительства", null, 65_000);
+        Mono<ItemDto> itemDto1 = ItemMapper.mapToItemDto(Mono.just(item1), imageMono1)
+                .doOnNext(itemDto -> itemDto.setAmount(1))
+                .flatMap(itemDto -> itemRepository.save(itemDto));
+        ItemDto itemDto = itemDto1.block();
+
+        CartItem cartItem = new CartItem(itemDto.getId());
+        cartRepository.save(cartItem).block();
+
+        webTestClient.post()
+                .uri("/create-order")
+                .contentType(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(String.class).consumeWith(response -> {
+                    String body = response.getResponseBody();
+                    assertTrue(body.contains("<h2>Недостаточно денег на счете для совершения заказа. Не хватает суммы: "));
+                });
+    }
+
+    @Test
     void getOrders() throws Exception {
         byte[] imageBytes1 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\armature.txt"));
         Image image1 = new Image(imageBytes1);
@@ -101,6 +138,11 @@ public class OrderAllLayersTest {
         Mono<Order> orderMono1 = orderRepository.save(order1);
         Order savedOrder1 = orderMono1.block();
 
+        OrderItem orderItem = new OrderItem(savedOrder1.getId(), itemDto1.getId(), itemDto1.getPrice(), itemDto1.getAmount());
+        orderItemRepository.save(orderItem).block();
+
+        OrderDto orderDto1 = orderService.getOrder(savedOrder1.getId()).block();
+
         byte[] imageBytes2 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\beam.txt"));
         Image image2 = new Image(imageBytes2);
         Mono<Image> imageMono2 = imageRepository.save(image2);
@@ -116,6 +158,11 @@ public class OrderAllLayersTest {
         Order order2 = new Order();
         Mono<Order> orderMono2 = orderRepository.save(order2);
         Order savedOrder2 = orderMono2.block();
+
+        OrderItem orderItem2 = new OrderItem(savedOrder2.getId(), itemDto2.getId(), itemDto2.getPrice(), itemDto2.getAmount());
+        orderItemRepository.save(orderItem2).block();
+
+        OrderDto orderDto2 = orderService.getOrder(savedOrder2.getId()).block();
 
         webTestClient.get()
                 .uri("/orders")
@@ -148,12 +195,18 @@ public class OrderAllLayersTest {
         Mono<Order> orderMono1 = orderRepository.save(order1);
         Order savedOrder1 = orderMono1.block();
 
+        OrderItem orderItem = new OrderItem(savedOrder1.getId(), itemDto1.getId(), itemDto1.getPrice(), itemDto1.getAmount());
+        orderItemRepository.save(orderItem).block();
+
+        OrderDto orderDto = orderService.getOrder(savedOrder1.getId()).block();
+
         webTestClient.get()
                 .uri("/orders/1")
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody(String.class).consumeWith(response -> {
                     String body = response.getResponseBody();
+                    System.out.println("!!!" + body);
                     assertNotNull(body);
                     assertTrue(body.contains("order"));
                     assertTrue(body.contains(itemDto1.getDescription()));

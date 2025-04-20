@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import ru.yandex.practicum.constant.Constants;
 import ru.yandex.practicum.dto.OrderDto;
 import ru.yandex.practicum.model.Balance;
 import ru.yandex.practicum.model.Order;
@@ -17,10 +18,6 @@ import ru.yandex.practicum.service.OrderService;
 
 @Controller
 public class OrderController {
-    private static final String SCHEME = "http";
-    private static final String HOST = "localhost";
-    private static final String PORT = "9090";
-    private static final String ROOT_PATH = "/payments";
 
     @Autowired
     OrderService orderService;
@@ -52,10 +49,10 @@ public class OrderController {
                         // Списываем сумму заказа с баланса
                         webClient.post()
                                 .uri(uriBuilder -> uriBuilder
-                                        .scheme(SCHEME)
-                                        .host(HOST)
-                                        .port(PORT)
-                                        .path(ROOT_PATH + "/do-payment")
+                                        .scheme(Constants.SCHEME)
+                                        .host(Constants.HOST)
+                                        .port(Constants.PORT)
+                                        .path(Constants.ROOT_PATH + "/do-payment")
                                         .queryParam("payment", String.valueOf(orderDto.getTotalSum()))
                                         .build())
                                 .exchange()

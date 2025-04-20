@@ -26,7 +26,7 @@ public class Configuration {
         return builder -> builder.withCacheConfiguration(
                 "item",                                         // Имя кеша
                 RedisCacheConfiguration.defaultCacheConfig()
-                        .entryTtl(Duration.of(5, ChronoUnit.SECONDS))  // TTL
+                        .entryTtl(Duration.of(60, ChronoUnit.SECONDS))  // TTL
                         .serializeValuesWith(                          // Сериализация JSON
                                 RedisSerializationContext.SerializationPair.fromSerializer(
                                         new Jackson2JsonRedisSerializer<>(ItemDto.class)

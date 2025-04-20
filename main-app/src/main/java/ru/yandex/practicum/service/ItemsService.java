@@ -30,10 +30,10 @@ public class ItemsService {
     private ItemService itemService;
 
     public Flux<ItemDto> getItemsList(int itemsOnPage, int pageNumber) throws IOException {
-        if (!wereTestItemsAdded) {
+/*        if (!wereTestItemsAdded) {
             addTestItems();
             wereTestItemsAdded = true;
-        }
+        }*/
 
         Flux<Integer> allItemsIdsOnPage = itemRepository.getAllItemIdsOnPage(pageNumber, itemsOnPage);
 

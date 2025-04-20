@@ -2,12 +2,17 @@ package ru.yandex.practicum.controller;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import ru.yandex.practicum.config.Configuration;
+import ru.yandex.practicum.constant.Constants;
 import ru.yandex.practicum.dao.*;
 import ru.yandex.practicum.dto.ItemDto;
 import ru.yandex.practicum.model.CartItem;
@@ -20,6 +25,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
 
 @WebFluxTest(CartController.class)
+@Import(Configuration.class)
 public class CartControllerTest {
     @Autowired
     private WebTestClient webTestClient;
@@ -46,8 +52,7 @@ public class CartControllerTest {
     private ItemRepository itemRepository;
 
     @Test
-    void addItemToCart_shouldAddItemtAndRedirect() throws Exception {
-        //ItemDto itemDto = new ItemDto("itemDto", "desc", null, 1.0, 2);
+    void addItemToCart_shouldAddItemtAndRedirect() {
         int itemId = 1;
         CartItem cartItem = new CartItem(1, itemId);
         when(cartService.addItemToCart(anyInt()))
@@ -88,5 +93,18 @@ public class CartControllerTest {
 
         verify(cartService, times(1)).getItemsDtosInCart();
         verify(cartService, times(1)).getTotalPriceFormatted(itemDtoFlux);
+    }
+
+    @Test
+    void checkPaymentServiceAvailabilityWhenPaymentServiceIsUnavailable() throws Exception {
+        webTestClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .scheme(Constants.SCHEME)
+                        .host(Constants.HOST)
+                        .port(Constants.PORT)
+                        .path(Constants.ROOT_PATH + "/balance")
+                        .build())
+                .exchange()
+                .expectStatus().isNotFound();
     }
 }

@@ -15,5 +15,4 @@ public class MainServiceApplication {
 	public static void main(String[] args) throws IOException {
 		SpringApplication.run(MainServiceApplication.class, args);
 	}
-
 }

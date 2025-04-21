@@ -12,8 +12,8 @@ import ru.yandex.practicum.enums.PageNames;
 import ru.yandex.practicum.enums.SortingCategory;
 import ru.yandex.practicum.model.Item;
 import ru.yandex.practicum.model.Pages;
-import ru.yandex.practicum.service.ItemGettingFromCacheService;
 import ru.yandex.practicum.service.ItemAllOtherOpsService;
+import ru.yandex.practicum.service.ItemGettingFromCacheService;
 import ru.yandex.practicum.util.RedirectionPage;
 
 import java.io.IOException;
@@ -31,9 +31,10 @@ public class ItemController {
     private ItemAllOtherOpsService itemsService;
 
     @GetMapping(value = {"/", "/main/items"})
-    public Mono<String> getItemsList(Model model,
-                                     @RequestParam(name = "itemsOnPage", required = false) Integer itemsOnPage,
-                                     @RequestParam(name = "pageNumber", required = false) Integer pageNumber) throws IOException {
+    public Mono<String> getItemsList(
+            Model model,
+            @RequestParam(name = "itemsOnPage", required = false) Integer itemsOnPage,
+            @RequestParam(name = "pageNumber", required = false) Integer pageNumber) throws IOException {
         // Нужно зачищать кэш на старте очередного запуска программы
         if (!wasCacheCleared) {
             itemsService.clearCache();
@@ -46,7 +47,7 @@ public class ItemController {
          */
         itemsOnPage = getHandledItemsOnPage(itemsOnPage);
         pageNumber = getHandledItemsPageNumber(pageNumber);
- //       Flux<ItemDto> itemsFlux = itemService.getItemsList(itemsOnPage, pageNumber);
+        //       Flux<ItemDto> itemsFlux = itemService.getItemsList(itemsOnPage, pageNumber);
         Flux<ItemDto> itemsFlux = itemsService.getItemsList(itemsOnPage, pageNumber);
 
         Mono<Pages> pagesMono = getPages(itemsOnPage);

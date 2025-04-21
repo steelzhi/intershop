@@ -7,7 +7,6 @@ import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.yaml.snakeyaml.scanner.Constant;
 import ru.yandex.practicum.constant.Constants;
 import ru.yandex.practicum.dto.ItemDto;
 

@@ -42,7 +42,8 @@ public class OrderService {
         Mono<Order> orderMono = orderRepository.save(order);
 
         Flux<CartItem> cartItemsFlux = cartRepository.findAll();
-        Flux<ItemDto> itemDtosFlux = cartItemsFlux.flatMap(cartItem -> itemRepository.findById(cartItem.getItemId()))
+        Flux<ItemDto> itemDtosFlux
+                = cartItemsFlux.flatMap(cartItem -> itemRepository.findById(cartItem.getItemId()))
                 .filter(itemDto -> itemDto.getAmount() > 0)
                 .doOnNext(itemDto -> saveOrderItemAndIncreaseTotalSum(itemDto, orderId, totalSumArray));
 
@@ -78,7 +79,8 @@ public class OrderService {
                 .flatMapMany(orderDto1 -> orderItemRepository.findAllByOrderId(orderDto1.getId()));
         List<OrderItemDto> orderItemDtoList = new ArrayList<>();
 
-        Flux<OrderItemDto> orderItemDtoFlux = orderItemFlux.flatMap(orderItem -> getDtoFromOrderItem(orderItem, orderItemDtoList));
+        Flux<OrderItemDto> orderItemDtoFlux
+                = orderItemFlux.flatMap(orderItem -> getDtoFromOrderItem(orderItem, orderItemDtoList));
 
         Mono<OrderDto> orderDtoWithOrderItemsMono = orderDtoMono
                 .doOnNext(orderDto -> orderDto.setOrderItemDtoList(orderItemDtoList));
@@ -96,9 +98,14 @@ public class OrderService {
     public Mono<String> getOrdersTotalSumFormatted() {
         Mono<Double> sumOfAllOrdersMono = getOrdersTotalSum();
         Mono<String> sumOfAllOrdersFormattedMono = sumOfAllOrdersMono
-                .map(sumOfAllOrders -> Formatter.DECIMAL_FORMAT.format(sumOfAllOrders != null ? sumOfAllOrders : 0));
+                .map(sumOfAllOrders -> Formatter.DECIMAL_FORMAT.format(
+                        sumOfAllOrders != null ? sumOfAllOrders : 0));
 
         return sumOfAllOrdersFormattedMono;
+    }
+
+    public Mono<Void> deleteOrder(int orderId) {
+        return orderRepository.deleteById(orderId);
     }
 
     private void setTotalSumAndSaveOrder(Order order, double[] totalSumArray) {

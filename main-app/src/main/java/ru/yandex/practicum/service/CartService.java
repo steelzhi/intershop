@@ -13,11 +13,6 @@ import ru.yandex.practicum.util.Formatter;
 
 @Service
 public class CartService {
-    /*    // Для снижения обращений к БД будем также хранить текущие заказы в кэше
-        // ключ - товар, значение - id объекта CartItem
-        private Map<ItemDto, Integer> cart = new HashMap<>();*/
-    private static double[] totalPriceArray = new double[1];
-
     @Autowired
     private CartRepository cartRepository;
 
@@ -64,15 +59,11 @@ public class CartService {
         Flux<CartItem> cartItems = cartRepository.findAll();
         return cartItems
                 .flatMap(cartItem -> {
-            Mono<ItemDto> itemDtoMono = itemService.getItemDto(cartItem.getItemId());
+                    Mono<ItemDto> itemDtoMono = itemService.getItemDto(cartItem.getItemId());
 
-            return itemDtoMono.filter(itemDto -> itemDto.getAmount() > 0);
-        });
+                    return itemDtoMono.filter(itemDto -> itemDto.getAmount() > 0);
+                });
     }
-
-    /*public Map<ItemDto, Integer> getCart() {
-        return cart;
-    }*/
 
     public Mono<String> getTotalPriceFormatted(Flux<ItemDto> itemDtosFlux) {
         return itemDtosFlux
@@ -100,7 +91,8 @@ public class CartService {
      * Если количество > 0, то смотрим, был ли этот товар уже добавлен в "Корзину" ранее. Если был, заменяем количество
      * товара в "Корзине" на текущее. Если не был, добавляем в "Корзину".
      */
-    private Mono<CartItem> getCartItemForAlreadyAddedItemMono(Mono<CartItem> cartItemMono, boolean hasCartItem, int itemId) {
+    private Mono<CartItem> getCartItemForAlreadyAddedItemMono(
+            Mono<CartItem> cartItemMono, boolean hasCartItem, int itemId) {
         if (hasCartItem) {
             return cartItemMono;
         } else {

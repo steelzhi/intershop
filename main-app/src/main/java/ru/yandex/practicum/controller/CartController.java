@@ -59,7 +59,8 @@ public class CartController {
         isPaymentServiceAvailable[0] = true;
 
         Mono<Double> balanceMono = webClient.get()
-                .uri(Constants.SCHEME + "://" + Constants.HOST + ":" + Constants.PORT + Constants.ROOT_PATH + "/balance")
+                .uri(Constants.SCHEME + "://" + Constants.HOST + ":" + Constants.PORT + Constants.ROOT_PATH
+                     + "/balance")
                 .retrieve()
                 .toEntity(Double.class)
                 .flatMap(doubleResponseEntity -> {
@@ -69,7 +70,7 @@ public class CartController {
                     return Mono.just(balance);
                 })
                 .onErrorResume(error -> {
-                    System.out.println("1: PaymentService is not available");
+                    System.out.println("PaymentService is not available (1)");
                     isPaymentServiceAvailable[0] = false;
                     return Mono.empty();
                 });
@@ -81,7 +82,7 @@ public class CartController {
                 .doOnNext(i -> {
                     model.addAttribute("isPaymentServiceAvailable", isPaymentServiceAvailable[0]);
                     if (!isPaymentServiceAvailable[0]) {
-                        System.out.println("2: PaymentService is not available");
+                        System.out.println("PaymentService is not available (2)");
                     }
                 })
                 .then(Mono.just("cart"));

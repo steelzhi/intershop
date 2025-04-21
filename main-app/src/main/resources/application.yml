@@ -25,7 +25,8 @@ spring:
 
   data:
     redis:
-      host: 127.0.0.1
+      host: 127.0.0.1 # Для запуска приложения локально
+      #host: redis # Для запуска приложения в Docker
       port: 6379
   cache:
     redis:

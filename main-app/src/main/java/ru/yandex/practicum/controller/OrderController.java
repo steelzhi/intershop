@@ -62,58 +62,10 @@ public class OrderController {
                         return Mono.just("order");
                     } else {
                         System.out.println("Order is unsuccessful - not enough money on account");
+                        orderService.deleteOrder(orderDto.getId()).subscribe();
                         return Mono.just("not-enough-money-on-account");
                     }
                 });
-
-/*        Mono<Double> balanceMono = webClient.get()
-                .uri(SCHEME + "://" + HOST + ":" + PORT + ROOT_PATH + "/balance")
-                .retrieve()
-                .toEntity(Double.class)
-                .flatMap(doubleResponseEntity -> Mono.just(doubleResponseEntity.getBody()));
-
-        // Проверяем, хватает ли средств на балансе для совершения заказа. Если да, записываем true в поле OrderDto
-        Mono<OrderDto> orderDtoMonoAfterCheckingBalance
-                = Mono.zip(orderDtoMono, balanceMono)
-                .flatMap(tuple -> {
-                    OrderDto orderDto = tuple.getT1();
-                    double balance = tuple.getT2();
-                    System.out.println("Balance is: " + balance);
-                    if (orderDto.getTotalSum() <= balance) {
-                        orderDto.setSuccessful(true);
-                    }
-                    return Mono.just(orderDto);
-                });
-
-
-        return orderDtoMonoAfterCheckingBalance
-                .doOnNext(orderDto -> {
-                    model.addAttribute("orderDto", orderDto);
-                    model.addAttribute("balance", balanceMono);
-                })
-                .flatMap(orderDto -> {
-                    if (orderDto.isSuccessful()) {
-                        System.out.println("Order is successful");
-
-                        // Списываем сумму заказа с баланса
-                        webClient.post()
-                                .uri(uriBuilder -> uriBuilder
-                                        .scheme(SCHEME)
-                                        .host(HOST)
-                                        .port(PORT)
-                                        .path(ROOT_PATH + "/do-payment")
-                                        .queryParam("payment", String.valueOf(orderDto.getTotalSum()))
-                                        .build())
-                                .exchange()
-                                .doOnNext(i -> System.out.println("Deducting order sum from balance"))
-                                .subscribe();
-
-                        return Mono.just("order");
-                    } else {
-                        System.out.println("Order is unsuccessful - not enough money on account");
-                        return Mono.just("not-enough-money-on-account");
-                    }
-                });*/
     }
 
     @GetMapping("/orders")

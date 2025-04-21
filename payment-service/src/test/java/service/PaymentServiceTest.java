@@ -29,7 +29,8 @@ public class PaymentServiceTest {
         double payment = balanceFirstQuery - 1;
         paymentService.doPayment(payment);
         Double balanceSecondQuery = paymentService.getBalance().block();
-        assertEquals(balanceSecondQuery, balanceFirstQuery - payment, "After payment balance wasn't correctly decreased");
+        assertEquals(balanceSecondQuery, balanceFirstQuery - payment,
+                "After payment balance wasn't correctly decreased");
     }
 
 }

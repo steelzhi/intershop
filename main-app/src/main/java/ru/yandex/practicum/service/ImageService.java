@@ -10,9 +10,7 @@ public class ImageService {
     @Autowired
     private ImageRepository imageRepository;
 
-    //@Cacheable(value = "image", key = "#imageId")
     public Mono<byte[]> getImage(int imageId) {
-        //System.out.println("Cache doesn't contain image with imageId = " + imageId + ". Evaluating...");
         Mono<byte[]> imageBytes = imageRepository.findById(imageId)
                 .map(image -> image.getImageBytes());
         imageBytes.subscribe();

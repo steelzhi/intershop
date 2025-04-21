@@ -19,7 +19,8 @@ public class PaymentController {
     }
 
     @PostMapping("/do-payment")
-    public Mono<Void> doPayment(@Parameter(description = "Сумма заказа для списания с баланса") @RequestParam double payment) {
+    public Mono<Void> doPayment(
+            @Parameter(description = "Сумма заказа для списания с баланса") @RequestParam double payment) {
         System.out.println("Got query to decrease balance to sum = " + payment);
         return paymentService.doPayment(payment);
     }

@@ -27,6 +27,7 @@ public class ItemMapperTest {
         assertEquals(itemDtoMono1.block().getId(), 1, "Id should be 0");
         assertEquals(itemDtoMono1.block().getName(), item1.getName(), "Items names should be the same");
         assertEquals(itemDtoMono1.block().getImageId(), 1, "Image should have id = 1");
-        assertEquals(itemDtoMono1.block().getDescription(), item1.getDescription(), "Items descriptions should be the same");
+        assertEquals(itemDtoMono1.block().getDescription(), item1.getDescription(),
+                "Items descriptions should be the same");
     }
 }

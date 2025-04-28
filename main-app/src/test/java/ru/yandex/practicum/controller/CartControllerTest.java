@@ -74,7 +74,7 @@ public class CartControllerTest {
         when(cartService.getItemsDtosInCart())
                 .thenReturn(itemDtoFlux);
 
-        when(cartService.getTotalPriceFormatted(itemDtoFlux))
+        when(cartService.getTotalSumFormatted())
                 .thenReturn(Mono.just("0"));
 
         webTestClient.get()
@@ -90,7 +90,7 @@ public class CartControllerTest {
                 });
 
         verify(cartService, times(1)).getItemsDtosInCart();
-        verify(cartService, times(1)).getTotalPriceFormatted(itemDtoFlux);
+        verify(cartService, times(1)).getTotalSumFormatted();
     }
 
     @Test

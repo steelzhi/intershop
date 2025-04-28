@@ -14,14 +14,7 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 
 @org.springframework.context.annotation.Configuration
-public class Configuration {
-    /**
-     * С помощью бинов {@link RedisCacheManagerBuilderCustomizer} мы можем добавлять
-     * кастомизации, которые будут использованы при построении бина {@link RedisCacheManager}.
-     * В кастомайзерах можно добавлять общие конфигурации для всех кешей и отдельные по имени кеша.
-     * Можно объявлять несколько кастомайзеров, они привязываются списком в автоконфигурации по созданию {@link RedisCacheManager}.
-     * В примере ниже добавлен кастомайзер, добавляющий в билдер конфигурацию кеша `weather`.
-     */
+public class RedisConfiguration {
     @Bean
     public RedisCacheManagerBuilderCustomizer itemCacheCustomizer() {
         return builder -> builder.withCacheConfiguration(

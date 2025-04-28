@@ -53,7 +53,8 @@ public class CartController {
     @GetMapping("/cart/items")
     public Mono<String> getCart(Model model) {
         Flux<ItemDto> itemDtosFlux = cartService.getItemsDtosInCart();
-        Mono<String> totalPriceFormattedMono = cartService.getTotalPriceFormatted(itemDtosFlux);
+        Mono<String> totalPriceFormattedMono = cartService.getTotalSumFormatted();
+
 
         boolean[] isPaymentServiceAvailable = new boolean[1];
         isPaymentServiceAvailable[0] = true;

@@ -65,10 +65,9 @@ public class CartService {
                 });
     }
 
-    public Mono<String> getTotalPriceFormatted(Flux<ItemDto> itemDtosFlux) {
-        return itemDtosFlux
-                .map(itemDto -> itemDto.getPrice() * itemDto.getAmount())
-                .reduce(0d, Double::sum)
+    public Mono<String> getTotalSumFormatted() {
+        return cartRepository
+                .getTotalSum()
                 .map(Formatter.DECIMAL_FORMAT::format);
     }
 

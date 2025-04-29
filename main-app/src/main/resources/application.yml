@@ -45,6 +45,11 @@ spring:
 #    io.r2dbc.postgresql.QUERY: DEBUG # for queries
 #    io.r2dbc.postgresql.PARAM: DEBUG # for parameters
 
+  #security:
+      #user:
+    # name: 1
+      # password: 1
+
 server:
   port:   8080
   

@@ -1,4 +1,4 @@
-DROP TABLE IF EXISTS cart_items, order_items, items, orders, images CASCADE;
+DROP TABLE IF EXISTS cart_items, order_items, items, orders, images, users, roles CASCADE;
 
 CREATE TABLE IF NOT EXISTS images (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -36,3 +36,26 @@ CREATE TABLE IF NOT EXISTS order_items (
     CONSTRAINT order_items_orders FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT order_items_items FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS roles (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name VARCHAR(30) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS users (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    username VARCHAR(30) NOT NULL,
+    password VARCHAR(100) NOT NULL,
+    role_id INT NOT NULL,
+    CONSTRAINT users_roles FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+INSERT INTO roles(name) VALUES
+    ('ROLE_USER'),
+    ('ROLE_ADMIN');
+
+INSERT INTO users(username, password, role_id) VALUES
+    ('user', '$2a$12$HLI/IYYlsvHBmZkk33PxhuIsZ7APvnVtO15y0TDauY5Rm6coJ4cNW', 1),
+    ('admin', '$2a$12$0o/hMg4D6v7yWQzMhQmIqOCglqHi0p7GzfZdG8iwAb.gHHxFuJh3q', 2);
+    --('user', '1', 1);
+

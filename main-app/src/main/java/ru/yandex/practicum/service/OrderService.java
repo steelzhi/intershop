@@ -34,11 +34,11 @@ public class OrderService {
     @Autowired
     CartRepository cartRepository;
 
-    public Mono<Order> createOrder() {
+    public Mono<Order> createOrder(String username) {
         int[] orderId = new int[1];
         double[] totalSumArray = new double[1];
 
-        Order order = new Order();
+        Order order = new Order(username);
         Mono<Order> orderMono = orderRepository.save(order);
 
         Flux<CartItem> cartItemsFlux = cartRepository.findAll();
@@ -61,8 +61,8 @@ public class OrderService {
                 .doOnNext(i -> System.out.println("Returning from OrderService#createOrder"));
     }
 
-    public Flux<OrderDto> getOrders() {
-        Flux<Order> orderFlux = orderRepository.findAll();
+    public Flux<OrderDto> getOrders(String username) {
+        Flux<Order> orderFlux = orderRepository.findAllByUsername(username);
         Flux<OrderDto> orderDtoFlux = orderFlux.flatMap(order -> {
             Mono<OrderDto> orderDto = getOrder(order.getId());
 
@@ -91,12 +91,12 @@ public class OrderService {
         return orderDtoMono1;
     }
 
-    public Mono<Double> getOrdersTotalSum() {
-        return orderRepository.getSumOfAllOrders();
+    public Mono<Double> getOrdersTotalSum(String username) {
+        return orderRepository.getSumOfAllOrdersForUser(username);
     }
 
-    public Mono<String> getOrdersTotalSumFormatted() {
-        Mono<Double> sumOfAllOrdersMono = getOrdersTotalSum();
+    public Mono<String> getOrdersTotalSumFormatted(String username) {
+        Mono<Double> sumOfAllOrdersMono = getOrdersTotalSum(username);
         Mono<String> sumOfAllOrdersFormattedMono = sumOfAllOrdersMono
                 .map(sumOfAllOrders -> Formatter.DECIMAL_FORMAT.format(
                         sumOfAllOrders != null ? sumOfAllOrders : 0));

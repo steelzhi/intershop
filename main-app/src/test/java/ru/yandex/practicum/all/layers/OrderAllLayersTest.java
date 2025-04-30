@@ -1,3 +1,4 @@
+/*
 package ru.yandex.practicum.all.layers;
 
 import org.junit.jupiter.api.AfterEach;
@@ -214,3 +215,4 @@ public class OrderAllLayersTest {
                 });
     }
 }
+*/

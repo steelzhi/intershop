@@ -22,7 +22,7 @@ public class CartService {
     @Autowired
     private ItemGettingFromCacheService itemService;
 
-    public Mono<CartItem> addItemToCart(@PathVariable int itemId) {
+    public Mono<CartItem> addItemToCart(int itemId, String username) {
         // Получаем товар из БД
         Mono<ItemDto> itemDtoMono = itemRepository.findById(itemId);
 
@@ -32,15 +32,15 @@ public class CartService {
                 .hasElement();
 
         Mono<CartItem> cartItemMono = doesItemDtoHasPositiveAmount
-                .flatMap(hasPositiveAmount -> getCartItemForPositiveAmountMono(hasPositiveAmount, itemId));
+                .flatMap(hasPositiveAmount -> getCartItemForPositiveAmountMono(hasPositiveAmount, itemId, username));
         cartItemMono.subscribe();
 
         return cartItemMono;
     }
 
-    public Mono<Void> removeItemFromCart(int itemId) {
+    public Mono<Void> removeItemFromCart(int itemId, String username) {
         // Удаляем товар из "Корзины"
-        Mono<Void> itemDtoDeleteFromCart = cartRepository.findByItemId(itemId)
+        Mono<Void> itemDtoDeleteFromCart = cartRepository.findByItemIdAndUsername(itemId, username)
                 .flatMap(cartItem -> cartRepository.deleteById(cartItem.getId()));
 
         // Обнуляем количество у удаленного из "Корзины" товара
@@ -55,8 +55,8 @@ public class CartService {
         return Mono.empty();
     }
 
-    public Flux<ItemDto> getItemsDtosInCart() {
-        Flux<CartItem> cartItems = cartRepository.findAll();
+    public Flux<ItemDto> getItemsDtosInCart(String username) {
+        Flux<CartItem> cartItems = cartRepository.findAllByUsername(username);
         return cartItems
                 .flatMap(cartItem -> {
                     Mono<ItemDto> itemDtoMono = itemService.getItemDto(cartItem.getItemId());
@@ -65,20 +65,19 @@ public class CartService {
                 });
     }
 
-    public Mono<String> getTotalSumFormatted() {
+    public Mono<String> getTotalSumFormatted(String username) {
         return cartRepository
-                .getTotalSum()
+                .getTotalSum(username)
                 .map(Formatter.DECIMAL_FORMAT::format);
     }
 
-
     // Если количество товара = 0, товар в "Корзину" не добавляется.
-    private Mono<CartItem> getCartItemForPositiveAmountMono(boolean hasPositiveAmount, int itemId) {
+    private Mono<CartItem> getCartItemForPositiveAmountMono(boolean hasPositiveAmount, int itemId, String username) {
         if (hasPositiveAmount) {
-            Mono<CartItem> cartItemMono = cartRepository.findByItemId(itemId);
+            Mono<CartItem> cartItemMono = cartRepository.findByItemIdAndUsername(itemId, username);
             cartItemMono
                     .hasElement()
-                    .flatMap(hasCartItem -> getCartItemForAlreadyAddedItemMono(cartItemMono, hasCartItem, itemId))
+                    .flatMap(hasCartItem -> getCartItemForAlreadyAddedItemMono(cartItemMono, hasCartItem, itemId, username))
                     .subscribe();
             return cartItemMono;
         } else {
@@ -91,11 +90,11 @@ public class CartService {
      * товара в "Корзине" на текущее. Если не был, добавляем в "Корзину".
      */
     private Mono<CartItem> getCartItemForAlreadyAddedItemMono(
-            Mono<CartItem> cartItemMono, boolean hasCartItem, int itemId) {
+            Mono<CartItem> cartItemMono, boolean hasCartItem, int itemId, String username) {
         if (hasCartItem) {
             return cartItemMono;
         } else {
-            CartItem cartItem = new CartItem(itemId);
+            CartItem cartItem = new CartItem(itemId, username);
             return cartRepository.save(cartItem);
         }
     }

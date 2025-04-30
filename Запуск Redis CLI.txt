@@ -1,0 +1,6 @@
+PS C:\Users\Dmitry> docker container ps
+CONTAINER ID   IMAGE                  COMMAND                  CREATED              STATUS              PORTS      NAMES
+6569afdff60f   redis:7.4.2-bookworm   "docker-entrypoint.s…"   About a minute ago   Up About a minute   6379/tcp   friendly_hertz
+PS C:\Users\Dmitry> docker exec -it 6569afdff60f redis-cli
+127.0.0.1:6379> PING
+PONG

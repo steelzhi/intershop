@@ -16,8 +16,14 @@ public class Order {
     @Id
     int id;
 
+    String username;
+
     @Column("total_sum")
     private double totalSum;
+
+    public Order(String username) {
+        this.username = username;
+    }
 
     @Override
     public String toString() {

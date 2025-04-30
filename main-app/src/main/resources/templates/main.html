@@ -55,15 +55,23 @@
 </head>
 
 <body>
-<a href="/orders" style="float:right;">
+<a th:if="${principal} != null" th:href="@{/orders}" style="float:right;">
     <b>Заказы</b>
 </a>
 <br/>
-<a href="/cart/items" style="float:right;">
+<a th:if="${principal} != null" th:href="@{/cart/items}" style="float:right;">
     <b>Корзина</b>
 </a>
-
 <br/>
+<a th:if="${principal} == null" th:href="@{/login}" style="float:right;">
+    <b>Войти в личный кабинет</b>
+</a>
+<br/>
+<a th:if="${principal} != null" th:href="@{/logout}" style="float:right;">
+    <b>Выйти из личного кабинета</b>
+</a>
+<br/>
+
 <form th:action="@{/main/items}" method="GET">
     <select id="itemsOnPage" name="itemsOnPage">
         <option hidden value=''>Задайте количество товаров на странице</option>

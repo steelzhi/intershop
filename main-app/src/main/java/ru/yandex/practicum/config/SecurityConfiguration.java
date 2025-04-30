@@ -10,10 +10,14 @@ import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.web.server.authentication.logout.RedirectServerLogoutSuccessHandler;
+import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
 import org.springframework.web.server.WebSession;
 import reactor.core.publisher.Mono;
 import ru.yandex.practicum.dao.UserRepository;
 import ru.yandex.practicum.service.R2dbcUserDetailsService;
+
+import java.net.URI;
 
 @Configuration
 @EnableWebFluxSecurity
@@ -37,15 +41,27 @@ public class SecurityConfiguration {
                         logout
                                 .logoutUrl("/logout")
                                 .logoutSuccessHandler((exchange, authentication) ->
-                                        exchange.getExchange().getSession()
-                                                .flatMap(WebSession::invalidate) // удаляем сессию
-                                                .then(Mono.fromRunnable(() -> {
-                                                    exchange.getExchange().getResponse()
-                                                            .setStatusCode(HttpStatus.OK); // отвечаем 200 OK
-                                                }))
+                                            exchange.getExchange().getSession()
+                                                    .flatMap(WebSession::invalidate) // удаляем сессию
+                                                    .then(Mono.fromRunnable(() -> {
+                                                        exchange.getExchange().getResponse()
+                                                                .setStatusCode(HttpStatus.OK); // отвечаем 200 OK
+                                                    }))
+
+
+
+
                                 )
+                                .logoutSuccessHandler(logoutSuccessHandler("/"))
                 )
                 .build();
+    }
+
+    @Bean
+    public ServerLogoutSuccessHandler logoutSuccessHandler(String uri) {
+        RedirectServerLogoutSuccessHandler successHandler = new RedirectServerLogoutSuccessHandler();
+        successHandler.setLogoutSuccessUrl(URI.create(uri));
+        return successHandler;
     }
 
     @Bean

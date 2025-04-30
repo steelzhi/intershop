@@ -1,6 +1,8 @@
 package ru.yandex.practicum.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,6 +20,8 @@ import ru.yandex.practicum.service.CartService;
 import ru.yandex.practicum.service.ItemGettingFromCacheService;
 import ru.yandex.practicum.util.RedirectionPage;
 
+import java.security.Principal;
+
 @Controller
 public class CartController {
 
@@ -31,17 +35,21 @@ public class CartController {
     private WebClient webClient;
 
     @PostMapping("/cart/add/{id}")
-    public Mono<String> addItemToCart(@PathVariable int id) {
-        cartService.addItemToCart(id);
+    public Mono<String> addItemToCart(@PathVariable int id, Principal principal) {
+        String username = principal.getName();
+
+        cartService.addItemToCart(id, username);
         return Mono.just("redirect:/main/items");
     }
 
     @PostMapping("/cart/remove/{id}")
-    public Mono<String> removeItemFromCart(ServerWebExchange exchange, @PathVariable int id) {
+    public Mono<String> removeItemFromCart(ServerWebExchange exchange, @PathVariable int id, Principal principal) {
+        String username = principal.getName();
+
         return exchange.getFormData()
                 .flatMap(formData -> {
                     String pageName = formData.getFirst("pageName");
-                    cartService.removeItemFromCart(id).subscribe();
+                    cartService.removeItemFromCart(id, username).subscribe();
 
                     //itemService.setInExistingItemDtosItemDtoAmountToZero(id);
                     PageNames pageNames = PageNames.valueOf(pageName);
@@ -51,10 +59,11 @@ public class CartController {
     }
 
     @GetMapping("/cart/items")
-    public Mono<String> getCart(Model model) {
-        Flux<ItemDto> itemDtosFlux = cartService.getItemsDtosInCart();
-        Mono<String> totalPriceFormattedMono = cartService.getTotalSumFormatted();
+    public Mono<String> getCart(Model model, Principal principal) {
+        String username = principal.getName();
 
+        Flux<ItemDto> itemDtosFlux = cartService.getItemsDtosInCart(username);
+        Mono<String> totalPriceFormattedMono = cartService.getTotalSumFormatted(username);
 
         boolean[] isPaymentServiceAvailable = new boolean[1];
         isPaymentServiceAvailable[0] = true;
@@ -76,6 +85,7 @@ public class CartController {
                     return Mono.empty();
                 });
 
+        model.addAttribute("principal", principal);
         model.addAttribute("items", itemDtosFlux);
         model.addAttribute("totalPriceFormatted", totalPriceFormattedMono);
 
@@ -87,5 +97,10 @@ public class CartController {
                     }
                 })
                 .then(Mono.just("cart"));
+    }
+
+    private String getUsername() {
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return userDetails.getUsername();
     }
 }

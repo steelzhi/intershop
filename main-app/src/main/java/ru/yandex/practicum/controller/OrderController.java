@@ -16,6 +16,8 @@ import ru.yandex.practicum.model.Order;
 import ru.yandex.practicum.service.CartService;
 import ru.yandex.practicum.service.OrderService;
 
+import java.security.Principal;
+
 @Controller
 public class OrderController {
 
@@ -29,8 +31,9 @@ public class OrderController {
     WebClient webClient;
 
     @PostMapping("/create-order")
-    public Mono<String> createOrder(Model model) {
-        Mono<Order> orderMono = orderService.createOrder();
+    public Mono<String> createOrder(Model model, Principal principal) {
+        String username = principal.getName();
+        Mono<Order> orderMono = orderService.createOrder(username);
 
         Mono<OrderDto> orderDtoMono = orderMono.flatMap(order -> {
             Mono<OrderDto> orderDtoMono1 = orderService.getOrder(order.getId());
@@ -69,11 +72,15 @@ public class OrderController {
     }
 
     @GetMapping("/orders")
-    public Mono<String> getOrders(Model model) {
-        Flux<OrderDto> orderDtoFlux = orderService.getOrders();
-        Mono<String> sumOfAllOrdersFormatted = orderService.getOrdersTotalSumFormatted();
+    public Mono<String> getOrders(Model model, Principal principal) {
+        String username = principal.getName();
+        Flux<OrderDto> orderDtoFlux = orderService.getOrders(username);
+        Mono<String> sumOfAllOrdersFormatted = orderService.getOrdersTotalSumFormatted(username);
         Mono<String> mono = orderDtoFlux
-                .doOnNext(i -> model.addAttribute("ordersDto", orderDtoFlux))
+                .doOnNext(i -> {
+                    model.addAttribute("principal", principal);
+                    model.addAttribute("ordersDto", orderDtoFlux);
+                })
                 .then(sumOfAllOrdersFormatted)
                 .doOnNext(i -> model.addAttribute("sumOfAllOrdersFormatted", sumOfAllOrdersFormatted))
                 .flatMap(s -> Mono.just("orders"));
@@ -82,10 +89,13 @@ public class OrderController {
     }
 
     @GetMapping("/orders/{id}")
-    public Mono<String> getOrder(Model model, @PathVariable int id) {
+    public Mono<String> getOrder(Model model, Principal principal, @PathVariable int id) {
         Mono<OrderDto> orderDtoMono = orderService.getOrder(id);
         Mono<String> mono = orderDtoMono
-                .doOnNext(i -> model.addAttribute("orderDto", orderDtoMono))
+                .doOnNext(i -> {
+                    model.addAttribute("orderDto", orderDtoMono);
+                    model.addAttribute("principal", principal);
+                })
                 .flatMap(s -> Mono.just("order"));
 
         return mono;

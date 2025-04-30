@@ -17,6 +17,7 @@ import ru.yandex.practicum.service.ItemGettingFromCacheService;
 import ru.yandex.practicum.util.RedirectionPage;
 
 import java.io.IOException;
+import java.security.Principal;
 
 @Controller
 public class ItemController {
@@ -33,6 +34,7 @@ public class ItemController {
     @GetMapping(value = {"/", "/main/items"})
     public Mono<String> getItemsList(
             Model model,
+            Principal principal,
             @RequestParam(name = "itemsOnPage", required = false) Integer itemsOnPage,
             @RequestParam(name = "pageNumber", required = false) Integer pageNumber) throws IOException {
         // Нужно зачищать кэш на старте очередного запуска программы
@@ -52,16 +54,20 @@ public class ItemController {
 
         Mono<Pages> pagesMono = getPages(itemsOnPage);
 
+        model.addAttribute("principal", principal);
         model.addAttribute("items", itemsFlux);
         model.addAttribute("pages", pagesMono);
         return Mono.just("main");
     }
 
     @GetMapping("/items/{id}")
-    public Mono<String> getItemDto(Model model, @PathVariable int id) throws IOException {
+    public Mono<String> getItemDto(Model model, Principal principal, @PathVariable int id) {
         Mono<ItemDto> itemDtoMono = itemsService.getItemDto(id);
         return itemDtoMono.doOnNext(itemDto -> System.out.println("ItemDto amount: " + itemDto.getAmount()))
-                .doOnNext(itemDto -> model.addAttribute("itemDto", itemDtoMono))
+                .doOnNext(itemDto -> {
+                    model.addAttribute("itemDto", itemDtoMono);
+                    model.addAttribute("principal", principal);
+                })
                 .flatMap(itemDto -> Mono.just("item"));
     }
 

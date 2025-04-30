@@ -21,8 +21,11 @@ public class CartItem {
     @Column("item_id")
     int itemId;
 
-    public CartItem(int itemId) {
+    String username;
+
+    public CartItem(int itemId, String username) {
         this.itemId = itemId;
+        this.username = username;
     }
 
     @Override
@@ -30,6 +33,7 @@ public class CartItem {
         return "CartItem{" +
                "id=" + id +
                ", itemDtoId=" + itemId +
+               ", username=" + username +
                '}';
     }
 }

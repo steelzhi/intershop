@@ -3,6 +3,7 @@ package ru.yandex.practicum.controller;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
@@ -37,7 +38,11 @@ public class ImageControllerTest {
     @MockitoBean
     private ItemRepository itemRepository;
 
+    @MockitoBean
+    private UserRepository userRepository;
+
     @Test
+    @WithMockUser(username = "user", roles = {"USER"})
     void getImage_shouldReturnImage() throws Exception {
         byte[] image = Files.readAllBytes(Paths.get("src/test/resources/images-bytes/armature.txt"));
 

@@ -1,4 +1,3 @@
-/*
 package ru.yandex.practicum.service;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -54,7 +53,7 @@ public class OrderServiceWithMockedRepoTest {
 
     @Test
     void testCreateOrderNotEmpty() throws IOException {
-        Order order = new Order();
+        Order order = new Order("user");
         int orderId = 0;
         order.setId(orderId);
         Mono<Order> orderMono = Mono.just(order);
@@ -74,7 +73,7 @@ public class OrderServiceWithMockedRepoTest {
         ItemDto itemDto1 = itemDtoMono1.block();
 
         int cartId1 = 1;
-        CartItem cartItem1 = new CartItem(cartId1, itemId1);
+        CartItem cartItem1 = new CartItem(cartId1, itemId1, "user");
 
         Flux<CartItem> cartItemFlux = Flux.just(cartItem1);
 
@@ -104,7 +103,7 @@ public class OrderServiceWithMockedRepoTest {
         when(cartRepository.deleteAll())
                 .thenReturn(Mono.empty());
 
-        Mono<Order> savedOrderMono = orderService.createOrder();
+        Mono<Order> savedOrderMono = orderService.createOrder("user");
         Order savedOrder = savedOrderMono.block();
         assertNotNull(savedOrder, "Order should exist");
         assertEquals(savedOrder.getId(), orderId, "orderId should be = " + orderId);
@@ -119,7 +118,7 @@ public class OrderServiceWithMockedRepoTest {
 
     @Test
     void testGetOrders() throws IOException {
-        Order order1 = new Order();
+        Order order1 = new Order("user");
         int orderId1 = 1;
         order1.setId(orderId1);
         Mono<Order> orderMono1 = Mono.just(order1);
@@ -146,7 +145,7 @@ public class OrderServiceWithMockedRepoTest {
                 .thenReturn(itemDtoMono1);
 
 
-        Order order2 = new Order();
+        Order order2 = new Order("user");
         int orderId2 = 2;
         order2.setId(orderId2);
 
@@ -173,21 +172,21 @@ public class OrderServiceWithMockedRepoTest {
         when(itemRepository.findById(2))
                 .thenReturn(itemDtoMono2);
 
-        when(orderRepository.findAll())
+        when(orderRepository.findAllByUsername("user"))
                 .thenReturn(Flux.just(order1, order2));
 
-        Flux<OrderDto> orderDtoFlux = orderService.getOrders();
+        Flux<OrderDto> orderDtoFlux = orderService.getOrders("user");
         List<OrderDto> orderDtoList = orderDtoFlux.toStream().toList();
 
         assertTrue(orderDtoList.size() == 2, "2 orders should exist");
         assertTrue(orderDtoList.get(0).getId() == 1, "order1 should have id = 1");
 
-        verify(orderRepository, times(1)).findAll();
+        verify(orderRepository, times(1)).findAllByUsername("user");
     }
 
     @Test
     void testGetOrder() throws IOException {
-        Order order1 = new Order();
+        Order order1 = new Order("user");
         int orderId = 1;
         order1.setId(orderId);
         Mono<Order> orderMono = Mono.just(order1);
@@ -221,4 +220,3 @@ public class OrderServiceWithMockedRepoTest {
         verify(itemRepository, times(1)).findById(1);
     }
 }
-*/

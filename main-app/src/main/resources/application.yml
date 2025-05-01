@@ -1,4 +1,22 @@
+server: #Основное приложение (клиент)
+  port:   8180
+
 spring:
+  security:
+    oauth2:
+      client:
+        provider:
+          keycloak:
+            issuer-uri: http://localhost:8080/realms/master # Адрес сервера авторизации для получения токена
+        registration:
+          main-app: # Описание клиента OAuth2
+            provider: keycloak
+            authorizationGrantType: client_credentials
+            client-id: main-app
+            client-secret: VmGXQDXNGOZzJH5Mx7Fi4OyHtnb3IH8A
+            scope: profile
+            clientAuthenticationMethod: client_secret_post # Способ передачи секрета
+
   r2dbc:
     url: r2dbc:postgresql://localhost:5432/intershop
     username: s
@@ -38,9 +56,10 @@ spring:
       max-request-size: 50MB
 
   main:
+    allow-bean-definition-overriding: true
     banner-mode: off
 
-#logging:
+    #logging:
   # level:
 #    io.r2dbc.postgresql.QUERY: DEBUG # for queries
 #    io.r2dbc.postgresql.PARAM: DEBUG # for parameters
@@ -50,7 +69,4 @@ spring:
     # name: 1
       # password: 1
 
-server:
-  port:   8080
-  
 payment-service.url: http://localhost:9090

@@ -10,7 +10,6 @@ import org.springframework.data.relational.core.mapping.Table;
 
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@NoArgsConstructor
 @Table(name = "orders")
 public class Order {
     @Id

@@ -1,4 +1,3 @@
-/*
 package ru.yandex.practicum.service;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -6,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -63,15 +63,15 @@ public class CartServiceWithMockedRepoTest {
         ItemDto itemDto = itemDtoMono1.block();
 
         int cartId = 1;
-        CartItem cartItem = new CartItem(cartId, itemId);
+        CartItem cartItem = new CartItem(cartId, itemId, "user");
         Mono<CartItem> cartItemMono = Mono.just(cartItem);
-        when(cartRepository.findByItemId(cartItem.getItemId()))
+        when(cartRepository.findByItemIdAndUsername(cartItem.getItemId(), "user"))
                 .thenReturn(cartItemMono);
 
         when(cartRepository.save(cartItem))
                 .thenReturn(cartItemMono);
 
-        Mono<CartItem> savedCartItemMono = cartService.addItemToCart(itemId);
+        Mono<CartItem> savedCartItemMono = cartService.addItemToCart(itemId, "user");
         CartItem savedCartItem = savedCartItemMono.block();
 
         assertTrue(savedCartItem != null, "cartItem shouldn't be empty");
@@ -84,7 +84,7 @@ public class CartServiceWithMockedRepoTest {
         assertEquals(itemDtoFromCart.getAmount(), itemDto.getAmount(), "Amounts are different");
 
         verify(itemRepository, times(2)).findById(itemDto.getId());
-        verify(cartRepository, times(2)).findByItemId(cartItem.getItemId());
+        verify(cartRepository, times(2)).findByItemIdAndUsername(cartItem.getItemId(), "user");
     }
 
     @Test
@@ -103,17 +103,18 @@ public class CartServiceWithMockedRepoTest {
                 .thenReturn(itemDtoMono1);
 
         int cartId = 1;
-        CartItem cartItem = new CartItem(cartId, itemId);
+        CartItem cartItem = new CartItem(cartId, itemId, "user");
         Mono<CartItem> cartItemMono = Mono.just(cartItem);
-        when(cartRepository.findByItemId(cartItem.getItemId()))
+        when(cartRepository.findByItemIdAndUsername(cartItem.getItemId(), "user"))
                 .thenReturn(cartItemMono);
 
-        cartService.removeItemFromCart(itemId).block();
+        cartService.removeItemFromCart(itemId, "user").block();
 
-        verify(cartRepository, times(1)).findByItemId(itemId);
+        verify(cartRepository, times(1)).findByItemIdAndUsername(itemId, "user");
     }
 
     @Test
+    @WithMockUser(username = "user", roles = {"USER"})
     void testGetItemsDtosInCart() throws IOException {
         byte[] imageBytes1 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\armature.txt"));
         Image image1 = new Image(imageBytes1);
@@ -136,14 +137,14 @@ public class CartServiceWithMockedRepoTest {
                 .doOnNext(itemDto -> itemDto.setAmount(10));
 
         int cartId1 = 1;
-        CartItem cartItem1 = new CartItem(cartId1, itemId1);
+        CartItem cartItem1 = new CartItem(cartId1, itemId1, "user");
 
         int cartId2 = 2;
-        CartItem cartItem2 = new CartItem(cartId2, itemId2);
+        CartItem cartItem2 = new CartItem(cartId2, itemId2, "user");
 
         Flux<CartItem> cartItemFlux = Flux.just(cartItem1, cartItem2);
 
-        when(cartRepository.findAll())
+        when(cartRepository.findAllByUsername("user"))
                 .thenReturn(cartItemFlux);
 
         when(itemRepository.findById(itemId1))
@@ -152,7 +153,7 @@ public class CartServiceWithMockedRepoTest {
         when(itemRepository.findById(itemId2))
                 .thenReturn(itemDtoMono2);
 
-        Flux<ItemDto> foundItemDtosFlux = cartService.getItemsDtosInCart();
+        Flux<ItemDto> foundItemDtosFlux = cartService.getItemsDtosInCart("user");
         foundItemDtosFlux.blockLast();
         List<ItemDto> foundItemDtosList = foundItemDtosFlux.toStream().toList();
 
@@ -160,11 +161,10 @@ public class CartServiceWithMockedRepoTest {
         assertTrue(foundItemDtosList.contains(itemDtoMono1.block()), "List should contain itemDto1");
         assertTrue(foundItemDtosList.contains(itemDtoMono2.block()), "List should contain itemDto2");
 
-        verify(cartRepository, times(1)).findAll();
+        verify(cartRepository, times(1)).findAllByUsername("user");
         verify(itemRepository, times(2)).findById(itemId1);
         verify(itemRepository, times(2)).findById(itemId2);
 
 
     }
 }
-*/

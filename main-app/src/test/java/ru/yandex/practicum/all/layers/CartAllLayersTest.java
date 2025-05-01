@@ -1,4 +1,3 @@
-/*
 package ru.yandex.practicum.all.layers;
 
 import org.junit.jupiter.api.AfterEach;
@@ -6,17 +5,17 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
-import ru.yandex.practicum.dao.CartRepository;
-import ru.yandex.practicum.dao.ImageRepository;
-import ru.yandex.practicum.dao.ItemRepository;
+import ru.yandex.practicum.config.SecurityConfigTest;
+import ru.yandex.practicum.dao.*;
 import ru.yandex.practicum.dto.ItemDto;
+import ru.yandex.practicum.enums.Roles;
 import ru.yandex.practicum.mapper.ItemMapper;
-import ru.yandex.practicum.model.CartItem;
-import ru.yandex.practicum.model.Image;
-import ru.yandex.practicum.model.Item;
+import ru.yandex.practicum.model.*;
 import ru.yandex.practicum.service.ItemGettingFromCacheService;
 
 import java.nio.file.Files;
@@ -27,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient
+@Import(SecurityConfigTest.class)
 public class CartAllLayersTest {
     @Autowired
     private WebTestClient webTestClient;
@@ -43,6 +43,9 @@ public class CartAllLayersTest {
     @Autowired
     ImageRepository imageRepository;
 
+    @Autowired
+    UserRepository userRepository;
+
     @AfterEach
     void clearDb() {
         cartRepository.deleteAll();
@@ -51,6 +54,7 @@ public class CartAllLayersTest {
     }
 
     @Test
+    @WithMockUser(username = "user", roles = {"USER"})
     void addItemToCart_shouldAddItemt() throws Exception {
         byte[] imageBytes1 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\armature.txt"));
         Image image1 = new Image(imageBytes1);
@@ -61,7 +65,7 @@ public class CartAllLayersTest {
                 .flatMap(itemDto -> itemRepository.save(itemDto));
         ItemDto itemDto = itemDto1.block();
 
-        CartItem cartItem = new CartItem(1, itemDto.getId());
+        CartItem cartItem = new CartItem(1, itemDto.getId(), "user");
 
         webTestClient.post()
                 .uri("/cart/add/1")
@@ -72,6 +76,7 @@ public class CartAllLayersTest {
     }
 
     @Test
+    @WithMockUser(username = "user", roles = {"USER"})
     void getCart() throws Exception {
         byte[] imageBytes1 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\armature.txt"));
         Image image1 = new Image(imageBytes1);
@@ -91,9 +96,11 @@ public class CartAllLayersTest {
                 .flatMap(itemDto -> itemRepository.save(itemDto));
         ItemDto itemDto2 = itemDtoMono2.block();
 
-        CartItem cartItem1 = new CartItem(itemDto1.getId());
+        User user = new User("user", "pass");
+        User savedUser = userRepository.save(user).block();
+        CartItem cartItem1 = new CartItem(itemDto1.getId(), savedUser.getUsername());
         cartRepository.save(cartItem1).block();
-        CartItem cartItem2 = new CartItem(itemDto2.getId());
+        CartItem cartItem2 = new CartItem(itemDto2.getId(), savedUser.getUsername());
         cartRepository.save(cartItem2).block();
 
         webTestClient.get()
@@ -109,4 +116,3 @@ public class CartAllLayersTest {
                 });
     }
 }
-*/

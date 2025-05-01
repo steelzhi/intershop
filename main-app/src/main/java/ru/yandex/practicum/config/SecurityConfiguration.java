@@ -9,6 +9,11 @@ import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientProviderBuilder;
+import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientService;
+import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.logout.RedirectServerLogoutSuccessHandler;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
@@ -67,5 +72,22 @@ public class SecurityConfiguration {
     @Bean
     public ReactiveUserDetailsService r2dbcUserDetailsService(UserRepository userRepository) {
         return new R2dbcUserDetailsService(userRepository);
+    }
+
+    @Bean
+    ReactiveOAuth2AuthorizedClientManager auth2AuthorizedClientManager(
+            ReactiveClientRegistrationRepository clientRegistrationRepository,
+            ReactiveOAuth2AuthorizedClientService authorizedClientService
+    ) {
+        AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager manager =
+                new AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager(clientRegistrationRepository, authorizedClientService);
+
+        manager.setAuthorizedClientProvider(ReactiveOAuth2AuthorizedClientProviderBuilder.builder()
+                .clientCredentials() // Включаем получение токена с помощью client_credentials
+                .refreshToken() // Также включаем использование refresh_token
+                .build()
+        );
+
+        return manager;
     }
 }

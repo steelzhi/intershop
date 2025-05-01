@@ -1,4 +1,5 @@
-DROP TABLE IF EXISTS cart_items, order_items, items, orders, images, users, roles CASCADE;
+DROP TABLE IF EXISTS cart_items, order_items, items, orders, images, users CASCADE;
+DROP TYPE IF EXISTS roles CASCADE;
 
 CREATE TABLE IF NOT EXISTS images (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -15,17 +16,13 @@ CREATE TABLE IF NOT EXISTS items (
     CONSTRAINT items_images FOREIGN KEY (image_id) REFERENCES images(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS roles (
-    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    name VARCHAR(30) NOT NULL
-);
+CREATE TYPE roles AS ENUM ('USER', 'ADMIN');
 
 CREATE TABLE IF NOT EXISTS users (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     username VARCHAR(30) NOT NULL UNIQUE,
     password VARCHAR(100) NOT NULL,
-    role_id INT NOT NULL,
-    CONSTRAINT users_roles FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE ON UPDATE CASCADE
+    role roles DEFAULT NULL
 );
 
 CREATE TABLE IF NOT EXISTS cart_items (
@@ -54,14 +51,10 @@ CREATE TABLE IF NOT EXISTS order_items (
     CONSTRAINT order_items_items FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-INSERT INTO roles(name) VALUES
-    ('ROLE_USER'),
-    ('ROLE_ADMIN');
-
-INSERT INTO users(username, password, role_id) VALUES
-    ('user1', '$2a$12$o9FYCapKCbubG3r5mHtTA.dWWr0xsIJPku3y4NXWywaUpW.DRrIx.', 1), --pass = pass1
-    ('user2', '$2a$12$TjUVWFCg/9OOsgVKoCAba.wg.8xGrmGfowL.p8S.U.17DtaNOJfPa', 1), --pass = pass2
-    ('1', '$2a$12$tjr4cxHzoJ/pdOXPPyFgGuKlnILawpnKWO/7yKKPkNxNRgUuJ7s1y', 1), --pass = 1
-    ('2', '$2a$12$poSSKtrQ7yWlvX2LuTUsL.rIbxHDm6GuyVP8BhUBjGeZ35uYouloa', 1), --pass = 2
-    ('admin', '$$2a$12$wC5ziXwxwZyXFERx0QEh7OmwHJUw4HbH1.c/IDEGjmoyMJCFP7dpC', 2); --pass = admin
+INSERT INTO users(username, password, role) VALUES
+    ('user1', '$2a$12$o9FYCapKCbubG3r5mHtTA.dWWr0xsIJPku3y4NXWywaUpW.DRrIx.', 'USER'), --pass = pass1
+    ('user2', '$2a$12$TjUVWFCg/9OOsgVKoCAba.wg.8xGrmGfowL.p8S.U.17DtaNOJfPa', 'USER'), --pass = pass2
+    ('1', '$2a$12$tjr4cxHzoJ/pdOXPPyFgGuKlnILawpnKWO/7yKKPkNxNRgUuJ7s1y', 'USER'), --pass = 1
+    ('2', '$2a$12$poSSKtrQ7yWlvX2LuTUsL.rIbxHDm6GuyVP8BhUBjGeZ35uYouloa', 'USER'), --pass = 2
+    ('admin', '$$2a$12$wC5ziXwxwZyXFERx0QEh7OmwHJUw4HbH1.c/IDEGjmoyMJCFP7dpC', 'ADMIN'); --pass = admin
 

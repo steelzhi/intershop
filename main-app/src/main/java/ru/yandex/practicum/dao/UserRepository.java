@@ -15,7 +15,7 @@ public interface UserRepository extends R2dbcRepository<User, Integer> {
             SELECT id,
                 username,
                 password,
-                role_id
+                role
             FROM users
             WHERE username = :username
             LIMIT 1

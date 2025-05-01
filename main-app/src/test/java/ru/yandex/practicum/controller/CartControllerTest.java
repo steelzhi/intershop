@@ -1,4 +1,3 @@
-/*
 package ru.yandex.practicum.controller;
 
 import org.junit.jupiter.api.Test;
@@ -6,10 +5,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import ru.yandex.practicum.config.SecurityConfigTest;
 import ru.yandex.practicum.config.WebClientConfiguration;
 import ru.yandex.practicum.constant.Constants;
 import ru.yandex.practicum.dao.*;
@@ -24,7 +25,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
 
 @WebFluxTest(CartController.class)
-@Import(WebClientConfiguration.class)
+@Import({WebClientConfiguration.class, SecurityConfigTest.class})
 public class CartControllerTest {
     @Autowired
     private WebTestClient webTestClient;
@@ -50,11 +51,15 @@ public class CartControllerTest {
     @MockitoBean
     private ItemRepository itemRepository;
 
+    @MockitoBean
+    private UserRepository userRepository;
+
     @Test
+    @WithMockUser(username = "user", roles = {"USER"})
     void addItemToCart_shouldAddItemtAndRedirect() {
         int itemId = 1;
-        CartItem cartItem = new CartItem(1, itemId);
-        when(cartService.addItemToCart(anyInt()))
+        CartItem cartItem = new CartItem(1, itemId, "user");
+        when(cartService.addItemToCart(1, "user"))
                 .thenReturn(Mono.just(cartItem));
 
         webTestClient.post()
@@ -64,18 +69,19 @@ public class CartControllerTest {
                 .exchange()
                 .expectStatus().is3xxRedirection();
 
-        verify(cartService, times(1)).addItemToCart(anyInt());
+        verify(cartService, times(1)).addItemToCart(1, "user");
     }
 
     @Test
-    void getCart_shouldGetCart() throws Exception {
+    @WithMockUser(username = "user", roles = {"USER"})
+    void getCart_shouldGetCart() {
         ItemDto itemDto1 = new ItemDto("itemDto1", "desc1", null, 1.0, 2);
         ItemDto itemDto2 = new ItemDto("itemDto2", "desc2", null, 2.0, 3);
         Flux<ItemDto> itemDtoFlux = Flux.just(itemDto1, itemDto2);
-        when(cartService.getItemsDtosInCart())
+        when(cartService.getItemsDtosInCart("user"))
                 .thenReturn(itemDtoFlux);
 
-        when(cartService.getTotalSumFormatted())
+        when(cartService.getTotalSumFormatted("user"))
                 .thenReturn(Mono.just("0"));
 
         webTestClient.get()
@@ -90,12 +96,13 @@ public class CartControllerTest {
                     assertTrue(body.contains(itemDto2.getDescription()));
                 });
 
-        verify(cartService, times(1)).getItemsDtosInCart();
-        verify(cartService, times(1)).getTotalSumFormatted();
+        verify(cartService, times(1)).getItemsDtosInCart("user");
+        verify(cartService, times(1)).getTotalSumFormatted("user");
     }
 
     @Test
-    void checkPaymentServiceAvailabilityWhenPaymentServiceIsUnavailable() throws Exception {
+    @WithMockUser(username = "user", roles = {"USER"})
+    void checkPaymentServiceAvailabilityWhenPaymentServiceIsUnavailable() {
         webTestClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .scheme(Constants.SCHEME)
@@ -107,4 +114,3 @@ public class CartControllerTest {
                 .expectStatus().isNotFound();
     }
 }
-*/

@@ -5,6 +5,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Flux;
@@ -47,6 +50,9 @@ public class ItemControllerTest {
     @MockitoBean
     private ItemRepository itemRepository;
 
+    @MockitoBean
+    private UserRepository userRepository;
+
     @AfterEach
     void setUp() {
         Mockito.reset(itemService);
@@ -67,7 +73,15 @@ public class ItemControllerTest {
         when(itemsService.getItemListSize())
                 .thenReturn(Mono.just(itemDtoList.size()));
 
-        webTestClient.get()
+        webTestClient.mutateWith(
+                        // Создаём объект аутентификации
+                        SecurityMockServerConfigurers.mockAuthentication(
+                                // Создаём объект аутентификации с указанными ролями
+                                new UsernamePasswordAuthenticationToken(
+                                        "admin", null, List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))
+                                )
+                        ))
+                .get()
                 .uri("/main/items")
                 .exchange()
                 .expectStatus().isOk()
@@ -93,7 +107,13 @@ public class ItemControllerTest {
         when(itemsService.getItemListSize())
                 .thenReturn(Mono.just(itemDtoList.size()));
 
-        webTestClient.get()
+        webTestClient.mutateWith(
+                        SecurityMockServerConfigurers.mockAuthentication(
+                                new UsernamePasswordAuthenticationToken(
+                                        "admin", null, List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))
+                                )
+                        ))
+                .get()
                 .uri(uriBuilder ->
                         uriBuilder
                                 .path("/main/items")
@@ -120,7 +140,13 @@ public class ItemControllerTest {
         when((itemsService.getItemDto(anyInt())))
                 .thenReturn(Mono.just(itemDto1));
 
-        webTestClient.get()
+        webTestClient.mutateWith(
+                        SecurityMockServerConfigurers.mockAuthentication(
+                                new UsernamePasswordAuthenticationToken(
+                                        "admin", null, List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))
+                                )
+                        ))
+                .get()
                 .uri("/items/1")
                 .exchange()
                 .expectStatus().isOk()
@@ -148,7 +174,13 @@ public class ItemControllerTest {
         when(itemsService.getItemListSize())
                 .thenReturn(Mono.just(itemDtoList.size()));
 
-        webTestClient.get()
+        webTestClient.mutateWith(
+                        SecurityMockServerConfigurers.mockAuthentication(
+                                new UsernamePasswordAuthenticationToken(
+                                        "admin", null, List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))
+                                )
+                        ))
+                .get()
                 .uri(uriBuilder ->
                         uriBuilder
                                 .path("/search")

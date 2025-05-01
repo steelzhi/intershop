@@ -5,10 +5,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
+import ru.yandex.practicum.config.SecurityConfigTest;
 import ru.yandex.practicum.dao.ImageRepository;
 import ru.yandex.practicum.dao.ItemRepository;
+import ru.yandex.practicum.dao.UserRepository;
 import ru.yandex.practicum.dto.ItemDto;
 import ru.yandex.practicum.mapper.ItemMapper;
 import ru.yandex.practicum.model.Image;
@@ -21,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient
+@Import(SecurityConfigTest.class)
 public class ItemAllLayersTest {
     @Autowired
     private WebTestClient webTestClient;
@@ -31,6 +36,9 @@ public class ItemAllLayersTest {
     @Autowired
     ImageRepository imageRepository;
 
+    @Autowired
+    UserRepository userRepository;
+
     @AfterEach
     void clearDb() {
         itemRepository.deleteAll();
@@ -38,6 +46,7 @@ public class ItemAllLayersTest {
     }
 
     @Test
+    @WithMockUser(username = "user", roles = {"USER"})
     void getItemsList() throws Exception {
         byte[] imageBytes1 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\armature.txt"));
         Image image1 = new Image(imageBytes1);
@@ -62,6 +71,7 @@ public class ItemAllLayersTest {
     }
 
     @Test
+    @WithMockUser(username = "user", roles = {"USER"})
     void getItemsListSplittedByPages() throws Exception {
         byte[] imageBytes1 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\armature.txt"));
         Image image1 = new Image(imageBytes1);
@@ -100,6 +110,7 @@ public class ItemAllLayersTest {
     }
 
     @Test
+    @WithMockUser(username = "user", roles = {"USER"})
     void getItemDto() throws Exception {
         byte[] imageBytes1 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\armature.txt"));
         Image image1 = new Image(imageBytes1);
@@ -124,6 +135,7 @@ public class ItemAllLayersTest {
     }
 
     @Test
+    @WithMockUser(username = "user", roles = {"USER"})
     void search() throws Exception {
         byte[] imageBytes1 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\armature.txt"));
         Image image1 = new Image(imageBytes1);

@@ -1,8 +1,13 @@
 package ru.yandex.practicum.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.client.OAuth2AuthorizeRequest;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
+import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,6 +38,9 @@ public class CartController {
 
     @Autowired
     private WebClient webClient;
+
+    @Autowired
+    ReactiveOAuth2AuthorizedClientManager manager;
 
     @PostMapping("/cart/add/{id}")
     public Mono<String> addItemToCart(@PathVariable int id, Principal principal) {
@@ -68,6 +76,7 @@ public class CartController {
         boolean[] isPaymentServiceAvailable = new boolean[1];
         isPaymentServiceAvailable[0] = true;
 
+
         Mono<Double> balanceMono = webClient.get()
                 .uri(Constants.SCHEME + "://" + Constants.HOST + ":" + Constants.PORT + Constants.ROOT_PATH
                      + "/balance")
@@ -84,6 +93,39 @@ public class CartController {
                     isPaymentServiceAvailable[0] = false;
                     return Mono.empty();
                 });
+
+        /*Mono<Double> balanceMono = Mono.empty();
+
+        WebClient webClient = WebClient.create(Constants.SCHEME + "://" + Constants.HOST + ":" + Constants.PORT);
+
+        Mono<OAuth2AuthorizedClient> clientMono = manager.authorize(OAuth2AuthorizeRequest
+                .withClientRegistrationId("main-app")
+                .principal("system") // У client_credentials нет имени пользователя, поэтому будем использовать system.
+                .build());
+
+        Mono<String> stringMono = clientMono
+                .doOnError(client -> System.out.println("Error!"))
+                .doOnNext(client -> System.out.println("Client: " + client))
+                .map(client -> {
+                    System.out.println("Получение oAuth2AccessToken");
+                    OAuth2AccessToken oAuth2AccessToken = client.getAccessToken();
+                    System.out.println("oAuth2AccessToken: " + oAuth2AccessToken);
+                    return oAuth2AccessToken;
+                })
+                .map(token -> {
+                    String tokenValue = token.getTokenValue();
+                    System.out.println("tokenValue: " + tokenValue);
+                    return tokenValue;
+                });
+
+        stringMono
+                .flatMap(accessToken -> webClient.get()
+                        .uri(Constants.ROOT_PATH + "/balance")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                        .retrieve()
+                        .toBodilessEntity()
+                )
+                .subscribe(responseEntity -> System.out.println(responseEntity.getStatusCode()));*/
 
         model.addAttribute("principal", principal);
         model.addAttribute("items", itemDtosFlux);

@@ -47,7 +47,32 @@ public class ItemAllLayersTest {
 
     @Test
     @WithMockUser(username = "user", roles = {"USER"})
-    void getItemsList() throws Exception {
+    void getItemsListForAuthorizedUser() throws Exception {
+        byte[] imageBytes1 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\armature.txt"));
+        Image image1 = new Image(imageBytes1);
+        Mono<Image> imageMono1 = imageRepository.save(image1);
+        Item item1 = new Item("Арматура", "Арматура для строительства", null, 65_000);
+        Mono<ItemDto> itemDto1 = ItemMapper.mapToItemDto(Mono.just(item1), imageMono1)
+                .doOnNext(itemDto -> itemDto.setAmount(1))
+                .flatMap(itemDto -> itemRepository.save(itemDto));
+        ItemDto itemDto = itemDto1.block();
+
+        webTestClient.get()
+                .uri("/main/items")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(String.class).consumeWith(response -> {
+                    String body = response.getResponseBody();
+                    assertNotNull(body);
+                    assertTrue(body.contains("main"));
+                    assertTrue(body.contains(itemDto.getName()));
+                    assertTrue(body.contains(itemDto.getDescription()));
+                });
+    }
+
+    // Страница с товарами доступна любым пользователям, поэтому перенаправления на страницу входа не будет
+    @Test
+    void getItemsListForUnAuthorizedUser() throws Exception {
         byte[] imageBytes1 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\armature.txt"));
         Image image1 = new Image(imageBytes1);
         Mono<Image> imageMono1 = imageRepository.save(image1);
@@ -111,7 +136,32 @@ public class ItemAllLayersTest {
 
     @Test
     @WithMockUser(username = "user", roles = {"USER"})
-    void getItemDto() throws Exception {
+    void getItemDtoForAuthorizedUser() throws Exception {
+        byte[] imageBytes1 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\armature.txt"));
+        Image image1 = new Image(imageBytes1);
+        Mono<Image> imageMono1 = imageRepository.save(image1);
+        Item item1 = new Item("itemDto1", "abcdesc1", null, 1.0);
+        Mono<ItemDto> itemDtoMono1 = ItemMapper.mapToItemDto(Mono.just(item1), imageMono1)
+                .doOnNext(itemDto -> itemDto.setAmount(1))
+                .flatMap(itemDto -> itemRepository.save(itemDto));
+        ItemDto itemDto1 = itemDtoMono1.block();
+
+        webTestClient.get()
+                .uri("/items/" + itemDto1.getId())
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(String.class).consumeWith(response -> {
+                    String body = response.getResponseBody();
+                    assertNotNull(body);
+                    assertTrue(body.contains("main"));
+                    assertTrue(body.contains(itemDto1.getName()));
+                    assertTrue(body.contains(itemDto1.getDescription()));
+                });
+    }
+
+    // Страница с товаром доступна любым пользователям, поэтому перенаправления на страницу входа не будет
+    @Test
+    void getItemDtoForUnAuthorizedUser() throws Exception {
         byte[] imageBytes1 = Files.readAllBytes(Paths.get("src\\main\\resources\\images-bytes\\armature.txt"));
         Image image1 = new Image(imageBytes1);
         Mono<Image> imageMono1 = imageRepository.save(image1);

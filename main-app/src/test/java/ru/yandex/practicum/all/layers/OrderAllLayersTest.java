@@ -230,4 +230,12 @@ public class OrderAllLayersTest {
                     assertTrue(body.contains(itemDto1.getDescription()));
                 });
     }
+
+    @Test
+    void getOrdersForUnauthorizedUser() throws Exception {
+        webTestClient.get()
+                .uri("/orders")
+                .exchange()
+                .expectStatus().isFound(); // перенаправление на страницу входа
+    }
 }

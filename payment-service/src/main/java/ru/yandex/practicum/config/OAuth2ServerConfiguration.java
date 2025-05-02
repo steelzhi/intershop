@@ -1,4 +1,3 @@
-/*
 package ru.yandex.practicum.config;
 
 import org.springframework.context.annotation.Bean;
@@ -45,4 +44,3 @@ public class OAuth2ServerConfiguration {
         return ReactiveJwtDecoders.fromIssuerLocation("http://localhost:8080/realms/master");
     }
 }
-*/

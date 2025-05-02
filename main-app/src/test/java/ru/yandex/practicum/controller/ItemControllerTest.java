@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -64,7 +65,43 @@ public class ItemControllerTest {
     }
 
     @Test
-    void getItemsList_shouldReturnItemsList() throws Exception {
+    @WithMockUser(username = "user", roles = {"USER"})
+    void getItemsListForAuthorizedUser_shouldReturnItemsList() throws Exception {
+        ItemDto itemDto1 = new ItemDto("itemDto1", "desc1", null, 1.0, 2);
+        ItemDto itemDto2 = new ItemDto("itemDto2", "desc2", null, 2.0, 3);
+        List<ItemDto> itemDtoList = List.of(itemDto1, itemDto2);
+        when(itemsService.getItemsList(10, 1))
+                .thenReturn(Flux.fromIterable(itemDtoList));
+        when(itemsService.getItemListSize())
+                .thenReturn(Mono.just(itemDtoList.size()));
+
+        webTestClient.mutateWith(
+                        // Создаём объект аутентификации
+                        SecurityMockServerConfigurers.mockAuthentication(
+                                // Создаём объект аутентификации с указанными ролями
+                                new UsernamePasswordAuthenticationToken(
+                                        "admin", null, List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))
+                                )
+                        ))
+                .get()
+                .uri("/main/items")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(String.class).consumeWith(response -> {
+                    String body = response.getResponseBody();
+                    assertNotNull(body);
+                    assertTrue(body.contains("main"));
+                    assertTrue(body.contains(itemDto1.getName()));
+                    assertTrue(body.contains(itemDto2.getDescription()));
+                });
+
+        verify(itemsService, times(1)).getItemsList(10, 1);
+        verify(itemsService, times(1)).getItemListSize();
+    }
+
+    // Страница с товарами доступна любым пользователям, поэтому перенаправления на страницу входа не будет
+    @Test
+    void getItemsListForUnathorizedUser_shouldReturnItemsList() throws Exception {
         ItemDto itemDto1 = new ItemDto("itemDto1", "desc1", null, 1.0, 2);
         ItemDto itemDto2 = new ItemDto("itemDto2", "desc2", null, 2.0, 3);
         List<ItemDto> itemDtoList = List.of(itemDto1, itemDto2);

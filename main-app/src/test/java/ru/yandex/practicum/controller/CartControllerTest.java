@@ -74,7 +74,7 @@ public class CartControllerTest {
 
     @Test
     @WithMockUser(username = "user", roles = {"USER"})
-    void getCart_shouldGetCart() {
+    void getCartForAuthorizedUser_shouldGetCart() {
         ItemDto itemDto1 = new ItemDto("itemDto1", "desc1", null, 1.0, 2);
         ItemDto itemDto2 = new ItemDto("itemDto2", "desc2", null, 2.0, 3);
         Flux<ItemDto> itemDtoFlux = Flux.just(itemDto1, itemDto2);
@@ -98,6 +98,23 @@ public class CartControllerTest {
 
         verify(cartService, times(1)).getItemsDtosInCart("user");
         verify(cartService, times(1)).getTotalSumFormatted("user");
+    }
+
+    @Test
+    void getCartForUnauthorizedUser_shouldReturn401() {
+        ItemDto itemDto1 = new ItemDto("itemDto1", "desc1", null, 1.0, 2);
+        ItemDto itemDto2 = new ItemDto("itemDto2", "desc2", null, 2.0, 3);
+        Flux<ItemDto> itemDtoFlux = Flux.just(itemDto1, itemDto2);
+        when(cartService.getItemsDtosInCart("user"))
+                .thenReturn(itemDtoFlux);
+
+        when(cartService.getTotalSumFormatted("user"))
+                .thenReturn(Mono.just("0"));
+
+        webTestClient.get()
+                .uri("/cart/items")
+                .exchange()
+                .expectStatus().isUnauthorized();
     }
 
     @Test

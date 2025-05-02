@@ -36,8 +36,8 @@ public class SecurityConfigTest {
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         return http
                 .authorizeExchange(exchanges -> exchanges
-                        .pathMatchers("/api/public").permitAll()
-                        .pathMatchers("/api/secure").hasRole("USER")
+                        .pathMatchers("/").permitAll()
+                        .pathMatchers("/cart/items").hasRole("USER")
                         .anyExchange().authenticated()
                 )
                 .httpBasic(withDefaults())

@@ -77,7 +77,7 @@ public class CartController {
         isPaymentServiceAvailable[0] = true;
 
 
-        Mono<Double> balanceMono = webClient.get()
+        /*Mono<Double> balanceMono = webClient.get()
                 .uri(Constants.SCHEME + "://" + Constants.HOST + ":" + Constants.PORT + Constants.ROOT_PATH
                      + "/balance")
                 .retrieve()
@@ -92,12 +92,13 @@ public class CartController {
                     System.out.println("PaymentService is not available (1)");
                     isPaymentServiceAvailable[0] = false;
                     return Mono.empty();
-                });
+                });*/
 
-        /*Mono<Double> balanceMono = Mono.empty();
+        Mono<Double> balanceMono = Mono.empty();
 
         WebClient webClient = WebClient.create(Constants.SCHEME + "://" + Constants.HOST + ":" + Constants.PORT);
 
+        // В этом блоке возникает ошибка!
         Mono<OAuth2AuthorizedClient> clientMono = manager.authorize(OAuth2AuthorizeRequest
                 .withClientRegistrationId("main-app")
                 .principal("system") // У client_credentials нет имени пользователя, поэтому будем использовать system.
@@ -125,7 +126,7 @@ public class CartController {
                         .retrieve()
                         .toBodilessEntity()
                 )
-                .subscribe(responseEntity -> System.out.println(responseEntity.getStatusCode()));*/
+                .subscribe(responseEntity -> System.out.println(responseEntity.getStatusCode()));
 
         model.addAttribute("principal", principal);
         model.addAttribute("items", itemDtosFlux);

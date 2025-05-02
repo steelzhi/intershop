@@ -86,7 +86,7 @@ public class OrderControllerTest {
 
     @Test
     @WithMockUser(username = "user", roles = {"USER"})
-    void getOrders_shouldReturnOrders() throws Exception {
+    void getOrdersForAuthorizedUser_shouldReturnOrders() throws Exception {
         Order order1 = new Order("user");
         Order order2 = new Order("user");
         OrderDto orderDto1 = new OrderDto(order1.getId(), order1.getTotalSum());
@@ -113,6 +113,26 @@ public class OrderControllerTest {
 
         verify(orderService, times(1)).getOrders("user");
         verify(orderService, times(1)).getOrdersTotalSumFormatted("user");
+    }
+
+    @Test
+    void getOrdersForUnauthorizedUser_shouldReturn401() throws Exception {
+        Order order1 = new Order("user");
+        Order order2 = new Order("user");
+        OrderDto orderDto1 = new OrderDto(order1.getId(), order1.getTotalSum());
+        OrderDto orderDto2 = new OrderDto(order2.getId(), order2.getTotalSum());
+
+        Flux<OrderDto> orderFlux = Flux.just(orderDto1, orderDto2);
+        when(orderService.getOrders("user"))
+                .thenReturn(orderFlux);
+
+        when(orderService.getOrdersTotalSumFormatted("user"))
+                .thenReturn(Mono.just("0"));
+
+        webTestClient.get()
+                .uri("/orders")
+                .exchange()
+                .expectStatus().isUnauthorized();
     }
 
     @Test

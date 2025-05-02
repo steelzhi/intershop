@@ -115,4 +115,12 @@ public class CartAllLayersTest {
                     assertTrue(body.contains(itemDto2.getDescription()));
                 });
     }
+
+    @Test
+    void getCartForUnauthorizedUser() throws Exception {
+        webTestClient.get()
+                .uri("/cart/items")
+                .exchange()
+                .expectStatus().isFound(); // перенаправление на страницу входа
+    }
 }

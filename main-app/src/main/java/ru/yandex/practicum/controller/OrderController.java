@@ -67,6 +67,7 @@ public class OrderController {
                                                 .port(Constants.PORT)
                                                 .path(Constants.ROOT_PATH + "/do-payment")
                                                 .queryParam("payment", String.valueOf(orderDto.getTotalSum()))
+                                                .queryParam("username", username)
                                                 .build())
                                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
                                         .exchange()

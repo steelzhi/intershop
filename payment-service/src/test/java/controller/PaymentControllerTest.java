@@ -40,11 +40,15 @@ public class PaymentControllerTest {
     @WithMockUser(username = "user", roles = {"USER"})
     void getBalanceAuthorized_shouldReturnBalance() {
         double balance = 10_000;
-        when(paymentService.getBalance())
+        when(paymentService.getBalance("user"))
                 .thenReturn(Mono.just(balance));
 
         webTestClient.get()
-                .uri("/payments/balance")
+                .uri(uriBuilder ->
+                        uriBuilder
+                                .path("/payments/balance")
+                                .queryParam("username", "user")
+                                .build())
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody(Double.class).consumeWith(response -> {
@@ -53,13 +57,13 @@ public class PaymentControllerTest {
                     assertEquals(body, balance, "Wrong balance value");
                 });
 
-        verify(paymentService, times(1)).getBalance();
+        verify(paymentService, times(1)).getBalance("user");
     }
 
     @Test
     void getBalanceUnauthorized_shouldReturn401() {
         double balance = 10_000;
-        when(paymentService.getBalance())
+        when(paymentService.getBalance("unauthorized"))
                 .thenReturn(Mono.just(balance));
 
         webTestClient.get()
@@ -73,7 +77,7 @@ public class PaymentControllerTest {
     void doPaymentAuthorized_shouldDoPayment() {
         double balance = 10_000;
 
-        when(paymentService.doPayment(balance))
+        when(paymentService.doPayment(balance, "user"))
                 .thenReturn(Mono.empty());
 
         webTestClient.post()
@@ -81,18 +85,19 @@ public class PaymentControllerTest {
                         uriBuilder
                                 .path("/payments/do-payment")
                                 .queryParam("payment", String.valueOf(balance))
+                                .queryParam("username", "user")
                                 .build())
                 .exchange()
                 .expectStatus().isOk();
 
-        verify(paymentService, times(1)).doPayment(balance);
+        verify(paymentService, times(1)).doPayment(balance,"user");
     }
 
     @Test
     void doPaymentUnauthorized_shouldReturn401() {
         double balance = 10_000;
 
-        when(paymentService.doPayment(balance))
+        when(paymentService.doPayment(balance, "user"))
                 .thenReturn(Mono.empty());
 
         webTestClient.post()

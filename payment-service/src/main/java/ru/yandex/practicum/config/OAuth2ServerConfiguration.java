@@ -30,8 +30,9 @@ public class OAuth2ServerConfiguration {
                             ReactiveJwtAuthenticationConverter jwtAuthenticationConverter = new ReactiveJwtAuthenticationConverter();
                             jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwt -> {
                                 System.out.println("jwt.getTokenValue: " + jwt.getTokenValue());
-                                LinkedTreeMap<String, Object> claims = (LinkedTreeMap<String, Object>) jwt.getClaims().get("realm_access");
-                                List<String> roles = (List<String>) claims.get("roles");
+                                Map<String, Object> objectMap = jwt.getClaims();
+                                LinkedTreeMap<String, Object> realmAccess = (LinkedTreeMap<String, Object>) jwt.getClaims().get("realm_access");
+                                List<String> roles = (List<String>) realmAccess.get("roles");
 
                                 return Flux.fromIterable(roles)
                                         .map(SimpleGrantedAuthority::new);

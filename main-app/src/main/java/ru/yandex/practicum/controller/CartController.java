@@ -2,12 +2,7 @@ package ru.yandex.practicum.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.oauth2.client.OAuth2AuthorizeRequest;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager;
-import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -81,8 +76,15 @@ public class CartController {
 
         Mono<Double> balanceMono = tokenStringMono
                 .flatMap(accessToken -> webClient.get()
-                        .uri(Constants.SCHEME + "://" + Constants.HOST + ":" + Constants.PORT + Constants.ROOT_PATH
-                             + "/balance")
+/*                        .uri(Constants.SCHEME + "://" + Constants.HOST + ":" + Constants.PORT + Constants.ROOT_PATH
+                             + "/balance")*/
+                                .uri(uriBuilder -> uriBuilder
+                                        .scheme(Constants.SCHEME)
+                                        .host(Constants.HOST)
+                                        .port(Constants.PORT)
+                                        .path(Constants.ROOT_PATH + "/balance")
+                                        .queryParam("username", username)
+                                        .build())
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
                         .retrieve()
                         .toEntity(Double.class)
@@ -90,7 +92,7 @@ public class CartController {
                 .map(re -> (Double) re.getBody())
                 .flatMap(balance -> {
                     // Запишем текущий баланс в поле класса, чтобы не запрашивать баланс еще раз в OrderController
-                    System.out.println("Current balance is: " + balance);
+                    System.out.println("Current balance is for username = " + username + " is: " + balance);
                     Balance.setBalance(balance);
                     return Mono.just(balance);
                 })

@@ -16,19 +16,19 @@ public class PaymentServiceTest {
 
     @Test
     void testGetBalance() {
-        Double balanceFirstQuery = paymentService.getBalance().block();
+        Double balanceFirstQuery = paymentService.getBalance("user").block();
         assertNotNull(balanceFirstQuery, "After query balance can't be null");
 
-        Double balanceSecondQuery = paymentService.getBalance().block();
+        Double balanceSecondQuery = paymentService.getBalance("user").block();
         assertEquals(balanceFirstQuery, balanceSecondQuery, "After next query balance should be the same");
     }
 
     @Test
     void testDoPayment() {
-        Double balanceFirstQuery = paymentService.getBalance().block();
+        Double balanceFirstQuery = paymentService.getBalance("user").block();
         double payment = balanceFirstQuery - 1;
-        paymentService.doPayment(payment);
-        Double balanceSecondQuery = paymentService.getBalance().block();
+        paymentService.doPayment(payment, "user");
+        Double balanceSecondQuery = paymentService.getBalance("user").block();
         assertEquals(balanceSecondQuery, balanceFirstQuery - payment,
                 "After payment balance wasn't correctly decreased");
     }

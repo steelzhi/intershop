@@ -75,7 +75,7 @@
     </table>
 </table>
 
-<b th:text="'Итого: ' + ${totalPriceFormatted} + ' ₽'"></b>
+<b th:text="'Итого: ' + (${totalPriceFormatted} != null ? ${totalPriceFormatted} : '0') + ' ₽'"></b>
 <form th:if="${isPaymentServiceAvailable}" action="/create-order" method="post">
     <button>Купить</button>
 </form>

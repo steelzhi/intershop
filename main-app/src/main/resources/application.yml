@@ -13,7 +13,7 @@ spring:
             provider: keycloak
             authorizationGrantType: client_credentials
             client-id: main-app
-            client-secret: VmGXQDXNGOZzJH5Mx7Fi4OyHtnb3IH8A
+            client-secret: 59qj9t9xoo4YhN3mLzYxZvqIz4wLYODi
             scope: profile
             clientAuthenticationMethod: client_secret_post # Способ передачи секрета
 

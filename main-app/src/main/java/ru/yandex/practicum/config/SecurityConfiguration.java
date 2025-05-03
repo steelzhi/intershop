@@ -52,10 +52,6 @@ public class SecurityConfiguration {
                                                         exchange.getExchange().getResponse()
                                                                 .setStatusCode(HttpStatus.OK); // отвечаем 200 OK
                                                     }))
-
-
-
-
                                 )
                                 .logoutSuccessHandler(logoutSuccessHandler("/"))
                 )
@@ -81,7 +77,6 @@ public class SecurityConfiguration {
     ) {
         AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager manager =
                 new AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager(clientRegistrationRepository, authorizedClientService);
-
         manager.setAuthorizedClientProvider(ReactiveOAuth2AuthorizedClientProviderBuilder.builder()
                 .clientCredentials() // Включаем получение токена с помощью client_credentials
                 .refreshToken() // Также включаем использование refresh_token

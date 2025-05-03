@@ -1,5 +1,6 @@
 package ru.yandex.practicum.config;
 
+import com.nimbusds.jose.shaded.gson.internal.LinkedTreeMap;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
@@ -12,6 +13,7 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 import reactor.core.publisher.Flux;
 
 import java.util.List;
+import java.util.Map;
 
 @Configuration
 @EnableWebFluxSecurity
@@ -27,7 +29,9 @@ public class OAuth2ServerConfiguration {
                         .jwt(jwtSpec -> {
                             ReactiveJwtAuthenticationConverter jwtAuthenticationConverter = new ReactiveJwtAuthenticationConverter();
                             jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwt -> {
-                                List<String> roles = jwt.getClaim("roles");
+                                System.out.println("jwt.getTokenValue: " + jwt.getTokenValue());
+                                LinkedTreeMap<String, Object> claims = (LinkedTreeMap<String, Object>) jwt.getClaims().get("realm_access");
+                                List<String> roles = (List<String>) claims.get("roles");
 
                                 return Flux.fromIterable(roles)
                                         .map(SimpleGrantedAuthority::new);

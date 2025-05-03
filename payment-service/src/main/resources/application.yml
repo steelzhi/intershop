@@ -9,8 +9,8 @@ server: #Сервис платежей (сервер)
          jwt:
          issuer-uri: http://localhost:8080/realms/master
 
-  main:
-    banner-mode: off
+    main:
+      banner-mode: off
 
 springdoc:
   swagger-ui:

@@ -24,6 +24,7 @@ import ru.yandex.practicum.model.Balance;
 import ru.yandex.practicum.service.CartService;
 import ru.yandex.practicum.service.ItemGettingFromCacheService;
 import ru.yandex.practicum.util.RedirectionPage;
+import ru.yandex.practicum.util.TokenStringMono;
 
 import java.security.Principal;
 
@@ -76,15 +77,20 @@ public class CartController {
         boolean[] isPaymentServiceAvailable = new boolean[1];
         isPaymentServiceAvailable[0] = true;
 
+        Mono<String> tokenStringMono = TokenStringMono.getTokenStringMono(manager);
 
-        /*Mono<Double> balanceMono = webClient.get()
-                .uri(Constants.SCHEME + "://" + Constants.HOST + ":" + Constants.PORT + Constants.ROOT_PATH
-                     + "/balance")
-                .retrieve()
-                .toEntity(Double.class)
-                .flatMap(doubleResponseEntity -> {
-                    double balance = doubleResponseEntity.getBody();
+        Mono<Double> balanceMono = tokenStringMono
+                .flatMap(accessToken -> webClient.get()
+                        .uri(Constants.SCHEME + "://" + Constants.HOST + ":" + Constants.PORT + Constants.ROOT_PATH
+                             + "/balance")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                        .retrieve()
+                        .toEntity(Double.class)
+                )
+                .map(re -> (Double) re.getBody())
+                .flatMap(balance -> {
                     // Запишем текущий баланс в поле класса, чтобы не запрашивать баланс еще раз в OrderController
+                    System.out.println("Current balance is: " + balance);
                     Balance.setBalance(balance);
                     return Mono.just(balance);
                 })
@@ -92,41 +98,7 @@ public class CartController {
                     System.out.println("PaymentService is not available (1)");
                     isPaymentServiceAvailable[0] = false;
                     return Mono.empty();
-                });*/
-
-        Mono<Double> balanceMono = Mono.empty();
-
-        WebClient webClient = WebClient.create(Constants.SCHEME + "://" + Constants.HOST + ":" + Constants.PORT);
-
-        // В этом блоке возникает ошибка!
-        Mono<OAuth2AuthorizedClient> clientMono = manager.authorize(OAuth2AuthorizeRequest
-                .withClientRegistrationId("main-app")
-                .principal("system") // У client_credentials нет имени пользователя, поэтому будем использовать system.
-                .build());
-
-        Mono<String> stringMono = clientMono
-                .doOnError(client -> System.out.println("Error!"))
-                .doOnNext(client -> System.out.println("Client: " + client))
-                .map(client -> {
-                    System.out.println("Получение oAuth2AccessToken");
-                    OAuth2AccessToken oAuth2AccessToken = client.getAccessToken();
-                    System.out.println("oAuth2AccessToken: " + oAuth2AccessToken);
-                    return oAuth2AccessToken;
-                })
-                .map(token -> {
-                    String tokenValue = token.getTokenValue();
-                    System.out.println("tokenValue: " + tokenValue);
-                    return tokenValue;
                 });
-
-        stringMono
-                .flatMap(accessToken -> webClient.get()
-                        .uri(Constants.ROOT_PATH + "/balance")
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
-                        .retrieve()
-                        .toBodilessEntity()
-                )
-                .subscribe(responseEntity -> System.out.println(responseEntity.getStatusCode()));
 
         model.addAttribute("principal", principal);
         model.addAttribute("items", itemDtosFlux);
@@ -140,10 +112,5 @@ public class CartController {
                     }
                 })
                 .then(Mono.just("cart"));
-    }
-
-    private String getUsername() {
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return userDetails.getUsername();
     }
 }

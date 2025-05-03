@@ -1,6 +1,8 @@
 package ru.yandex.practicum.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,6 +17,7 @@ import ru.yandex.practicum.model.Balance;
 import ru.yandex.practicum.model.Order;
 import ru.yandex.practicum.service.CartService;
 import ru.yandex.practicum.service.OrderService;
+import ru.yandex.practicum.util.TokenStringMono;
 
 import java.security.Principal;
 
@@ -30,6 +33,9 @@ public class OrderController {
     @Autowired
     WebClient webClient;
 
+    @Autowired
+    ReactiveOAuth2AuthorizedClientManager manager;
+
     @PostMapping("/create-order")
     public Mono<String> createOrder(Model model, Principal principal) {
         String username = principal.getName();
@@ -39,6 +45,9 @@ public class OrderController {
             Mono<OrderDto> orderDtoMono1 = orderService.getOrder(order.getId());
             return orderDtoMono1;
         });
+
+        Mono<String> tokenStringMono = TokenStringMono.getTokenStringMono(manager);
+
 
         return orderDtoMono
                 .doOnNext(orderDto -> {
@@ -50,18 +59,20 @@ public class OrderController {
                         System.out.println("Order is successful");
 
                         // Списываем сумму заказа с баланса
-                        webClient.post()
-                                .uri(uriBuilder -> uriBuilder
-                                        .scheme(Constants.SCHEME)
-                                        .host(Constants.HOST)
-                                        .port(Constants.PORT)
-                                        .path(Constants.ROOT_PATH + "/do-payment")
-                                        .queryParam("payment", String.valueOf(orderDto.getTotalSum()))
-                                        .build())
-                                .exchange()
-                                .doOnNext(i -> System.out.println("Deducting order sum from balance"))
+                        tokenStringMono
+                                .flatMap(accessToken -> webClient.post()
+                                        .uri(uriBuilder -> uriBuilder
+                                                .scheme(Constants.SCHEME)
+                                                .host(Constants.HOST)
+                                                .port(Constants.PORT)
+                                                .path(Constants.ROOT_PATH + "/do-payment")
+                                                .queryParam("payment", String.valueOf(orderDto.getTotalSum()))
+                                                .build())
+                                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                                        .exchange()
+                                        .doOnNext(i -> System.out.println("Deducting order sum = " + orderDto.getTotalSum() + " ₽ from balance"))
+                                )
                                 .subscribe();
-
                         return Mono.just("order");
                     } else {
                         System.out.println("Order is unsuccessful - not enough money on account");

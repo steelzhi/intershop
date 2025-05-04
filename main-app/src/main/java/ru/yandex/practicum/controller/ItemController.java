@@ -29,7 +29,7 @@ public class ItemController {
     private ItemGettingFromCacheService itemService;
 
     @Autowired
-    private ItemAllOtherOpsService itemsService;
+    private ItemAllOtherOpsService itemAllOtherOpsService;
 
     @GetMapping(value = {"/", "/main/items"})
     public Mono<String> getItemsList(
@@ -39,7 +39,7 @@ public class ItemController {
             @RequestParam(name = "pageNumber", required = false) Integer pageNumber) throws IOException {
         // Нужно зачищать кэш на старте очередного запуска программы
         if (!wasCacheCleared) {
-            itemsService.clearCache();
+            itemAllOtherOpsService.clearCache();
             wasCacheCleared = true;
         }
 
@@ -50,7 +50,7 @@ public class ItemController {
         itemsOnPage = getHandledItemsOnPage(itemsOnPage);
         pageNumber = getHandledItemsPageNumber(pageNumber);
         //       Flux<ItemDto> itemsFlux = itemService.getItemsList(itemsOnPage, pageNumber);
-        Flux<ItemDto> itemsFlux = itemsService.getItemsList(itemsOnPage, pageNumber);
+        Flux<ItemDto> itemsFlux = itemAllOtherOpsService.getItemsList(itemsOnPage, pageNumber);
 
         Mono<Pages> pagesMono = getPages(itemsOnPage);
 
@@ -62,7 +62,7 @@ public class ItemController {
 
     @GetMapping("/items/{id}")
     public Mono<String> getItemDto(Model model, Principal principal, @PathVariable int id) {
-        Mono<ItemDto> itemDtoMono = itemsService.getItemDto(id);
+        Mono<ItemDto> itemDtoMono = itemAllOtherOpsService.getItemDto(id);
         return itemDtoMono.doOnNext(itemDto -> System.out.println("ItemDto amount: " + itemDto.getAmount()))
                 .doOnNext(itemDto -> {
                     model.addAttribute("itemDto", itemDtoMono);
@@ -73,7 +73,7 @@ public class ItemController {
 
     @GetMapping("/search")
     public Mono<String> search(Model model, @RequestParam String key, @RequestParam SortingCategory sortingCategory) {
-        Flux<ItemDto> foundItemDtos = itemsService.search(key, sortingCategory);
+        Flux<ItemDto> foundItemDtos = itemAllOtherOpsService.search(key, sortingCategory);
         model.addAttribute("items", foundItemDtos);
         Pages pages = new Pages();
         model.addAttribute("pages", pages);
@@ -84,13 +84,13 @@ public class ItemController {
     @PostMapping(value = "/item")
     public Mono<String> addItemToList(@ModelAttribute Mono<Item> itemMono) {
         return itemMono
-                .flatMap(item -> itemsService.addItem(item))
+                .flatMap(item -> itemAllOtherOpsService.addItem(item))
                 .then(Mono.just("redirect:/main/items"));
     }
 
     @PostMapping("/item/{id}/minus")
     public Mono<String> decreaseItemAmount(ServerWebExchange exchange, @PathVariable int id) {
-        return itemsService.decreaseItemAmount(id)
+        return itemAllOtherOpsService.decreaseItemAmount(id)
                 .then(exchange.getFormData()
                         .flatMap(formData -> {
                             String pageName = formData.getFirst("pageName");
@@ -102,7 +102,7 @@ public class ItemController {
 
     @PostMapping("/item/{id}/plus")
     public Mono<String> increaseItemAmount(ServerWebExchange exchange, @PathVariable int id) {
-        return itemsService.increaseItemAmount(id)
+        return itemAllOtherOpsService.increaseItemAmount(id)
                 .then(exchange.getFormData()
                         .flatMap(formData -> {
                             String pageName = formData.getFirst("pageName");
@@ -129,7 +129,7 @@ public class ItemController {
     }
 
     private Mono<Pages> getPages(Integer itemsOnPage) {
-        return itemsService.getItemListSize()
+        return itemAllOtherOpsService.getItemListSize()
                 .map(amount -> new Pages(itemsOnPage, (amount - 1) / itemsOnPage + 1));
     }
 }

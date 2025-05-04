@@ -7,7 +7,10 @@ spring:
       client:
         provider:
           keycloak:
-            issuer-uri: http://localhost:8080/realms/master # Адрес сервера авторизации для получения токена
+            #issuer-uri: http://localhost:8080/realms/master # Адрес сервера авторизации для получения токена
+            issuer-uri: http://keycloak:8080/realms/master
+            #host: keycloak
+            #port: 8080
         registration:
           main-app: # Описание клиента OAuth2
             provider: keycloak
@@ -43,8 +46,8 @@ spring:
 
   data:
     redis:
-      host: 127.0.0.1 # Для запуска приложения локально
-      #host: redis # Для запуска приложения в Docker
+      #host: 127.0.0.1 # Для запуска приложения локально
+      host: redis # Для запуска приложения в Docker
       port: 6379
   cache:
     redis:
@@ -58,15 +61,5 @@ spring:
   main:
     allow-bean-definition-overriding: true
     banner-mode: off
-
-    #logging:
-  # level:
-#    io.r2dbc.postgresql.QUERY: DEBUG # for queries
-#    io.r2dbc.postgresql.PARAM: DEBUG # for parameters
-
-  #security:
-      #user:
-    # name: 1
-      # password: 1
 
 payment-service.url: http://localhost:9090

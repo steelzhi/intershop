@@ -36,13 +36,13 @@ public class ItemAllOtherOpsService {
     private ImageRepository imageRepository;
 
     @Autowired
-    private ItemGettingFromCacheService itemService;
+    private ItemGettingFromCacheService itemGettingFromCacheService;
 
     public Flux<ItemDto> getItemsList(int itemsOnPage, int pageNumber) throws IOException {
         Flux<Integer> allItemsIdsOnPage = itemRepository.getAllItemIdsOnPage(pageNumber, itemsOnPage);
 
         // Вызываем метод с кэшированием из другого сервиса
-        Flux<ItemDto> allItems = allItemsIdsOnPage.flatMap(id -> itemService.getItemDto(id));
+        Flux<ItemDto> allItems = allItemsIdsOnPage.flatMap(id -> itemGettingFromCacheService.getItemDto(id));
         return allItems;
     }
 
@@ -53,7 +53,7 @@ public class ItemAllOtherOpsService {
             case PRICE -> itemRepository.findIdsByNameOrDescriptionOrderByPrice(key);
         };
 
-        Flux<ItemDto> searchedItems = searchedItemsIds.flatMap(id -> itemService.getItemDto(id));
+        Flux<ItemDto> searchedItems = searchedItemsIds.flatMap(id -> itemGettingFromCacheService.getItemDto(id));
 
         return searchedItems;
     }
@@ -64,7 +64,7 @@ public class ItemAllOtherOpsService {
 
     @CachePut(value = "item", key = "#id")
     public Mono<ItemDto> decreaseItemAmount(int id) {
-        Mono<ItemDto> itemDtoMono = itemService.getItemDto(id);
+        Mono<ItemDto> itemDtoMono = itemGettingFromCacheService.getItemDto(id);
         itemDtoMono
                 .doOnNext(itemDto -> itemDto.decreaseAmount())
                 .flatMap(itemDto -> itemRepository.save(itemDto))
@@ -77,7 +77,7 @@ public class ItemAllOtherOpsService {
 
     @CachePut(value = "item", key = "#id")
     public Mono<ItemDto> increaseItemAmount(int id) {
-        Mono<ItemDto> itemDtoMono = itemService.getItemDto(id);
+        Mono<ItemDto> itemDtoMono = itemGettingFromCacheService.getItemDto(id);
         itemDtoMono
                 .doOnNext(itemDto -> itemDto.increaseAmount())
                 .flatMap(itemDto -> itemRepository.save(itemDto))
@@ -94,7 +94,7 @@ public class ItemAllOtherOpsService {
      */
     public Mono<ItemDto> getItemDto(int id) {
         Mono<ItemDto> itemDtoMono = Mono.just(id)
-                .flatMap(id1 -> itemService.getItemDto(id1));
+                .flatMap(id1 -> itemGettingFromCacheService.getItemDto(id1));
         return itemDtoMono;
     }
 

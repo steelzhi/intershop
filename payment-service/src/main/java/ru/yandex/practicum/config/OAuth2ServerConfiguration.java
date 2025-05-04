@@ -46,6 +46,7 @@ public class OAuth2ServerConfiguration {
 
     @Bean
     public ReactiveJwtDecoder jwtDecoder() {
-        return ReactiveJwtDecoders.fromIssuerLocation("http://localhost:8080/realms/master");
+        //return ReactiveJwtDecoders.fromIssuerLocation("http://localhost:8080/realms/master");
+        return ReactiveJwtDecoders.fromIssuerLocation("http://keycloak:8080/realms/master");
     }
 }

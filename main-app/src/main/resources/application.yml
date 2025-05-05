@@ -7,8 +7,8 @@ spring:
       client:
         provider:
           keycloak:
-            #issuer-uri: http://localhost:8080/realms/master # Адрес сервера авторизации для получения токена
-            issuer-uri: http://keycloak:8080/realms/master
+            #issuer-uri: http://localhost:8080/realms/master # Для запуска локально; Адрес сервера авторизации для получения токена
+            issuer-uri: http://keycloak:8080/realms/master # Для запуска в Docker
             #host: keycloak
             #port: 8080
         registration:
@@ -25,20 +25,6 @@ spring:
     username: s
     password: sa
     initialization-mode: always
-
-    #datasource:
-      #driverClassName: org.postgresql.Driver
-
-    #jpa:
-      # generate-ddl: true
-      #  hibernate:
-      #    ddl-auto: create
-      #    #ddl-auto: none
-
-      # properties:
-      #   hibernate:
-      #     dialect: org.hibernate.dialect.PostgreSQLDialect
-    #     format_sql: true
 
   sql:
     init:
@@ -63,3 +49,17 @@ spring:
     banner-mode: off
 
 payment-service.url: http://localhost:9090
+
+  #datasource:
+  #driverClassName: org.postgresql.Driver
+
+  #jpa:
+  # generate-ddl: true
+  #  hibernate:
+  #    ddl-auto: create
+  #    #ddl-auto: none
+
+  # properties:
+  #   hibernate:
+  #     dialect: org.hibernate.dialect.PostgreSQLDialect
+  #     format_sql: true

@@ -1,13 +1,39 @@
 services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    container_name: keycloak
+    ports:
+      - "8080:8080"
+    environment:
+      - KC_HOSTNAME=keycloak
+      - KC_HOSTNAME_STRICT=false
+      - KC_PORT=8080
+      - KC_PROXY=edge
+      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
+      - KC_HEALTH_ENABLED=true
+    command:
+      - start-dev
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://0.0.0.0:8080/realms/master" ]
+      start_period: 1s
+      interval: 1s
+      retries: 10
+      timeout: 1s
+
   main-service:
     build: main-app/
     ports:
       - "8180:8180"
     depends_on:
-      - db
-      - redis
-      - payment-service
-      - keycloak
+      db:
+        condition: service_started
+      redis:
+        condition: service_started
+      payment-service:
+        condition: service_started
+      keycloak:
+        condition: service_healthy
     environment:
       - SPRING_R2DBC_URL=r2dbc:postgresql://db:5432/intershop
       - SPRING_R2DBC_USERNAME=s
@@ -15,21 +41,19 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - PAYMENT_SERVICE_URL=http://payment-service:9090
-      - KEYCLOAK_HOST=keycloak
-      - KEYCLOAK_PORT=8080
-      #- SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_ISSUER_URI=http://keycloak:8080/realms/master
-
+      - SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_ISSUER_URI=http://keycloak:8080/realms/master
+      - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_MAIN_APP_CLIENT_ID=main-app
+      - SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_MAIN_APP_CLIENT_SECRET=59qj9t9xoo4YhN3mLzYxZvqIz4wLYODi
 
   payment-service:
     build: payment-service/
     ports:
       - "9090:9090"
     depends_on:
-      - keycloak
+      keycloak:
+        condition: service_healthy
     environment:
-      - KEYCLOAK_HOST=keycloak
-      - KEYCLOAK_PORT=8080
-      #- SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://keycloak:8080/realms/master
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://keycloak:8080/realms/master
 
   db:
     image: postgres:13.7-alpine
@@ -45,14 +69,3 @@ services:
     container_name: redis
     ports:
       - "6379:6379"
-
-  keycloak:
-    image: quay.io/keycloak/keycloak:latest
-    container_name: keycloak
-    ports:
-      - "8080:8080"
-    environment:
-      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
-      - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
-    command:
-      - start-dev

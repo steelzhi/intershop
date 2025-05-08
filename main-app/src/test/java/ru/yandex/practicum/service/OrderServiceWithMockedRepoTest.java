@@ -1,4 +1,3 @@
-/*
 package ru.yandex.practicum.service;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -78,7 +77,7 @@ public class OrderServiceWithMockedRepoTest {
 
         Flux<CartItem> cartItemFlux = Flux.just(cartItem1);
 
-        when(cartRepository.findAll())
+        when(cartRepository.findAllByUsername("user"))
                 .thenReturn(cartItemFlux);
 
         when(itemRepository.findById(itemId1))
@@ -110,7 +109,7 @@ public class OrderServiceWithMockedRepoTest {
         assertEquals(savedOrder.getId(), orderId, "orderId should be = " + orderId);
 
         verify(orderRepository, times(1)).save(order);
-        verify(cartRepository, times(1)).findAll();
+        verify(cartRepository, times(1)).findAllByUsername("user");
         verify(itemRepository, times(1)).findById(itemId1);
         verify(orderItemRepository, times(2)).save(orderItem1);
         verify(orderRepository, times(1)).findById(orderId);
@@ -221,4 +220,3 @@ public class OrderServiceWithMockedRepoTest {
         verify(itemRepository, times(1)).findById(1);
     }
 }
-*/

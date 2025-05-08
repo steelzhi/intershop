@@ -6,10 +6,9 @@ server: #Сервис платежей (сервер)
       oauth2:
         resourceserver:
           jwt:
-            #issuer-uri: http://localhost:8080/realms/master # Для запуска локально; Адрес сервера авторизации для получения токена
-            issuer-uri: http://keycloak:8080/realms/master # Для запуска в Docker
-            #host: keycloak
-            #port: 8080
+            # Ниже - адрес сервера авторизации для получения токена
+            issuer-uri: http://localhost:8080/realms/master # Для запуска локально
+            #issuer-uri: http://keycloak:8080/realms/master # Для запуска в Docker
 
     main:
       banner-mode: off

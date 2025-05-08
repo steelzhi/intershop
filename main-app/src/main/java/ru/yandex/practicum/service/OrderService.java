@@ -41,7 +41,7 @@ public class OrderService {
         Order order = new Order(username);
         Mono<Order> orderMono = orderRepository.save(order);
 
-        Flux<CartItem> cartItemsFlux = cartRepository.findAll();
+        Flux<CartItem> cartItemsFlux = cartRepository.findAllByUsername(username);
         Flux<ItemDto> itemDtosFlux
                 = cartItemsFlux.flatMap(cartItem -> itemRepository.findById(cartItem.getItemId()))
                 .filter(itemDto -> itemDto.getAmount() > 0)

@@ -1,4 +1,3 @@
-/*
 package ru.yandex.practicum.controller;
 
 import org.junit.jupiter.api.Test;
@@ -131,4 +130,3 @@ public class CartControllerTest {
                 .expectStatus().isNotFound();
     }
 }
-*/

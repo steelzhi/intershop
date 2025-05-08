@@ -7,10 +7,9 @@ spring:
       client:
         provider:
           keycloak:
-            #issuer-uri: http://localhost:8080/realms/master # Для запуска локально; Адрес сервера авторизации для получения токена
-            issuer-uri: http://keycloak:8080/realms/master # Для запуска в Docker
-            #host: keycloak
-            #port: 8080
+            # Ниже - адрес сервера авторизации для получения токена
+            issuer-uri: http://localhost:8080/realms/master # Для запуска локально
+            #issuer-uri: http://keycloak:8080/realms/master # Для запуска в Docker
         registration:
           main-app: # Описание клиента OAuth2
             provider: keycloak
@@ -32,8 +31,8 @@ spring:
 
   data:
     redis:
-      #host: 127.0.0.1 # Для запуска приложения локально
-      host: redis # Для запуска приложения в Docker
+      host: 127.0.0.1 # Для запуска приложения локально
+      #host: redis # Для запуска приложения в Docker
       port: 6379
   cache:
     redis:

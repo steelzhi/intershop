@@ -1,4 +1,3 @@
-/*
 package ru.yandex.practicum.security.context;
 
 import org.junit.jupiter.api.Test;
@@ -22,4 +21,3 @@ public class SecurityContextTest {
                 .anyMatch(a -> a.getAuthority().equals("ROLE_USER")));
     }
 }
-*/
